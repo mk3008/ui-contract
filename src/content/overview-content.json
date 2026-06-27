@@ -1,0 +1,114 @@
+{
+  "ja": {
+    "languageLabel": "日本語",
+    "translationNote": "原文",
+    "tagline": "UIの規約を作る",
+    "title": "UI Contract Editor",
+    "lead": "業務UIの原則を書くためのエディタです。「どうあるべきか」を定義します。",
+    "keywords": ["規約", "システムデザイン", "状態", "画面原型", "JSON", "Markdown"],
+    "sections": [
+      {
+        "eyebrow": "Contract",
+        "title": "規則を書く",
+        "body": "UI Contract は「どう作るべきか」の約束です。具体的なCSSやライブラリではなく、意図的に抽象化した設計ルールを書きます。"
+      },
+      {
+        "eyebrow": "System design",
+        "title": "システムの統一感を作る",
+        "body": "単なるカラー設定ではありません。コントロール、状態、テーマ、画面構造をそろえ、システム全体の判断をぶれにくくします。"
+      },
+      {
+        "eyebrow": "Scope",
+        "title": "色、テーマ、状態、レイアウトが決まる",
+        "body": "決めるのは各種コントロールの色、テーマ、状態ごとの見た目、レイアウト原則です。active、hover、press、disabled などの状態も Contract の対象です。"
+      },
+      {
+        "eyebrow": "Screen patterns",
+        "title": "画面の原型も決まる",
+        "body": "検索条件、検索結果、単票表示、表形式、読み取り、削除など、頻出する画面構造の原型を提案します。ページは固定せず、どうあるべきかだけを示します。"
+      },
+            {
+        "eyebrow": "Not runtime UI",
+        "title": "製品ではない",
+        "body": "契約だけを決め、特定のCSS、UIライブラリ、フレームワークは明言しません。流行に左右されない抽象度で、どの実装でも使える規約にします。"
+      },
+      {
+        "eyebrow": "Not behavior",
+        "title": "処理は決めない",
+        "body": "ボタンを押した後の業務処理やデータ更新は決めません。UI Contract が扱うのは、操作できることをどう見せ、状態をどう伝えるかです。"
+      },
+      {
+        "eyebrow": "Not sizing",
+        "title": "サイズを固定しない",
+        "body": "文字、ボタン、幅、高さの具体値は固定しません。読みやすさや対象ユーザに応じたタイポグラフィー方針は扱いますが、実寸はプロダクト側で決めます。"
+      },
+      {
+        "eyebrow": "Output",
+        "title": "成果物はMarkdownとJSON",
+        "body": "成果物は md ファイルと json ファイルです。Markdownは人間が読む説明、JSONは再編集とAI参照のためのデータです。",
+        "items": ["ui-contract.json", "ui-contract.md"]
+      },
+      {
+        "eyebrow": "Strength",
+        "title": "規則の強さ",
+        "body": "判断に迷ったとき、どうあるべきかの指針です。自由を完全に奪うものではありません。"
+      }
+    ]
+  },
+  "en": {
+    "languageLabel": "English",
+    "translationNote": "Translation",
+    "tagline": "Define the UI contract.",
+    "title": "UI Contract Editor",
+    "lead": "An editor for writing business UI principles. It defines how the UI should behave and appear.",
+    "keywords": ["Rules", "System design", "States", "Screen patterns", "JSON", "Markdown"],
+    "sections": [
+      {
+        "eyebrow": "Contract",
+        "title": "Write rules",
+        "body": "A UI Contract says how UI should be made. It is not CSS or a component library; it is an intentionally abstract design rule set."
+      },
+      {
+        "eyebrow": "System design",
+        "title": "Create system consistency",
+        "body": "This is not just color configuration. It aligns controls, states, themes, and screen structures so decisions stay consistent across the system."
+      },
+      {
+        "eyebrow": "Not runtime UI",
+        "title": "Not a product",
+        "body": "It defines the contract only. It does not prescribe a CSS system, UI library, or framework. It stays abstract enough to outlive implementation trends."
+      },
+      {
+        "eyebrow": "Not behavior",
+        "title": "Not business behavior",
+        "body": "It does not define what happens after a button is pressed or how data changes. UI Contract defines how affordances, actions, and states are represented."
+      },
+      {
+        "eyebrow": "Not sizing",
+        "title": "Does not freeze sizes",
+        "body": "It does not fix exact text size, button size, width, or height. It can define typography principles for readability and target users, but product teams own the final dimensions."
+      },
+      {
+        "eyebrow": "Scope",
+        "title": "Colors, themes, states, layout",
+        "body": "It defines colors, themes, state-based control appearance, and layout principles. Active, hover, press, and disabled states are part of the Contract."
+      },
+      {
+        "eyebrow": "Screen patterns",
+        "title": "Includes screen archetypes",
+        "body": "It proposes archetypes for common structures such as search criteria, results, detail views, tables, reading, and deletion. It guides pages without freezing their design."
+      },
+      {
+        "eyebrow": "Output",
+        "title": "Markdown and JSON outputs",
+        "body": "The outputs are md and json files. Markdown explains the contract for people. JSON supports re-editing and AI reference.",
+        "items": ["ui-contract.json", "ui-contract.md"]
+      },
+      {
+        "eyebrow": "Strength",
+        "title": "Rule strength",
+        "body": "It is a guide for decisions when the answer is unclear. It cannot cover everything, so it does not remove all product discretion."
+      }
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "languagePolicy": {
+    "title": "Overviewだけ日本語を原文にする",
+    "targetFiles": ["src/content/overview-content.json"],
+    "body": "Overviewページだけは思想の説明を含むため、日本語で記述する。日本語を正とし、英語は日本語からの翻訳として扱う。Overview以外の画面や設定項目は多言語化しない。"
+  },
+  "controlPreviewPolicy": {
+    "title": "コントロールは静止状態と動的イメージを用意する",
+    "targetFiles": ["src/main.tsx", "src/select-contract.tsx"],
+    "body": "コントロールのContract Editorでは、状態ごとの静止画と、触った感覚を確認するための動的イメージを用意する。静止画は empty、selected、focused、disabled、expanded などの状態差分を操作なしで確認するために使う。動的イメージは選択、入力、展開、解除などの操作感を確認するために使う。"
+  },
+  "optionEvidencePolicy": {
+    "title": "選択肢は証拠ベースで採用する",
+    "targetFiles": [
+      "docs/concepts/ui-contract-option-governance/concept.json",
+      "docs/knowledge/design-system-anti-patterns.md",
+      "src/main.tsx",
+      "src/select-contract.tsx"
+    ],
+    "body": "ユーザー提案、AI提案、思いついたUI案は仮説として扱う。選択肢にする前に、著名なデザインシステム、業務アプリの一般的な実例、アクセシビリティ、理解しやすさ、レイアウト安定性を確認する。根拠が弱いものや推奨しないスタイルは原則として追加せず、保留、却下、別ポリシーへの移動、またはべからずとして扱う。"
+  },
+  "optionWordingPolicy": {
+    "title": "選択肢は短い規約文で表す",
+    "targetFiles": [
+      "docs/concepts/ui-contract-option-governance/concept.json",
+      "src/main.tsx",
+      "src/select-contract.tsx"
+    ],
+    "body": "色以外の選択肢は具体値ではなく、どうしてほしいかを表す短い規約文にする。長い説明がないと伝わらないものは、一般的なデザインとして確立されていない可能性が高いため、標準的な業務UIの選択肢にしない。"
+  },
+  "optionBoundaryPolicy": {
+    "title": "単独で成立させ、話を混ぜない",
+    "targetFiles": [
+      "docs/concepts/ui-contract-option-governance/concept.json",
+      "src/main.tsx"
+    ],
+    "body": "1つの設問は1つの責務だけを扱う。見た目、状態、操作の見せ方、画面ユースケース、権限、検証、ダイアログ、ページ構造を混ぜない。併用できるものを択一にしない。ある回答の下で意味がなくなる設問は表示しないか、別のポリシーに分ける。"
+  },
+  "implementationAgnosticPolicy": {
+    "title": "ライブラリに依存しない抽象度を保つ",
+    "targetFiles": [
+      "src/content/overview-content.json",
+      "docs/concepts/ui-contract-option-governance/concept.json",
+      "src/main.tsx",
+      "src/select-contract.tsx"
+    ],
+    "body": "具体的なフレームワークやUIライブラリは流行り廃りがあるため、UI Contractでは名指ししない。あるべき論とべからず論を、主要なUIライブラリならどう表現するか想像できる程度の抽象度で書く。どの実装でも再現でき、長く使える規約にする。"
+  }
+}

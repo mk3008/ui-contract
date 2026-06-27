@@ -1,0 +1,88 @@
+{
+  "id": "ui-contract-option-governance",
+  "status": "draft",
+  "title": "UI Contract Option Governance",
+  "message": {
+    "tagline": "Contract options must be evidence-grounded design choices, not accumulated preferences.",
+    "supportingLine": "The editor should help business application teams choose from useful, defensible UI policies without presenting unreviewed or misleading options."
+  },
+  "definition": [
+    "UI Contract Option Governance is the concept that controls how selectable UI Contract values are admitted, named, kept, moved, or removed.",
+    "It treats every proposed option as a design hypothesis until it has been compared against official design-system guidance, common business-application needs, and the responsibility boundary of the current contract section."
+  ],
+  "responsibilities": [
+    "Preserve the meaning of UI Contract options as intentional design-policy choices.",
+    "Require option sets to be checked against official design systems or well-established product UI patterns before implementation.",
+    "Separate visual design policy from workflow behavior, permission policy, dialog behavior, form validation behavior, and screen-pattern behavior.",
+    "Separate case-owned input semantics from component design rules: a contract may define how a selected input pattern is presented, but it must not decide which input pattern a specific screen must use.",
+    "Classify proposals as accepted, held, rejected, or moved to another policy area when their ownership is unclear.",
+    "Keep options useful for business applications rather than maximizing visual freedom.",
+    "Prevent the editor from implying that weak, rare, inaccessible, or layout-breaking patterns are normal choices."
+  ],
+  "nonResponsibilities": [
+    "It does not define final visual styling tokens, CSS classes, or component implementation details.",
+    "It does not make any single external design system authoritative for this product.",
+    "It does not require every option to appear in every referenced design system.",
+    "It does not decide project-specific brand styling.",
+    "It does not replace later Component, Dialog, Form, Permission, or Screen Pattern concepts."
+  ],
+  "invariants": [
+    "User suggestions and agent suggestions must be treated as hypotheses, not as immediate product truth.",
+    "An option must not be added only because it is technically possible to preview.",
+    "A contract question should normally ask how a meaningful state, operation, or affordance is represented, not whether a specific screen uses that state or operation.",
+    "State presentation, operation affordance, semantic input choice, layout policy, and visual token styling must be modeled as separate concerns.",
+    "If two choices can be used together, they must not be collapsed into one mutually exclusive option unless the concept explicitly defines why the combination is invalid.",
+    "If an option only controls size, height, width, font size, or density without changing a reusable design policy, it should not be added to the Contract Editor by default.",
+    "A generic small, medium, or large component size scale may exist in an implementation system, but it should not be exposed as a UI Contract choice unless a later concept proves cross-product policy value.",
+    "The editor must not expose rare, weakly evidenced, or nonstandard patterns as ordinary selectable options.",
+    "Option notes should explain the case where an option is useful when that context materially affects the choice.",
+    "If a later question has no visible or contract effect under the current answer to an earlier question, the later question should be hidden or disabled rather than left as a meaningless choice.",
+    "A Button Contract option must remain about button-visible design or button action-group presentation unless a separate concept explicitly expands its scope.",
+    "If an option describes a workflow rule, such as destructive-action confirmation, it must be moved out of Button Contract or held until the owning policy is defined.",
+    "If an option describes whether an unavailable action is hidden, collapsed, disabled, or explained, it must be reviewed as availability or permission policy before being treated as button visual design.",
+    "If an option chooses between single select, multi select, searchable combobox, or another input mode, it must not be modeled as a global Component Contract style option; the screen use case owns that choice.",
+    "A Component Contract may show separate design previews for single select, multi select, and lookup select scenes, but those previews describe design treatment after the use case has already chosen the input mode.",
+    "Options that risk layout instability, unclear affordance, or accessibility problems must not be presented as ordinary choices without evidence and boundary review.",
+    "The editor must not label any option as recommended unless a future concept explicitly defines recommendation authority."
+  ],
+  "reviewQuestions": [
+    "What established design systems or product UI patterns support this option?",
+    "Is this option visible at the button level, or does it belong to a broader workflow or screen policy?",
+    "Is this option about the presentation of a state, the presentation of an operation, a semantic screen choice, or implementation styling?",
+    "Can this option be combined with another option in the same group? If yes, why is it modeled as mutually exclusive?",
+    "Would changing this option alter a meaningful business-application policy, or only a local size/density/detail that belongs to implementation?",
+    "Does this option need a context note that says when it is worth using?",
+    "Does any dependent question become meaningless for one of the answers?",
+    "Would this option be useful in a business application without encouraging layout instability or unclear interaction?",
+    "Does the option name describe intent rather than CSS mechanics?",
+    "What evidence would let a reviewer reject, hold, move, or accept the option?"
+  ],
+  "classification": {
+    "accept": "Use when the option is supported by external evidence, useful for business applications, and belongs in the current contract boundary.",
+    "hold": "Use when the option may be valid but evidence, naming, or ownership is not yet clear.",
+    "reject": "Use when the option is weakly evidenced, misleading, inaccessible, layout-breaking, or outside the product purpose.",
+    "moveToAnotherPolicy": "Use when the option is valid but belongs to another policy area such as dialog, destructive action, permission, form, or screen pattern."
+  },
+  "evidencePolicy": [
+    "Prefer official design-system documentation.",
+    "Check docs/knowledge/design-system-anti-patterns.md before doing new external research for known 'do not' guidance.",
+    "Use multiple sources when a choice changes the meaning of a contract section.",
+    "Treat examples from individual apps as supporting evidence only, not as sufficient authority.",
+    "When evidence conflicts, preserve the uncertainty in the report instead of hiding it behind a new option."
+  ],
+  "currentImplications": [
+    "Button Contract should not own destructive-action confirmation policy.",
+    "Button Contract should not own tooltip or inline reason-display policy for disabled actions unless later evidence and ownership review reclassify it.",
+    "Loading state should not be exposed as a normal selectable Button Contract option while the only alternative is spinner-only or label-replacement loading.",
+    "Icon adornment for labeled buttons and icon-only action policy must be modeled as separate concerns.",
+    "Disabled visual treatment should be separated from availability, permission, and explanation policy.",
+    "Disabled visual treatment should not be exposed as a normal selectable Button Contract option when alternatives are only minor gray-style differences.",
+    "Select Contract should not expose input mode or selection cardinality as global style choices. It should document how common selection scenes are designed and only expose cross-scene design policies when they are genuinely reusable.",
+    "Lookup select in Select Contract means a small search-and-select pattern for finding known items without a full search dialog. It should not model data source, query matching, or full search criteria; those belong to the screen use case.",
+    "Select Contract should separate empty-state display, such as placeholder text or blank field, from empty-state affordance, such as clear button or empty list item.",
+    "Select Contract should not model single-select clear or empty-return behavior as a global component choice. Required, optional, defaulted, and external-reset behavior is owned by field or screen rules.",
+    "Select Contract should separate selected-row indication, such as background or checkmark, from option content and list density.",
+    "Select Contract should not infer that removing an empty-list item removes the possibility of an empty value; whether empty is semantically valid is owned by the screen use case or field definition.",
+    "Component Contract choices should not expose size as a first-class option until the product defines why size belongs to long-lived contract policy rather than local layout or implementation."
+  ]
+}
