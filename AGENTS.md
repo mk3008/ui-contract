@@ -7,9 +7,11 @@ It takes precedence over user-level guidance for work inside this project.
 
 Before adding, removing, renaming, or reclassifying UI Contract option values, read:
 
+- `docs/knowledge/design-system-foundations.md`
 - `docs/concepts/ui-contract-option-governance/concept.json`
 - `docs/knowledge/design-system-anti-patterns.md`
 
+The design-system foundations knowledge is the durable source for what this product means by system design and how foundations, components, interaction policy, and screen patterns are separated.
 The option governance concept is the durable source for how this product decides whether a contract option belongs in the editor.
 The anti-pattern knowledge base is the local source for design-system "do not" guidance that should block, constrain, or move proposed options before doing new web research.
 
@@ -17,6 +19,10 @@ The anti-pattern knowledge base is the local source for design-system "do not" g
 
 Treat user suggestions, agent ideas, and plausible UI preferences as hypotheses.
 Do not turn them directly into UI Contract options.
+
+UI Contract values are intended to be read as DESIGN.md-like rules by other AI agents and humans.
+Except for color values and named color roles, option values, labels, and notes must use plain, established design language.
+Do not introduce project-specific names, source-app names, private metaphors, CSS class names, component package names, or local implementation jargon as contract vocabulary.
 
 Before changing an option set, compare the proposal against official design-system guidance or well-established product UI patterns, such as:
 
@@ -63,6 +69,7 @@ If ownership is unclear, document the ambiguity before implementation.
 When reporting option-set changes, include:
 
 - which option was added, removed, renamed, or moved
-- why it belongs in Button Contract or why it was moved elsewhere
+- why it belongs in the current foundation, component, interaction policy, or screen-pattern boundary, or why it was moved elsewhere
 - what external design-system evidence was checked
+- whether the option can be understood as a DESIGN.md rule without local project context
 - any remaining uncertainty

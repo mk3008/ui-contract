@@ -1,0 +1,152 @@
+# Design-System Foundations Knowledge
+
+This file records the durable definition of "system design" used by UI Contract Editor.
+Use it before reviewing component options, screen patterns, visual policy, or contract boundaries.
+
+The goal is not to copy any single public design system.
+The goal is to preserve the shared lesson from mature systems: a design system is a product-level source of truth for consistent, accessible, reusable user experiences.
+
+## Source Pattern
+
+Atlassian describes a design system as guidelines, foundations, tools, and components.
+Its system separates foundations, components, and patterns:
+
+- Foundations: tokens, guidelines, and visual styles such as color, spacing, typography, and accessibility.
+- Components: reusable building blocks that satisfy specific interaction needs.
+- Patterns: combinations of foundations and components that create consistent experiences.
+
+Atlassian also frames design tokens as named design decisions and emphasizes consistent experiences across apps, devices, platforms, and assistive technologies.
+
+Related sources:
+
+- https://atlassian.design/get-started/about-atlassian-design-system
+- https://atlassian.design/design-system
+- https://atlassian.design/foundations
+- https://atlassian.design/tokens/design-tokens
+- https://atlassian.design/foundations/accessibility
+
+Material similarly describes design tokens as reusable design decisions that make up a visual style.
+This supports treating colors, typography roles, spacing roles, and semantic states as reusable policy, not one-off styling.
+
+Related source:
+
+- https://m3.material.io/foundations/design-tokens
+
+## Local Definition
+
+For UI Contract Editor, system design means:
+
+- defining reusable UI rules across a product or family of products,
+- keeping control states, interaction affordances, layout patterns, accessibility, and visual roles consistent,
+- choosing stable policies that can be implemented in different CSS frameworks or component libraries,
+- separating foundations, components, interaction policy, and screen patterns,
+- documenting both "do this" and "do not do this" guidance,
+- translating DESIGN.md-style human design principles into reviewable JSON and Markdown contract artifacts.
+
+It is broader than colors.
+It includes color, typography principles, spacing/layout principles, component states, interaction behavior, screen patterns, accessibility, and cognitive-load control.
+
+It is not a CSS library, theme preset, or component implementation.
+It should say what rule the product team wants the UI to follow, not which CSS class, runtime package, or implementation detail must be used.
+
+It must also be understandable as DESIGN.md-style guidance when read outside this application.
+The wording should stand on common design-system vocabulary or plain business-application language.
+Do not rely on private product names, source-app names, local metaphors, or implementation-only terms to carry the meaning.
+Color is the main exception: concrete colors, color roles, and brand palettes may use specific values because color tokens are an explicit foundation.
+
+It is narrower than application behavior.
+It does not decide business logic, data loading, permission checks, or what a specific screen must do in a specific case.
+
+## Foundation / Component / Pattern Boundaries
+
+Use these boundaries when classifying UI Contract work.
+
+### Foundations
+
+Foundations define reusable design primitives and principles.
+
+Examples:
+
+- color roles and semantic colors,
+- typography principles,
+- focus indicator colors and visibility,
+- spacing/layout stability principles,
+- accessible contrast and readable states,
+- icon usage principles.
+
+Foundations are not individual screen choices.
+
+### Components
+
+Components define reusable controls and their states.
+
+Examples:
+
+- button emphasis and danger treatment,
+- text field label, required cue, helper/error message behavior,
+- checkbox choice surface and mixed state,
+- toggle treatment,
+- tabs treatment,
+- card treatment and card interaction.
+
+Components may show multiple states.
+They should not decide business semantics such as whether a field is required in a specific form or whether an action is permitted for a user.
+
+### Interaction Policy
+
+Interaction policy defines cross-component behavior.
+
+Examples:
+
+- focus visibility,
+- validation timing and presentation,
+- availability / unavailable-control treatment,
+- destructive-action confirmation surface and scope.
+
+Interaction policy should not be hidden inside one component merely because that component triggers the interaction.
+
+### Screen Patterns
+
+Screen patterns define repeated page or workflow structures.
+
+Examples:
+
+- search condition panel,
+- result grid with paging and bulk action,
+- detail screen,
+- dialog flow,
+- wizard,
+- responsive / small viewport behavior,
+- SPA navigation history behavior.
+
+Screen patterns provide a standard shape.
+They should not freeze every layout dimension or all screen-specific business choices.
+
+## Review Rules
+
+Before adding or changing a Contract option, check:
+
+1. Is this foundation, component, interaction policy, or screen pattern?
+2. Is the option a durable design policy, not a one-off CSS style?
+3. Does the option describe a visible state, operation affordance, or reusable pattern?
+4. Is the option supported by official design-system guidance or common business UI practice?
+5. Does the option avoid accessibility, comprehension, and layout-instability risks?
+6. Can the option be explained with a short, recognizable name?
+7. Does the preview clearly show state differences without relying on color alone?
+8. Does the default choose the safest and most conventional baseline?
+9. Would this rule make sense if written in DESIGN.md before it is encoded as JSON?
+10. Can different CSS frameworks or UI libraries implement the same rule without changing its meaning?
+11. Would another AI understand the option without knowing this repository, a source application, or local shorthand?
+12. Are any concrete values limited to color tokens or named design roles rather than layout dimensions or CSS implementation?
+
+If the answer is unclear, classify the proposal as `hold` or move it to the owning policy area.
+
+## Local Consequences
+
+- Do not review UI Contract options as isolated decoration.
+- Do not add options only because a local app happened to use the pattern.
+- Use local app designs as seeds, then compare them with design-system evidence.
+- Preserve defaults that are readable, accessible, stable, and familiar for business applications.
+- Keep option labels and JSON values portable; source-app evidence belongs in review notes, not in contract vocabulary.
+- Keep "should not" knowledge in `docs/knowledge/design-system-anti-patterns.md`.
+- Keep option admission rules in `docs/concepts/ui-contract-option-governance/concept.json`.

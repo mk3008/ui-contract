@@ -23,10 +23,11 @@
     "title": "選択肢は短い規約文で表す",
     "targetFiles": [
       "docs/concepts/ui-contract-option-governance/concept.json",
+      "docs/knowledge/design-system-foundations.md",
       "src/main.tsx",
       "src/select-contract.tsx"
     ],
-    "body": "色以外の選択肢は具体値ではなく、どうしてほしいかを表す短い規約文にする。長い説明がないと伝わらないものは、一般的なデザインとして確立されていない可能性が高いため、標準的な業務UIの選択肢にしない。"
+    "body": "色以外の選択肢は具体値ではなく、どうしてほしいかを表す短い規約文にする。長い説明がないと伝わらないものは、一般的なデザインとして確立されていない可能性が高いため、標準的な業務UIの選択肢にしない。選択肢名、JSON値、説明文は、他のAIがDESIGN.mdとして読んでも意味が通る語彙にする。独自用語、移植元アプリ名、CSSクラス名、実装都合の略語をContract語彙にしない。"
   },
   "optionBoundaryPolicy": {
     "title": "単独で成立させ、話を混ぜない",

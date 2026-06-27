@@ -12,6 +12,7 @@ export type TabsAdornment = 'text-only' | 'icon-when-clarifying' | 'count-when-u
 export type ToggleTreatment = 'switch-control' | 'segmented-binary'
 export type ToggleLabelPolicy = 'visible-label' | 'label-plus-state-text'
 export type CheckboxGroupLayout = 'stacked-list' | 'inline-compact'
+export type CheckboxChoiceSurface = 'plain-label' | 'row-surface' | 'bordered-choice-row'
 export type CheckboxMixedState = 'show-indeterminate' | 'avoid-parent-checkbox'
 
 export type TabsPolicy = {
@@ -26,6 +27,7 @@ export type TogglePolicy = {
 
 export type CheckboxPolicy = {
   groupLayout: CheckboxGroupLayout
+  choiceSurface: CheckboxChoiceSurface
   mixedState: CheckboxMixedState
 }
 
@@ -96,6 +98,24 @@ export const checkboxGroupLayoutOptions: Array<Option<CheckboxGroupLayout>> = [
     value: 'inline-compact',
     label: 'Inline compact',
     note: 'Use only for a short set of closely related choices.',
+  },
+]
+
+export const checkboxChoiceSurfaceOptions: Array<Option<CheckboxChoiceSurface>> = [
+  {
+    value: 'plain-label',
+    label: 'Plain label',
+    note: 'Use the familiar checkbox and label for ordinary forms.',
+  },
+  {
+    value: 'row-surface',
+    label: 'Row surface',
+    note: 'Use a row background when choices are scanned as a list.',
+  },
+  {
+    value: 'bordered-choice-row',
+    label: 'Bordered row',
+    note: 'Make the clickable choice area explicit for dense tools.',
   },
 ]
 
@@ -199,6 +219,12 @@ export function CheckboxSectionedContractPanel({
               value={checkboxPolicy.groupLayout}
               options={checkboxGroupLayoutOptions}
               onChange={(value) => onUpdate('groupLayout', value)}
+            />
+            <OptionGroup
+              title="Choice surface"
+              value={checkboxPolicy.choiceSurface}
+              options={checkboxChoiceSurfaceOptions}
+              onChange={(value) => onUpdate('choiceSurface', value)}
             />
             <OptionGroup
               title="Mixed state"
@@ -343,7 +369,7 @@ function TogglePreview({ togglePolicy }: { togglePolicy: TogglePolicy }) {
     <div className="control-stage">
       <ControlStateCard title="Immediate setting" caption="State changes when the user toggles it">
         {togglePolicy.treatment === 'segmented-binary' ? (
-          <div className="control-binary-segment" role="group" aria-label="Alias display">
+          <div className="control-binary-segment" role="group" aria-label="Visibility setting">
             <button type="button">Hidden</button>
             <button className="is-active" type="button">Shown</button>
           </div>
@@ -375,14 +401,14 @@ function CheckboxPreview({ checkboxPolicy }: { checkboxPolicy: CheckboxPolicy })
     <div className="control-stage">
       <ControlStateCard title="Choice group" caption="Independent choices can be selected together">
         <div className={groupClass}>
-          <CheckboxRow checked label="Tables" />
-          <CheckboxRow checked label="CTEs" />
-          <CheckboxRow label="Derived" />
+          <CheckboxRow checked choiceSurface={checkboxPolicy.choiceSurface} label="Tables" />
+          <CheckboxRow checked choiceSurface={checkboxPolicy.choiceSurface} label="CTEs" />
+          <CheckboxRow choiceSurface={checkboxPolicy.choiceSurface} label="Derived" />
         </div>
       </ControlStateCard>
       <ControlStateCard title="Parent selection" caption="Partial selection needs explicit treatment">
         {checkboxPolicy.mixedState === 'show-indeterminate' ? (
-          <CheckboxRow checked="mixed" label="All node types" />
+          <CheckboxRow checked="mixed" choiceSurface={checkboxPolicy.choiceSurface} label="All node types" />
         ) : (
           <div className="control-parent-summary">
             <span>2 of 3 node types selected</span>
@@ -396,13 +422,17 @@ function CheckboxPreview({ checkboxPolicy }: { checkboxPolicy: CheckboxPolicy })
 
 function CheckboxRow({
   checked = false,
+  choiceSurface,
   label,
 }: {
   checked?: boolean | 'mixed'
+  choiceSurface: CheckboxChoiceSurface
   label: string
 }) {
+  const rowStateClass = checked === 'mixed' ? 'is-mixed-row' : checked ? 'is-checked-row' : ''
+
   return (
-    <label className="control-checkbox-row">
+    <label className={`control-checkbox-row surface-${choiceSurface} ${rowStateClass}`}>
       <span className={`control-checkbox-box ${checked ? 'is-checked' : ''} ${checked === 'mixed' ? 'is-mixed' : ''}`} aria-hidden="true">
         {checked === true ? <Check size={13} strokeWidth={3} /> : null}
       </span>
