@@ -2927,4 +2927,8 @@ h3 {
     border-top: 1px solid var(--line);
     border-left: 0;
   }
+
+  .side-panel-preview.is-drawer .side-panel-aside {
+    box-shadow: 0 -12px 24px rgb(15 23 42 / 10%);
+  }
 }

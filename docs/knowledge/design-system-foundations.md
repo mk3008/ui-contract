@@ -46,10 +46,10 @@ For UI Contract Editor, system design means:
 It is broader than colors.
 It includes color, typography principles, spacing/layout principles, component states, interaction behavior, screen patterns, accessibility, and cognitive-load control.
 
-It is not a CSS library, theme preset, or component implementation.
-It should say what rule the product team wants the UI to follow, not which CSS class, runtime package, or implementation detail must be used.
+A design system is not a CSS library, theme preset, or component implementation.
+The guidance should say what rule the product team wants the UI to follow, not which CSS class, runtime package, or implementation detail must be used.
 
-It must also be understandable as DESIGN.md-style guidance when read outside this application.
+The rule must also be understandable as DESIGN.md-style guidance when read outside this application.
 The wording should stand on common design-system vocabulary or plain business-application language.
 Do not rely on private product names, source-app names, local metaphors, or implementation-only terms to carry the meaning.
 Color is the main exception: concrete colors, color roles, and brand palettes may use specific values because color tokens are an explicit foundation.
