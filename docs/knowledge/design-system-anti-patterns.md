@@ -322,6 +322,51 @@ Sources:
 - https://atlassian.design/components/focus-ring
 - https://shopify.dev/docs/apps/build/accessibility
 
+## State Visibility Anti-Patterns
+
+### BAN-STATE-001: Do not make selected or active state depend on low-contrast color alone
+
+Evidence level: `hard deny`
+
+Decision:
+Any selected, active, checked, focused, or current state shown in a UI Contract preview must be readable and visibly distinct.
+Do not present an option as acceptable if the selected state uses a strong background but leaves foreground text, icons, or checkmarks with weak contrast.
+
+Local interpretation:
+When a preview uses a strong primary background, its foreground must be forced or verified to a high-contrast foreground.
+When a selected row or choice surface is shown, use more than color when possible, such as a checkmark, border, selected row background, or explicit selected label.
+This applies to tabs, segmented toggles, checkbox rows, selectable cards, listbox options, and any future selectable surface.
+
+Evidence:
+- WCAG contrast requirements apply to text and visual state indicators.
+- Mature design systems describe selected, checked, active, and focus states as explicit states that must be perceivable.
+- This project treats state visibility as a system-design requirement, not a local CSS detail.
+
+Sources:
+- https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+- https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
+- https://atlassian.design/foundations/accessibility
+- https://m3.material.io/foundations/interaction/states
+
+## Contract Vocabulary Anti-Patterns
+
+### BAN-VOCAB-001: Do not use local or source-app terms as contract vocabulary
+
+Evidence level: `hard deny`
+
+Decision:
+Do not expose project-specific names, source-application names, private metaphors, CSS class names, or component-library jargon as UI Contract option names or JSON values.
+Contract vocabulary must be understandable as DESIGN.md-style guidance by another AI or product team without this repository's history.
+
+Local interpretation:
+Source applications may inspire an option, but their names belong in review notes or provenance records, not in the contract itself.
+If a value cannot be explained with common design-system vocabulary or plain business UI language, classify it as `hold` until it is renamed, moved, or rejected.
+Concrete color values and color roles are allowed because color is an explicit foundation; exact sizes, CSS selectors, and local component names are not.
+
+Evidence:
+- Mature design systems publish shared language for product teams, not repository-private implementation terms.
+- UI Contract artifacts are intended to survive library changes and be readable by agents that only see the contract.
+
 ## Validation Anti-Patterns
 
 ### BAN-VALIDATION-001: Do not validate ordinary text fields on every keystroke by default

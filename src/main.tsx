@@ -20,6 +20,7 @@ import {
   TabsSectionedContractPanel,
   TogglePreviewStage,
   ToggleSectionedContractPanel,
+  checkboxChoiceSurfaceOptions,
   checkboxGroupLayoutOptions,
   checkboxMixedStateOptions,
   tabsAdornmentOptions,
@@ -70,6 +71,9 @@ type MenuItem =
   | 'Contract Editor / Tabs'
   | 'Contract Editor / Toggle'
   | 'Contract Editor / Checkbox'
+  | 'Contract Editor / Card'
+  | 'Contract Editor / Side Panel'
+  | 'Contract Editor / Confirmation'
   | 'Color Settings'
   | 'Screen Patterns'
   | 'Settings'
@@ -87,7 +91,7 @@ type MenuEntry = {
 type PrimaryEmphasis = 'filled' | 'tonal' | 'outline'
 type SecondaryEmphasis = 'outline' | 'neutral-filled' | 'tonal'
 type DangerPlacement = 'separated' | 'inline'
-type DangerEmphasis = 'ghost' | 'tertiary' | 'primary'
+type DangerEmphasis = 'low-emphasis' | 'quiet-outline' | 'strong-danger'
 type IconAdornment = 'text-only-default' | 'icons-when-clarifying'
 type IconOnlyPolicy = 'avoid-icon-only' | 'allow-recognizable-with-accessible-name'
 type TextFieldStyle = 'outlined' | 'filled'
@@ -108,6 +112,12 @@ type AvailabilityTreatment =
   | 'disabled-when-impossible'
   | 'hidden-when-not-applicable'
 type AvailabilityLayout = 'preserve-space-for-temporary-state' | 'allow-reflow-when-not-applicable'
+type CardTreatment = 'outlined-card' | 'filled-card' | 'elevated-card'
+type CardInteraction = 'static-card' | 'clickable-card' | 'selectable-card'
+type SidePanelRelationship = 'persistent-inspector' | 'temporary-drawer'
+type SidePanelResponsive = 'collapse-to-toggle' | 'full-screen-sheet'
+type ConfirmationSurface = 'danger-dialog' | 'typed-confirmation' | 'undo-when-reversible'
+type ConfirmationScope = 'destructive-only' | 'destructive-bulk-unsaved'
 type ContractEditorComponent =
   | 'button'
   | 'textField'
@@ -118,9 +128,12 @@ type ContractEditorComponent =
   | 'tabs'
   | 'toggle'
   | 'checkbox'
+  | 'card'
+  | 'sidePanel'
+  | 'confirmation'
 type ColorProfileId =
   | 'default'
-  | 'lineage-slate'
+  | 'deep-slate-blue'
   | 'enterprise-blue'
   | 'productivity-indigo'
   | 'trust-green'
@@ -198,6 +211,10 @@ type UiContract = {
       treatment: AvailabilityTreatment
       layout: AvailabilityLayout
     }
+    confirmation: {
+      surface: ConfirmationSurface
+      scope: ConfirmationScope
+    }
   }
   componentPolicy: {
     button: {
@@ -224,6 +241,14 @@ type UiContract = {
     tabs: TabsPolicy
     toggle: TogglePolicy
     checkbox: CheckboxPolicy
+    card: {
+      treatment: CardTreatment
+      interaction: CardInteraction
+    }
+    sidePanel: {
+      relationship: SidePanelRelationship
+      responsive: SidePanelResponsive
+    }
   }
 }
 
@@ -290,8 +315,8 @@ const colorProfiles: ColorProfile[] = [
     color: defaultColorPolicy,
   },
   {
-    id: 'lineage-slate',
-    name: 'Lineage Slate',
+    id: 'deep-slate-blue',
+    name: 'Deep Slate Blue',
     description: 'Dark header, blue actions.',
     brandIdentity: { mark: '#0f172a', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
@@ -542,13 +567,17 @@ const sampleContract: UiContract = {
       treatment: 'keep-enabled-explain-on-action',
       layout: 'preserve-space-for-temporary-state',
     },
+    confirmation: {
+      surface: 'danger-dialog',
+      scope: 'destructive-only',
+    },
   },
   componentPolicy: {
     button: {
       primaryEmphasis: 'filled',
       secondaryEmphasis: 'outline',
       dangerPlacement: 'separated',
-      dangerEmphasis: 'tertiary',
+      dangerEmphasis: 'quiet-outline',
       iconAdornment: 'text-only-default',
       iconOnlyPolicy: 'avoid-icon-only',
     },
@@ -575,7 +604,16 @@ const sampleContract: UiContract = {
     },
     checkbox: {
       groupLayout: 'stacked-list',
+      choiceSurface: 'plain-label',
       mixedState: 'show-indeterminate',
+    },
+    card: {
+      treatment: 'outlined-card',
+      interaction: 'static-card',
+    },
+    sidePanel: {
+      relationship: 'persistent-inspector',
+      responsive: 'collapse-to-toggle',
     },
   },
 }
@@ -592,13 +630,16 @@ const menuItems: MenuEntry[] = [
       { label: 'Tabs', page: 'Contract Editor / Tabs', status: 'active' },
       { label: 'Toggle', page: 'Contract Editor / Toggle', status: 'active' },
       { label: 'Checkbox', page: 'Contract Editor / Checkbox', status: 'active' },
+      { label: 'Card', page: 'Contract Editor / Card', status: 'active' },
+      { label: 'Side Panel', page: 'Contract Editor / Side Panel', status: 'active' },
       { label: 'Focus', page: 'Contract Editor / Focus', status: 'active' },
       { label: 'Validation', page: 'Contract Editor / Validation', status: 'active' },
       { label: 'Availability', page: 'Contract Editor / Availability', status: 'active' },
+      { label: 'Confirmation', page: 'Contract Editor / Confirmation', status: 'active' },
     ],
   },
   { label: 'Color Settings', page: 'Color Settings', status: 'active' },
-  { label: 'Screen Patterns', page: 'Screen Patterns', status: 'placeholder' },
+  { label: 'Screen Patterns', page: 'Screen Patterns', status: 'active' },
   { label: 'Settings', page: 'Settings', status: 'placeholder' },
 ]
 
@@ -620,9 +661,9 @@ const dangerPlacementOptions: Array<{ value: DangerPlacement; label: string; not
 ]
 
 const dangerEmphasisOptions: Array<{ value: DangerEmphasis; label: string; note: string }> = [
-  { value: 'ghost', label: 'Ghost', note: 'Lowest visual weight for destructive actions.' },
-  { value: 'tertiary', label: 'Tertiary', note: 'Visible destructive action without primary weight.' },
-  { value: 'primary', label: 'Primary', note: 'Strong destructive action for required destructive steps.' },
+  { value: 'low-emphasis', label: 'Low emphasis', note: 'Lowest visual weight for destructive actions.' },
+  { value: 'quiet-outline', label: 'Quiet outline', note: 'Visible destructive action without primary weight.' },
+  { value: 'strong-danger', label: 'Strong danger', note: 'Strong destructive action for required destructive steps.' },
 ]
 
 const iconAdornmentOptions: Array<{ value: IconAdornment; label: string; note: string }> = [
@@ -732,6 +773,99 @@ const availabilityLayoutOptions: Array<{ value: AvailabilityLayout; label: strin
     value: 'allow-reflow-when-not-applicable',
     label: 'Reflow',
     note: 'Let layout close gaps when controls are not applicable.',
+  },
+]
+
+const cardTreatmentOptions: Array<{ value: CardTreatment; label: string; note: string }> = [
+  {
+    value: 'outlined-card',
+    label: 'Outlined',
+    note: 'Use a border to group related content without adding depth.',
+  },
+  {
+    value: 'filled-card',
+    label: 'Filled',
+    note: 'Use a quiet surface when cards sit on a plain background.',
+  },
+  {
+    value: 'elevated-card',
+    label: 'Elevated',
+    note: 'Use shadow only when layered content needs separation.',
+  },
+]
+
+const cardInteractionOptions: Array<{ value: CardInteraction; label: string; note: string }> = [
+  {
+    value: 'static-card',
+    label: 'Static content',
+    note: 'Cards group information; actions remain explicit controls.',
+  },
+  {
+    value: 'clickable-card',
+    label: 'Clickable card',
+    note: 'The whole card opens one target; avoid nested primary actions.',
+  },
+  {
+    value: 'selectable-card',
+    label: 'Selectable card',
+    note: 'Show selected state clearly when cards behave like choices.',
+  },
+]
+
+const sidePanelRelationshipOptions: Array<{ value: SidePanelRelationship; label: string; note: string }> = [
+  {
+    value: 'persistent-inspector',
+    label: 'Persistent inspector',
+    note: 'Keep companion details beside the main work area.',
+  },
+  {
+    value: 'temporary-drawer',
+    label: 'Temporary drawer',
+    note: 'Open supporting details only when the user asks for them.',
+  },
+]
+
+const sidePanelResponsiveOptions: Array<{ value: SidePanelResponsive; label: string; note: string }> = [
+  {
+    value: 'collapse-to-toggle',
+    label: 'Collapse to toggle',
+    note: 'Keep the main task visible and expose the panel from a control.',
+  },
+  {
+    value: 'full-screen-sheet',
+    label: 'Full-screen sheet',
+    note: 'Let the panel take the screen when side-by-side space is gone.',
+  },
+]
+
+const confirmationSurfaceOptions: Array<{ value: ConfirmationSurface; label: string; note: string }> = [
+  {
+    value: 'danger-dialog',
+    label: 'Danger dialog',
+    note: 'Interrupt destructive actions with an explicit confirmation.',
+  },
+  {
+    value: 'typed-confirmation',
+    label: 'Typed confirmation',
+    note: 'Require typed intent for rare, high-impact destructive actions.',
+  },
+  {
+    value: 'undo-when-reversible',
+    label: 'Undo when reversible',
+    note: 'Prefer undo feedback when the action can be safely reversed.',
+  },
+]
+
+const confirmationScopeOptions: Array<{ value: ConfirmationScope; label: string; note: string }> = [
+  {
+    value: 'destructive-only',
+    label: 'Destructive only',
+    note: 'Confirm destructive or irreversible actions.',
+  },
+  {
+    value: 'destructive-bulk-unsaved',
+    label: 'Destructive + bulk',
+    note: 'Also cover bulk actions and leaving unsaved work.',
   },
 ]
 
@@ -850,9 +984,12 @@ function App() {
   const tabsPolicy = contract.componentPolicy.tabs
   const togglePolicy = contract.componentPolicy.toggle
   const checkboxPolicy = contract.componentPolicy.checkbox
+  const cardPolicy = contract.componentPolicy.card
+  const sidePanelPolicy = contract.componentPolicy.sidePanel
   const focusPolicy = contract.interactionPolicy.focus
   const validationPolicy = contract.interactionPolicy.validation
   const availabilityPolicy = contract.interactionPolicy.availability
+  const confirmationPolicy = contract.interactionPolicy.confirmation
   const brandIdentity = contract.designPolicy.brandIdentity
   const colorPolicy = contract.designPolicy.color
   const colorProfileId = contract.designPolicy.colorProfileId
@@ -958,6 +1095,22 @@ function App() {
     }))
   }
 
+  const updateConfirmationPolicy = <Key extends keyof UiContract['interactionPolicy']['confirmation']>(
+    key: Key,
+    value: UiContract['interactionPolicy']['confirmation'][Key],
+  ) => {
+    setContract((current) => ({
+      ...current,
+      interactionPolicy: {
+        ...current.interactionPolicy,
+        confirmation: {
+          ...current.interactionPolicy.confirmation,
+          [key]: value,
+        },
+      },
+    }))
+  }
+
   const updateTabsPolicy = <Key extends keyof UiContract['componentPolicy']['tabs']>(
     key: Key,
     value: UiContract['componentPolicy']['tabs'][Key],
@@ -1000,6 +1153,38 @@ function App() {
         ...current.componentPolicy,
         checkbox: {
           ...current.componentPolicy.checkbox,
+          [key]: value,
+        },
+      },
+    }))
+  }
+
+  const updateCardPolicy = <Key extends keyof UiContract['componentPolicy']['card']>(
+    key: Key,
+    value: UiContract['componentPolicy']['card'][Key],
+  ) => {
+    setContract((current) => ({
+      ...current,
+      componentPolicy: {
+        ...current.componentPolicy,
+        card: {
+          ...current.componentPolicy.card,
+          [key]: value,
+        },
+      },
+    }))
+  }
+
+  const updateSidePanelPolicy = <Key extends keyof UiContract['componentPolicy']['sidePanel']>(
+    key: Key,
+    value: UiContract['componentPolicy']['sidePanel'][Key],
+  ) => {
+    setContract((current) => ({
+      ...current,
+      componentPolicy: {
+        ...current.componentPolicy,
+        sidePanel: {
+          ...current.componentPolicy.sidePanel,
           [key]: value,
         },
       },
@@ -1108,6 +1293,9 @@ function App() {
     selectedMenu === 'Contract Editor / Tabs' ||
     selectedMenu === 'Contract Editor / Toggle' ||
     selectedMenu === 'Contract Editor / Checkbox' ||
+    selectedMenu === 'Contract Editor / Card' ||
+    selectedMenu === 'Contract Editor / Side Panel' ||
+    selectedMenu === 'Contract Editor / Confirmation' ||
     selectedMenu === 'Contract Editor / Focus' ||
     selectedMenu === 'Contract Editor / Validation' ||
     selectedMenu === 'Contract Editor / Availability'
@@ -1122,12 +1310,18 @@ function App() {
               ? 'toggle'
               : selectedMenu === 'Contract Editor / Checkbox'
                 ? 'checkbox'
-                : selectedMenu === 'Contract Editor / Focus'
-                  ? 'focus'
-                  : selectedMenu === 'Contract Editor / Validation'
-                    ? 'validation'
-                    : selectedMenu === 'Contract Editor / Availability'
-                      ? 'availability'
+                : selectedMenu === 'Contract Editor / Card'
+                  ? 'card'
+                  : selectedMenu === 'Contract Editor / Side Panel'
+                    ? 'sidePanel'
+                    : selectedMenu === 'Contract Editor / Confirmation'
+                      ? 'confirmation'
+                      : selectedMenu === 'Contract Editor / Focus'
+                        ? 'focus'
+                        : selectedMenu === 'Contract Editor / Validation'
+                          ? 'validation'
+                          : selectedMenu === 'Contract Editor / Availability'
+                            ? 'availability'
         : 'button'
   const pageTitle =
     selectedMenu === 'Contract Editor / Button'
@@ -1142,15 +1336,24 @@ function App() {
               ? 'Toggle Contract'
               : selectedMenu === 'Contract Editor / Checkbox'
                 ? 'Checkbox Contract'
-                : selectedMenu === 'Contract Editor / Focus'
-                  ? 'Focus Policy'
-                  : selectedMenu === 'Contract Editor / Validation'
-                    ? 'Validation Policy'
-                    : selectedMenu === 'Contract Editor / Availability'
-                      ? 'Availability Policy'
+                : selectedMenu === 'Contract Editor / Card'
+                  ? 'Card Contract'
+                  : selectedMenu === 'Contract Editor / Side Panel'
+                    ? 'Side Panel Contract'
+                    : selectedMenu === 'Contract Editor / Confirmation'
+                      ? 'Confirmation Policy'
+                      : selectedMenu === 'Contract Editor / Focus'
+                        ? 'Focus Policy'
+                        : selectedMenu === 'Contract Editor / Validation'
+                          ? 'Validation Policy'
+                          : selectedMenu === 'Contract Editor / Availability'
+                            ? 'Availability Policy'
                 : selectedMenu
   const pageEyebrow = isContractEditorPage ? 'Contract Editor' : 'Main page'
-  const pageStatus = isContractEditorPage || selectedMenu === 'Color Settings' ? 'Wired' : 'Placeholder'
+  const pageStatus =
+    isContractEditorPage || selectedMenu === 'Color Settings' || selectedMenu === 'Screen Patterns'
+      ? 'Editable'
+      : 'Placeholder'
   const isOverviewPage = selectedMenu === 'Overview'
 
   const renderMainContent = () => {
@@ -1160,11 +1363,14 @@ function App() {
           brandIdentity={brandIdentity}
           availabilityPolicy={availabilityPolicy}
           buttonPolicy={buttonPolicy}
+          cardPolicy={cardPolicy}
           checkboxPolicy={checkboxPolicy}
           colorPolicy={colorPolicy}
+          confirmationPolicy={confirmationPolicy}
           focusPolicy={focusPolicy}
           selectPolicy={selectPolicy}
           selectedComponent={selectedComponent}
+          sidePanelPolicy={sidePanelPolicy}
           tabsPolicy={tabsPolicy}
           textFieldPolicy={textFieldPolicy}
           theme={theme}
@@ -1172,9 +1378,12 @@ function App() {
           validationPolicy={validationPolicy}
           onAvailabilityUpdate={updateAvailabilityPolicy}
           onButtonUpdate={updateButtonPolicy}
+          onCardUpdate={updateCardPolicy}
           onCheckboxUpdate={updateCheckboxPolicy}
+          onConfirmationUpdate={updateConfirmationPolicy}
           onFocusUpdate={updateFocusPolicy}
           onSelectUpdate={updateSelectPolicy}
+          onSidePanelUpdate={updateSidePanelPolicy}
           onTabsUpdate={updateTabsPolicy}
           onTextFieldUpdate={updateTextFieldPolicy}
           onToggleUpdate={updateTogglePolicy}
@@ -1194,6 +1403,10 @@ function App() {
           onUpdate={updateColorRole}
         />
       )
+    }
+
+    if (selectedMenu === 'Screen Patterns') {
+      return <ScreenPatternsPanel />
     }
 
     if (selectedMenu === 'Settings') {
@@ -1376,11 +1589,14 @@ function ContractEditorPanel({
   brandIdentity,
   availabilityPolicy,
   buttonPolicy,
+  cardPolicy,
   checkboxPolicy,
   colorPolicy,
+  confirmationPolicy,
   focusPolicy,
   selectPolicy,
   selectedComponent,
+  sidePanelPolicy,
   tabsPolicy,
   textFieldPolicy,
   theme,
@@ -1388,9 +1604,12 @@ function ContractEditorPanel({
   validationPolicy,
   onAvailabilityUpdate,
   onButtonUpdate,
+  onCardUpdate,
   onCheckboxUpdate,
+  onConfirmationUpdate,
   onFocusUpdate,
   onSelectUpdate,
+  onSidePanelUpdate,
   onTabsUpdate,
   onTextFieldUpdate,
   onToggleUpdate,
@@ -1399,11 +1618,14 @@ function ContractEditorPanel({
   brandIdentity: BrandIdentityPolicy
   availabilityPolicy: UiContract['interactionPolicy']['availability']
   buttonPolicy: UiContract['componentPolicy']['button']
+  cardPolicy: UiContract['componentPolicy']['card']
   checkboxPolicy: UiContract['componentPolicy']['checkbox']
   colorPolicy: ColorPolicy
+  confirmationPolicy: UiContract['interactionPolicy']['confirmation']
   focusPolicy: UiContract['interactionPolicy']['focus']
   selectPolicy: UiContract['componentPolicy']['select']
   selectedComponent: ContractEditorComponent
+  sidePanelPolicy: UiContract['componentPolicy']['sidePanel']
   tabsPolicy: UiContract['componentPolicy']['tabs']
   textFieldPolicy: UiContract['componentPolicy']['textField']
   theme: Theme
@@ -1417,9 +1639,17 @@ function ContractEditorPanel({
     key: Key,
     value: UiContract['componentPolicy']['button'][Key],
   ) => void
+  onCardUpdate: <Key extends keyof UiContract['componentPolicy']['card']>(
+    key: Key,
+    value: UiContract['componentPolicy']['card'][Key],
+  ) => void
   onCheckboxUpdate: <Key extends keyof UiContract['componentPolicy']['checkbox']>(
     key: Key,
     value: UiContract['componentPolicy']['checkbox'][Key],
+  ) => void
+  onConfirmationUpdate: <Key extends keyof UiContract['interactionPolicy']['confirmation']>(
+    key: Key,
+    value: UiContract['interactionPolicy']['confirmation'][Key],
   ) => void
   onFocusUpdate: <Key extends keyof UiContract['interactionPolicy']['focus']>(
     key: Key,
@@ -1428,6 +1658,10 @@ function ContractEditorPanel({
   onSelectUpdate: <Key extends keyof UiContract['componentPolicy']['select']>(
     key: Key,
     value: UiContract['componentPolicy']['select'][Key],
+  ) => void
+  onSidePanelUpdate: <Key extends keyof UiContract['componentPolicy']['sidePanel']>(
+    key: Key,
+    value: UiContract['componentPolicy']['sidePanel'][Key],
   ) => void
   onTabsUpdate: <Key extends keyof UiContract['componentPolicy']['tabs']>(
     key: Key,
@@ -1478,6 +1712,33 @@ function ContractEditorPanel({
       <CheckboxSectionedContractPanel
         checkboxPolicy={checkboxPolicy}
         onUpdate={onCheckboxUpdate}
+      />
+    )
+  }
+
+  if (selectedComponent === 'card') {
+    return (
+      <CardContractPanel
+        cardPolicy={cardPolicy}
+        onUpdate={onCardUpdate}
+      />
+    )
+  }
+
+  if (selectedComponent === 'sidePanel') {
+    return (
+      <SidePanelContractPanel
+        sidePanelPolicy={sidePanelPolicy}
+        onUpdate={onSidePanelUpdate}
+      />
+    )
+  }
+
+  if (selectedComponent === 'confirmation') {
+    return (
+      <ConfirmationContractPanel
+        confirmationPolicy={confirmationPolicy}
+        onUpdate={onConfirmationUpdate}
       />
     )
   }
@@ -1536,11 +1797,14 @@ function ContractEditorPanel({
           brandIdentity={brandIdentity}
           availabilityPolicy={availabilityPolicy}
           buttonPolicy={buttonPolicy}
+          cardPolicy={cardPolicy}
           checkboxPolicy={checkboxPolicy}
           colorPolicy={colorPolicy}
+          confirmationPolicy={confirmationPolicy}
           focusPolicy={focusPolicy}
           selectPolicy={selectPolicy}
           selectedComponent={selectedComponent}
+          sidePanelPolicy={sidePanelPolicy}
           tabsPolicy={tabsPolicy}
           textFieldPolicy={textFieldPolicy}
           theme={theme}
@@ -1661,6 +1925,318 @@ function SelectLikePolicySection({
         </div>
       </div>
     </section>
+  )
+}
+
+function CardContractPanel({
+  cardPolicy,
+  onUpdate,
+}: {
+  cardPolicy: UiContract['componentPolicy']['card']
+  onUpdate: <Key extends keyof UiContract['componentPolicy']['card']>(
+    key: Key,
+    value: UiContract['componentPolicy']['card'][Key],
+  ) => void
+}) {
+  return (
+    <div className="select-sectioned-panel">
+      <SelectLikePolicySection
+        title="Card treatment"
+        description="Choose the container treatment for grouped content. Size and grid placement remain product-owned."
+        controls={
+          <OptionGroup
+            title="Container treatment"
+            value={cardPolicy.treatment}
+            options={cardTreatmentOptions}
+            onChange={(value) => onUpdate('treatment', value)}
+          />
+        }
+        preview={<CardTreatmentPreview cardPolicy={cardPolicy} />}
+      />
+
+      <SelectLikePolicySection
+        title="Card interaction"
+        description="Define whether a card is only a content group, a single target, or a selectable choice."
+        controls={
+          <OptionGroup
+            title="Interaction role"
+            value={cardPolicy.interaction}
+            options={cardInteractionOptions}
+            onChange={(value) => onUpdate('interaction', value)}
+          />
+        }
+        preview={<CardInteractionPreview cardPolicy={cardPolicy} />}
+      />
+    </div>
+  )
+}
+
+function SidePanelContractPanel({
+  sidePanelPolicy,
+  onUpdate,
+}: {
+  sidePanelPolicy: UiContract['componentPolicy']['sidePanel']
+  onUpdate: <Key extends keyof UiContract['componentPolicy']['sidePanel']>(
+    key: Key,
+    value: UiContract['componentPolicy']['sidePanel'][Key],
+  ) => void
+}) {
+  return (
+    <div className="select-sectioned-panel">
+      <SelectLikePolicySection
+        title="Panel relationship"
+        description="Choose how supporting information relates to the main work area."
+        controls={
+          <OptionGroup
+            title="Relationship"
+            value={sidePanelPolicy.relationship}
+            options={sidePanelRelationshipOptions}
+            onChange={(value) => onUpdate('relationship', value)}
+          />
+        }
+        preview={<SidePanelRelationshipPreview sidePanelPolicy={sidePanelPolicy} />}
+      />
+
+      <SelectLikePolicySection
+        title="Small viewport fallback"
+        description="Define what happens when side-by-side workspace is no longer usable."
+        controls={
+          <OptionGroup
+            title="Responsive behavior"
+            value={sidePanelPolicy.responsive}
+            options={sidePanelResponsiveOptions}
+            onChange={(value) => onUpdate('responsive', value)}
+          />
+        }
+        preview={<SidePanelResponsivePreview sidePanelPolicy={sidePanelPolicy} />}
+      />
+    </div>
+  )
+}
+
+function ConfirmationContractPanel({
+  confirmationPolicy,
+  onUpdate,
+}: {
+  confirmationPolicy: UiContract['interactionPolicy']['confirmation']
+  onUpdate: <Key extends keyof UiContract['interactionPolicy']['confirmation']>(
+    key: Key,
+    value: UiContract['interactionPolicy']['confirmation'][Key],
+  ) => void
+}) {
+  return (
+    <div className="select-sectioned-panel">
+      <SelectLikePolicySection
+        title="Confirmation surface"
+        description="Choose the default confirmation surface for risky actions. Button danger styling stays button-owned."
+        controls={
+          <OptionGroup
+            title="Surface"
+            value={confirmationPolicy.surface}
+            options={confirmationSurfaceOptions}
+            onChange={(value) => onUpdate('surface', value)}
+          />
+        }
+        preview={<ConfirmationSurfacePreview confirmationPolicy={confirmationPolicy} />}
+      />
+
+      <SelectLikePolicySection
+        title="Confirmation scope"
+        description="Define which action classes should interrupt the flow."
+        controls={
+          <OptionGroup
+            title="Scope"
+            value={confirmationPolicy.scope}
+            options={confirmationScopeOptions}
+            onChange={(value) => onUpdate('scope', value)}
+          />
+        }
+        preview={<ConfirmationScopePreview confirmationPolicy={confirmationPolicy} />}
+      />
+    </div>
+  )
+}
+
+function CardTreatmentPreview({
+  cardPolicy,
+}: {
+  cardPolicy: UiContract['componentPolicy']['card']
+}) {
+  return (
+    <div className="classification-preview">
+      <article className={`contract-card-preview ${cardPolicy.treatment}`}>
+        <div>
+          <span className="classification-kicker">Summary card</span>
+          <strong>Monthly revenue</strong>
+          <p>Grouped business information remains visually contained.</p>
+        </div>
+        <span className="classification-pill">{optionLabel(cardTreatmentOptions, cardPolicy.treatment)}</span>
+      </article>
+      <article className={`contract-card-preview ${cardPolicy.treatment}`}>
+        <div>
+          <span className="classification-kicker">Detail card</span>
+          <strong>North America</strong>
+          <p>Actions and metadata stay inside one content group.</p>
+        </div>
+        <button type="button">Open details</button>
+      </article>
+    </div>
+  )
+}
+
+function CardInteractionPreview({
+  cardPolicy,
+}: {
+  cardPolicy: UiContract['componentPolicy']['card']
+}) {
+  const isClickable = cardPolicy.interaction === 'clickable-card'
+  const isSelectable = cardPolicy.interaction === 'selectable-card'
+
+  return (
+    <div className="classification-preview">
+      <article
+        className={`contract-card-preview ${cardPolicy.treatment} ${isSelectable ? 'is-selected' : ''} ${
+          isClickable ? 'is-clickable' : ''
+        }`}
+      >
+        <div>
+          <span className="classification-kicker">
+            {isSelectable ? 'Selectable card' : isClickable ? 'Clickable card' : 'Static card'}
+          </span>
+          <strong>{isSelectable ? 'Operations' : 'Customer health'}</strong>
+          <p>
+            {isSelectable
+              ? 'Selected state is visible on the card itself.'
+              : isClickable
+                ? 'The whole card opens one destination.'
+                : 'The card groups content; action remains separate.'}
+          </p>
+        </div>
+        {isSelectable ? (
+          <span className="classification-pill">Selected</span>
+        ) : isClickable ? (
+          <span className="classification-pill">Open</span>
+        ) : (
+          <button type="button">Review</button>
+        )}
+      </article>
+    </div>
+  )
+}
+
+function SidePanelRelationshipPreview({
+  sidePanelPolicy,
+}: {
+  sidePanelPolicy: UiContract['componentPolicy']['sidePanel']
+}) {
+  const isDrawer = sidePanelPolicy.relationship === 'temporary-drawer'
+
+  return (
+    <div className={`side-panel-preview ${isDrawer ? 'is-drawer' : ''}`}>
+      <div className="side-panel-main">
+        <span className="classification-kicker">Main workspace</span>
+        <strong>Customer list</strong>
+        <p>{isDrawer ? 'Main work stays primary until details are opened.' : 'Main content and inspector stay side by side.'}</p>
+      </div>
+      <aside className="side-panel-aside">
+        <span className="classification-kicker">{isDrawer ? 'Drawer' : 'Inspector'}</span>
+        <strong>Customer details</strong>
+        <p>{isDrawer ? 'Temporary supporting panel overlays or slides in.' : 'Companion information remains visible.'}</p>
+      </aside>
+    </div>
+  )
+}
+
+function SidePanelResponsivePreview({
+  sidePanelPolicy,
+}: {
+  sidePanelPolicy: UiContract['componentPolicy']['sidePanel']
+}) {
+  const isSheet = sidePanelPolicy.responsive === 'full-screen-sheet'
+
+  return (
+    <div className={`side-panel-mobile-preview ${isSheet ? 'is-sheet' : ''}`}>
+      <div className="mobile-preview-header">
+        <span>Customers</span>
+        <button type="button">{isSheet ? 'Details' : 'Panel'}</button>
+      </div>
+      <div className="mobile-preview-body">
+        <strong>{isSheet ? 'Details sheet' : 'Collapsed workspace'}</strong>
+        <p>
+          {isSheet
+            ? 'Panel content takes the screen when side-by-side layout breaks.'
+            : 'The main task remains visible; panel access moves to a toggle.'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function ConfirmationSurfacePreview({
+  confirmationPolicy,
+}: {
+  confirmationPolicy: UiContract['interactionPolicy']['confirmation']
+}) {
+  if (confirmationPolicy.surface === 'undo-when-reversible') {
+    return (
+      <div className="classification-preview">
+        <div className="confirmation-preview-row">
+          <button className="contract-button danger-emphasis-quiet-outline" type="button">Archive record</button>
+          <span>Action is reversible.</span>
+        </div>
+        <div className="confirmation-toast-preview">
+          <strong>Record archived</strong>
+          <button type="button">Undo</button>
+        </div>
+      </div>
+    )
+  }
+
+  const isTyped = confirmationPolicy.surface === 'typed-confirmation'
+
+  return (
+    <div className="classification-preview">
+      <div className="confirmation-preview-row">
+        <button className="contract-button danger-emphasis-quiet-outline" type="button">Delete record</button>
+        <span>Danger intent starts on the action.</span>
+      </div>
+      <div className="confirmation-box-preview">
+        <strong>{isTyped ? 'Type DELETE to confirm' : 'Confirm delete'}</strong>
+        <p>{isTyped ? 'Use typed intent for rare high-impact actions.' : 'Explain the consequence before continuing.'}</p>
+        {isTyped ? <div className="confirmation-input-preview">DELETE</div> : null}
+        <div>
+          <button className="contract-button secondary-outline" type="button">Cancel</button>
+          <button className="contract-button danger-emphasis-strong-danger" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ConfirmationScopePreview({
+  confirmationPolicy,
+}: {
+  confirmationPolicy: UiContract['interactionPolicy']['confirmation']
+}) {
+  const includesBulk = confirmationPolicy.scope === 'destructive-bulk-unsaved'
+
+  return (
+    <div className="classification-preview">
+      <div className="confirmation-scope-list">
+        <div className="is-active">
+          <strong>Delete record</strong>
+          <span>Confirmed</span>
+        </div>
+        <div className={includesBulk ? 'is-active' : ''}>
+          <strong>Delete 24 records</strong>
+          <span>{includesBulk ? 'Confirmed' : 'Screen-owned'}</span>
+        </div>
+        <div className={includesBulk ? 'is-active' : ''}>
+          <strong>Leave unsaved edits</strong>
+          <span>{includesBulk ? 'Guarded' : 'Screen-owned'}</span>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -1852,11 +2428,14 @@ function ComponentPreviewPanel({
   brandIdentity,
   availabilityPolicy,
   buttonPolicy,
+  cardPolicy,
   checkboxPolicy,
   colorPolicy,
+  confirmationPolicy,
   focusPolicy,
   selectPolicy,
   selectedComponent,
+  sidePanelPolicy,
   tabsPolicy,
   textFieldPolicy,
   theme,
@@ -1866,11 +2445,14 @@ function ComponentPreviewPanel({
   brandIdentity: BrandIdentityPolicy
   availabilityPolicy: UiContract['interactionPolicy']['availability']
   buttonPolicy: UiContract['componentPolicy']['button']
+  cardPolicy: UiContract['componentPolicy']['card']
   checkboxPolicy: UiContract['componentPolicy']['checkbox']
   colorPolicy: ColorPolicy
+  confirmationPolicy: UiContract['interactionPolicy']['confirmation']
   focusPolicy: UiContract['interactionPolicy']['focus']
   selectPolicy: UiContract['componentPolicy']['select']
   selectedComponent: ContractEditorComponent
+  sidePanelPolicy: UiContract['componentPolicy']['sidePanel']
   tabsPolicy: UiContract['componentPolicy']['tabs']
   textFieldPolicy: UiContract['componentPolicy']['textField']
   theme: Theme
@@ -1890,11 +2472,17 @@ function ComponentPreviewPanel({
               ? 'Toggles'
               : selectedComponent === 'checkbox'
                 ? 'Checkboxes'
-                : selectedComponent === 'focus'
-                  ? 'Focus States'
-                  : selectedComponent === 'validation'
-                    ? 'Validation'
-                    : 'Availability'
+                : selectedComponent === 'card'
+                  ? 'Cards'
+                  : selectedComponent === 'sidePanel'
+                    ? 'Side Panels'
+                    : selectedComponent === 'confirmation'
+                      ? 'Confirmation'
+                      : selectedComponent === 'focus'
+                        ? 'Focus States'
+                        : selectedComponent === 'validation'
+                          ? 'Validation'
+                          : 'Availability'
 
   return (
     <div
@@ -1921,6 +2509,12 @@ function ComponentPreviewPanel({
         <TogglePreviewStage togglePolicy={togglePolicy} />
       ) : selectedComponent === 'checkbox' ? (
         <CheckboxPreviewStage checkboxPolicy={checkboxPolicy} />
+      ) : selectedComponent === 'card' ? (
+        <CardInteractionPreview cardPolicy={cardPolicy} />
+      ) : selectedComponent === 'sidePanel' ? (
+        <SidePanelRelationshipPreview sidePanelPolicy={sidePanelPolicy} />
+      ) : selectedComponent === 'confirmation' ? (
+        <ConfirmationSurfacePreview confirmationPolicy={confirmationPolicy} />
       ) : selectedComponent === 'focus' ? (
         <FocusPreviewStage focusPolicy={focusPolicy} />
       ) : selectedComponent === 'validation' ? (
@@ -1932,22 +2526,22 @@ function ComponentPreviewPanel({
       <div className="guidance-grid">
         {selectedComponent === 'button' ? (
           <>
-            <GuidanceCard title="Primary action" value={buttonPolicy.primaryEmphasis} />
-            <GuidanceCard title="Secondary action" value={buttonPolicy.secondaryEmphasis} />
-            <GuidanceCard title="Danger placement" value={buttonPolicy.dangerPlacement} />
-            <GuidanceCard title="Danger emphasis" value={buttonPolicy.dangerEmphasis} />
+            <GuidanceCard title="Primary action" value={optionLabel(primaryEmphasisOptions, buttonPolicy.primaryEmphasis)} />
+            <GuidanceCard title="Secondary action" value={optionLabel(secondaryEmphasisOptions, buttonPolicy.secondaryEmphasis)} />
+            <GuidanceCard title="Danger placement" value={optionLabel(dangerPlacementOptions, buttonPolicy.dangerPlacement)} />
+            <GuidanceCard title="Danger emphasis" value={optionLabel(dangerEmphasisOptions, buttonPolicy.dangerEmphasis)} />
             <GuidanceCard title="Loading preview" value="spinner with label" />
-            <GuidanceCard title="Icon adornment" value={buttonPolicy.iconAdornment} />
-            <GuidanceCard title="Icon-only policy" value={buttonPolicy.iconOnlyPolicy} />
+            <GuidanceCard title="Icon adornment" value={optionLabel(iconAdornmentOptions, buttonPolicy.iconAdornment)} />
+            <GuidanceCard title="Icon-only policy" value={optionLabel(iconOnlyPolicyOptions, buttonPolicy.iconOnlyPolicy)} />
             <GuidanceCard title="Unavailable preview" value="standard disabled state" />
           </>
         ) : selectedComponent === 'textField' ? (
           <>
-            <GuidanceCard title="Field style" value={textFieldPolicy.fieldStyle} />
-            <GuidanceCard title="Label placement" value={textFieldPolicy.labelPlacement} />
-            <GuidanceCard title="Required marker" value={textFieldPolicy.requiredIndicator} />
-            <GuidanceCard title="Message area" value={textFieldPolicy.messageAreaBehavior} />
-            <GuidanceCard title="Placeholder" value={textFieldPolicy.placeholderUsage} />
+            <GuidanceCard title="Field style" value={optionLabel(textFieldStyleOptions, textFieldPolicy.fieldStyle)} />
+            <GuidanceCard title="Label placement" value={optionLabel(textFieldLabelPlacementOptions, textFieldPolicy.labelPlacement)} />
+            <GuidanceCard title="Required marker" value={optionLabel(textFieldRequiredIndicatorOptions, textFieldPolicy.requiredIndicator)} />
+            <GuidanceCard title="Message area" value={optionLabel(textFieldMessageAreaBehaviorOptions, textFieldPolicy.messageAreaBehavior)} />
+            <GuidanceCard title="Placeholder" value={optionLabel(textFieldPlaceholderUsageOptions, textFieldPolicy.placeholderUsage)} />
           </>
         ) : selectedComponent === 'select' ? (
           <>
@@ -1960,7 +2554,7 @@ function ComponentPreviewPanel({
           <>
             <GuidanceCard title="Treatment" value={optionLabel(tabsTreatmentOptions, tabsPolicy.treatment)} />
             <GuidanceCard title="Adornment" value={optionLabel(tabsAdornmentOptions, tabsPolicy.adornment)} />
-            <GuidanceCard title="Source" value="lineage viewer tabs" />
+            <GuidanceCard title="Purpose" value="related panels" />
             <GuidanceCard title="Boundary" value="panel switching" />
           </>
         ) : selectedComponent === 'toggle' ? (
@@ -1973,14 +2567,35 @@ function ComponentPreviewPanel({
         ) : selectedComponent === 'checkbox' ? (
           <>
             <GuidanceCard title="Layout" value={optionLabel(checkboxGroupLayoutOptions, checkboxPolicy.groupLayout)} />
+            <GuidanceCard title="Choice surface" value={optionLabel(checkboxChoiceSurfaceOptions, checkboxPolicy.choiceSurface)} />
             <GuidanceCard title="Mixed state" value={optionLabel(checkboxMixedStateOptions, checkboxPolicy.mixedState)} />
             <GuidanceCard title="Boundary" value="independent choices" />
-            <GuidanceCard title="Source" value="filters and options" />
+          </>
+        ) : selectedComponent === 'card' ? (
+          <>
+            <GuidanceCard title="Treatment" value={optionLabel(cardTreatmentOptions, cardPolicy.treatment)} />
+            <GuidanceCard title="Interaction" value={optionLabel(cardInteractionOptions, cardPolicy.interaction)} />
+            <GuidanceCard title="Boundary" value="content container" />
+            <GuidanceCard title="Not owned" value="page grid size" />
+          </>
+        ) : selectedComponent === 'sidePanel' ? (
+          <>
+            <GuidanceCard title="Relationship" value={optionLabel(sidePanelRelationshipOptions, sidePanelPolicy.relationship)} />
+            <GuidanceCard title="Responsive" value={optionLabel(sidePanelResponsiveOptions, sidePanelPolicy.responsive)} />
+            <GuidanceCard title="Boundary" value="workspace companion" />
+            <GuidanceCard title="Not dialog" value="persistent or invoked panel" />
+          </>
+        ) : selectedComponent === 'confirmation' ? (
+          <>
+            <GuidanceCard title="Surface" value={optionLabel(confirmationSurfaceOptions, confirmationPolicy.surface)} />
+            <GuidanceCard title="Scope" value={optionLabel(confirmationScopeOptions, confirmationPolicy.scope)} />
+            <GuidanceCard title="Boundary" value="interaction policy" />
+            <GuidanceCard title="Not owned" value="button color" />
           </>
         ) : selectedComponent === 'focus' ? (
           <>
-            <GuidanceCard title="Visibility" value={focusPolicy.visibility} />
-            <GuidanceCard title="Indicator" value={focusPolicy.indicatorStyle} />
+            <GuidanceCard title="Visibility" value={optionLabel(focusVisibilityOptions, focusPolicy.visibility)} />
+            <GuidanceCard title="Indicator" value={optionLabel(focusIndicatorStyleOptions, focusPolicy.indicatorStyle)} />
             <GuidanceCard title="Scope" value="all interactive controls" />
             <GuidanceCard title="Anti-pattern" value="never hide focus" />
           </>
@@ -2925,6 +3540,81 @@ function StatusChip({
   )
 }
 
+function ScreenPatternsPanel() {
+  return (
+    <div className="screen-pattern-panel">
+      <section className="screen-pattern-intro">
+        <div>
+          <p className="eyebrow">Screen policy backlog</p>
+          <h3>画面全体で扱うべき規約</h3>
+        </div>
+        <p>
+          Component ContractやInteraction Policyではなく、アプリシェルや画面全体の振る舞いとして扱う候補を整理します。
+          Card、Side Panel、ConfirmationはContract Editor側へ移動しました。
+        </p>
+      </section>
+
+      <div className="screen-pattern-grid">
+        <ScreenPatternCard
+          title="Navigation history"
+          scope="SPAの戻る/進む"
+          status="candidate"
+          body="ブラウザの戻るボタンで、選択中ページ、プレビュータブ、開閉パネル、Inspector選択をどこまで復元するかを決めます。視覚デザインではなく、作業復帰のポリシーです。"
+          points={[
+            'ページ遷移はpushする',
+            '軽い開閉状態はreplaceまたはlocal stateにする',
+            '作業対象の選択は復帰できるようにする',
+          ]}
+        />
+
+        <ScreenPatternCard
+          title="Small viewport"
+          scope="モバイル/狭い画面"
+          status="candidate"
+          body="業務アプリでも狭い画面の破綻は避ける必要があります。すべてをスマホ最適化するのではなく、主要操作が壊れない最低ラインを決めます。"
+          points={[
+            'サイドバーとInspectorは折りたたむ',
+            '設定とプレビューは縦積みにする',
+            '固定ヘッダーや操作ボタンが内容を隠さない',
+          ]}
+        />
+      </div>
+    </div>
+  )
+}
+
+function ScreenPatternCard({
+  body,
+  points,
+  scope,
+  status,
+  title,
+}: {
+  body: string
+  points: string[]
+  scope: string
+  status: 'candidate' | 'review'
+  title: string
+}) {
+  return (
+    <article className="screen-pattern-card">
+      <div className="screen-pattern-card-heading">
+        <div>
+          <span className="screen-pattern-scope">{scope}</span>
+          <h3>{title}</h3>
+        </div>
+        <span className={`screen-pattern-status ${status}`}>{status === 'review' ? 'Review' : 'Candidate'}</span>
+      </div>
+      <p>{body}</p>
+      <ul>
+        {points.map((point) => (
+          <li key={point}>{point}</li>
+        ))}
+      </ul>
+    </article>
+  )
+}
+
 function SettingsPanel({
   theme,
   onThemeChange,
@@ -3137,7 +3827,7 @@ type LegacyButtonPolicy = Omit<
   disabledTreatment?: 'muted' | 'outline-muted' | 'reason-hint' | 'low-opacity'
   disabledReasonPolicy?: string
   loadingState?: 'spinner-with-label' | 'spinner-replaces-label-preserve-width' | 'spinner-replaces-label' | 'spinner-only' | 'disabled-label'
-  dangerEmphasis?: DangerEmphasis | 'subtle' | 'outline' | 'filled'
+  dangerEmphasis?: DangerEmphasis | 'subtle' | 'outline' | 'filled' | 'ghost' | 'tertiary' | 'primary'
   buttonSize?: string
 }
 
@@ -3155,6 +3845,9 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
   const parsedAvailability = parsed.interactionPolicy?.availability as
     | Partial<UiContract['interactionPolicy']['availability']>
     | undefined
+  const parsedConfirmation = parsed.interactionPolicy?.confirmation as
+    | Partial<UiContract['interactionPolicy']['confirmation']>
+    | undefined
   const parsedSelect = parsed.componentPolicy?.select as
     | Partial<UiContract['componentPolicy']['select']>
     | undefined
@@ -3167,6 +3860,12 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
   const parsedCheckbox = parsed.componentPolicy?.checkbox as
     | Partial<UiContract['componentPolicy']['checkbox']>
     | undefined
+  const parsedCard = parsed.componentPolicy?.card as
+    | Partial<UiContract['componentPolicy']['card']>
+    | undefined
+  const parsedSidePanel = parsed.componentPolicy?.sidePanel as
+    | Partial<UiContract['componentPolicy']['sidePanel']>
+    | undefined
   const parsedColor = parsed.designPolicy?.color as LegacyColorPolicy | undefined
   const parsedBrandIdentity = parsed.designPolicy?.brandIdentity as Partial<BrandIdentityPolicy> | undefined
   const legacyDanger = parsedButton?.dangerTreatment
@@ -3174,7 +3873,7 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
     legacyDanger === 'inline' ? 'inline' : sampleContract.componentPolicy.button.dangerPlacement
   const legacyDangerEmphasis: DangerEmphasis =
     legacyDanger === 'confirmation-required'
-      ? 'primary'
+      ? 'strong-danger'
       : normalizeDangerEmphasis(parsedButton?.dangerEmphasis)
   const buttonWithoutLegacy = removeLegacyDangerTreatment(parsedButton)
   const legacySecondaryEmphasis = normalizeSecondaryEmphasis(parsedButton?.secondaryEmphasis)
@@ -3205,6 +3904,7 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
       focus: normalizeFocusPolicy(parsedFocus),
       validation: normalizeValidationPolicy(parsedValidation),
       availability: normalizeAvailabilityPolicy(parsedAvailability),
+      confirmation: normalizeConfirmationPolicy(parsedConfirmation),
     },
     componentPolicy: {
       ...sampleContract.componentPolicy,
@@ -3223,6 +3923,8 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
       tabs: normalizeTabsPolicy(parsedTabs),
       toggle: normalizeTogglePolicy(parsedToggle),
       checkbox: normalizeCheckboxPolicy(parsedCheckbox),
+      card: normalizeCardPolicy(parsedCard),
+      sidePanel: normalizeSidePanelPolicy(parsedSidePanel),
     },
   }
 }
@@ -3277,6 +3979,21 @@ function normalizeAvailabilityPolicy(
     ])
       ? value.layout
       : sample.layout,
+  }
+}
+
+function normalizeConfirmationPolicy(
+  value: Partial<UiContract['interactionPolicy']['confirmation']> | undefined,
+): UiContract['interactionPolicy']['confirmation'] {
+  const sample = sampleContract.interactionPolicy.confirmation
+
+  return {
+    surface: isOneOf(value?.surface, ['danger-dialog', 'typed-confirmation', 'undo-when-reversible'])
+      ? value.surface
+      : sample.surface,
+    scope: isOneOf(value?.scope, ['destructive-only', 'destructive-bulk-unsaved'])
+      ? value.scope
+      : sample.scope,
   }
 }
 
@@ -3361,9 +4078,42 @@ function normalizeCheckboxPolicy(
     groupLayout: isOneOf(value?.groupLayout, ['stacked-list', 'inline-compact'])
       ? value.groupLayout
       : sample.groupLayout,
+    choiceSurface: isOneOf(value?.choiceSurface, ['plain-label', 'row-surface', 'bordered-choice-row'])
+      ? value.choiceSurface
+      : sample.choiceSurface,
     mixedState: isOneOf(value?.mixedState, ['show-indeterminate', 'avoid-parent-checkbox'])
       ? value.mixedState
       : sample.mixedState,
+  }
+}
+
+function normalizeCardPolicy(
+  value: Partial<UiContract['componentPolicy']['card']> | undefined,
+): UiContract['componentPolicy']['card'] {
+  const sample = sampleContract.componentPolicy.card
+
+  return {
+    treatment: isOneOf(value?.treatment, ['outlined-card', 'filled-card', 'elevated-card'])
+      ? value.treatment
+      : sample.treatment,
+    interaction: isOneOf(value?.interaction, ['static-card', 'clickable-card', 'selectable-card'])
+      ? value.interaction
+      : sample.interaction,
+  }
+}
+
+function normalizeSidePanelPolicy(
+  value: Partial<UiContract['componentPolicy']['sidePanel']> | undefined,
+): UiContract['componentPolicy']['sidePanel'] {
+  const sample = sampleContract.componentPolicy.sidePanel
+
+  return {
+    relationship: isOneOf(value?.relationship, ['persistent-inspector', 'temporary-drawer'])
+      ? value.relationship
+      : sample.relationship,
+    responsive: isOneOf(value?.responsive, ['collapse-to-toggle', 'full-screen-sheet'])
+      ? value.responsive
+      : sample.responsive,
   }
 }
 
@@ -3442,6 +4192,7 @@ function isOneOf<T extends string>(value: string | undefined, allowed: readonly 
 }
 
 function normalizeColorProfileId(value: unknown): ActiveColorProfileId {
+  if (value === 'lineage-slate') return 'deep-slate-blue'
   if (colorProfiles.some((profile) => profile.id === value)) return value as ColorProfileId
   if (value === 'custom') return 'custom'
   return sampleContract.designPolicy.colorProfileId
@@ -3774,10 +4525,10 @@ function normalizeIconOnlyPolicy(button: LegacyButtonPolicy | undefined): IconOn
 }
 
 function normalizeDangerEmphasis(value: LegacyButtonPolicy['dangerEmphasis']): DangerEmphasis {
-  if (value === 'subtle') return 'ghost'
-  if (value === 'outline') return 'tertiary'
-  if (value === 'filled') return 'primary'
-  if (value === 'ghost' || value === 'tertiary' || value === 'primary') return value
+  if (value === 'subtle' || value === 'ghost') return 'low-emphasis'
+  if (value === 'outline' || value === 'tertiary') return 'quiet-outline'
+  if (value === 'filled' || value === 'primary') return 'strong-danger'
+  if (value === 'low-emphasis' || value === 'quiet-outline' || value === 'strong-danger') return value
   return sampleContract.componentPolicy.button.dangerEmphasis
 }
 

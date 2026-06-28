@@ -12,6 +12,8 @@
   ],
   "responsibilities": [
     "Preserve the meaning of UI Contract options as intentional design-policy choices.",
+    "Translate DESIGN.md-style human design principles into JSON-friendly contract values without turning them into CSS implementation details.",
+    "Keep option values, labels, and notes understandable to other AI agents as standalone DESIGN.md-like rules.",
     "Require option sets to be checked against official design systems or well-established product UI patterns before implementation.",
     "Separate visual design policy from workflow behavior, permission policy, dialog behavior, form validation behavior, and screen-pattern behavior.",
     "Separate case-owned input semantics from component design rules: a contract may define how a selected input pattern is presented, but it must not decide which input pattern a specific screen must use.",
@@ -30,6 +32,10 @@
     "User suggestions and agent suggestions must be treated as hypotheses, not as immediate product truth.",
     "An option must not be added only because it is technically possible to preview.",
     "A contract question should normally ask how a meaningful state, operation, or affordance is represented, not whether a specific screen uses that state or operation.",
+    "A contract option must remain meaningful as a design rule before it is encoded as JSON.",
+    "A contract option must not require a specific CSS library, component package, or framework to preserve its meaning.",
+    "A contract option must not depend on project-specific names, source-application names, private metaphors, CSS class names, or local implementation shorthand.",
+    "Color roles and color values are the main allowed concrete design values; most non-color options should be portable rules rather than exact sizes, measurements, or implementation details.",
     "State presentation, operation affordance, semantic input choice, layout policy, and visual token styling must be modeled as separate concerns.",
     "If two choices can be used together, they must not be collapsed into one mutually exclusive option unless the concept explicitly defines why the combination is invalid.",
     "If an option only controls size, height, width, font size, or density without changing a reusable design policy, it should not be added to the Contract Editor by default.",
@@ -53,6 +59,10 @@
     "Would changing this option alter a meaningful business-application policy, or only a local size/density/detail that belongs to implementation?",
     "Does this option need a context note that says when it is worth using?",
     "Does any dependent question become meaningless for one of the answers?",
+    "Would this still make sense as a DESIGN.md rule before being represented in JSON?",
+    "Can multiple CSS frameworks or UI libraries implement this option without changing the rule?",
+    "Would another AI understand this option without repository-specific context or source-app history?",
+    "Is the option name made from common design-system vocabulary or plain business UI language?",
     "Would this option be useful in a business application without encouraging layout instability or unclear interaction?",
     "Does the option name describe intent rather than CSS mechanics?",
     "What evidence would let a reviewer reject, hold, move, or accept the option?"
@@ -68,6 +78,7 @@
     "Check docs/knowledge/design-system-anti-patterns.md before doing new external research for known 'do not' guidance.",
     "Use multiple sources when a choice changes the meaning of a contract section.",
     "Treat examples from individual apps as supporting evidence only, not as sufficient authority.",
+    "Do not carry source-app names into the contract vocabulary; keep provenance in review notes or knowledge files.",
     "When evidence conflicts, preserve the uncertainty in the report instead of hiding it behind a new option."
   ],
   "currentImplications": [
@@ -83,6 +94,7 @@
     "Select Contract should not model single-select clear or empty-return behavior as a global component choice. Required, optional, defaulted, and external-reset behavior is owned by field or screen rules.",
     "Select Contract should separate selected-row indication, such as background or checkmark, from option content and list density.",
     "Select Contract should not infer that removing an empty-list item removes the possibility of an empty value; whether empty is semantically valid is owned by the screen use case or field definition.",
-    "Component Contract choices should not expose size as a first-class option until the product defines why size belongs to long-lived contract policy rather than local layout or implementation."
+    "Component Contract choices should not expose size as a first-class option until the product defines why size belongs to long-lived contract policy rather than local layout or implementation.",
+    "Selected, active, checked, focused, and current-state previews must keep text, icons, and marks readable. A selectable option is not acceptable if its preview hides the state or relies on low-contrast color alone."
   ]
 }
