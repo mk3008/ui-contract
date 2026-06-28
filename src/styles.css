@@ -1684,21 +1684,27 @@ h3 {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
   background: var(--surface-soft);
 }
 
 .control-tabs-segmented button {
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: 32px;
+  border-radius: 6px;
+  padding: 0 12px;
 }
 
 .control-tabs-segmented button + button {
-  border-left: 1px solid var(--line);
+  border-left: 0;
 }
 
 .control-tabs-segmented .is-active {
-  background: var(--primary);
-  color: #ffffff;
+  color: var(--primary);
+  background: var(--surface);
+  box-shadow:
+    inset 0 -2px 0 var(--primary),
+    0 1px 2px rgb(15 23 42 / 8%);
 }
 
 .control-tabs-segmented .is-active small {
