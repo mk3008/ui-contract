@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useMemo, useRef, useState } from 'react'
+import { StrictMode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
   ChevronRight,
@@ -20,13 +20,6 @@ import {
   TabsSectionedContractPanel,
   TogglePreviewStage,
   ToggleSectionedContractPanel,
-  checkboxChoiceSurfaceOptions,
-  checkboxGroupLayoutOptions,
-  checkboxMixedStateOptions,
-  tabsAdornmentOptions,
-  tabsTreatmentOptions,
-  toggleLabelPolicyOptions,
-  toggleTreatmentOptions,
   type CheckboxPolicy,
   type TabsPolicy,
   type TogglePolicy,
@@ -34,9 +27,9 @@ import {
 import {
   SelectPreviewStage,
   SelectSectionedContractPanel,
-  selectMultiSelectedItemDisplayOptions,
   type SelectPolicy,
 } from './select-contract'
+import { translateUiDocument, type UiLanguage } from './i18n'
 import './styles.css'
 
 declare global {
@@ -44,7 +37,7 @@ declare global {
 }
 
 type Theme = 'light' | 'dark'
-type OverviewLanguage = 'ja' | 'en'
+type OverviewLanguage = UiLanguage
 type OverviewSection = {
   eyebrow: string
   title: string
@@ -88,10 +81,16 @@ type MenuEntry = {
     status: MenuStatus
   }>
 }
-type PrimaryEmphasis = 'filled' | 'tonal' | 'outline'
-type SecondaryEmphasis = 'outline' | 'neutral-filled' | 'tonal'
+type ButtonColoringPattern = 'filled' | 'outline' | 'neutral-surface' | 'filled-tonal' | 'text'
+type ButtonColoringOption<Value extends string = ButtonColoringPattern> = {
+  label: string
+  note: string
+  value: Value
+}
+type PrimaryEmphasis = Extract<ButtonColoringPattern, 'filled' | 'filled-tonal' | 'outline'>
+type SecondaryEmphasis = 'outline' | 'neutral-filled' | 'filled-tonal'
 type DangerPlacement = 'separated' | 'inline'
-type DangerEmphasis = 'low-emphasis' | 'quiet-outline' | 'strong-danger'
+type DangerEmphasis = Extract<ButtonColoringPattern, 'text' | 'outline' | 'filled'>
 type IconAdornment = 'text-only-default' | 'icons-when-clarifying'
 type IconOnlyPolicy = 'avoid-icon-only' | 'allow-recognizable-with-accessible-name'
 type TextFieldStyle = 'outlined' | 'filled'
@@ -151,8 +150,6 @@ type ColorRoleKey =
   | 'brandText'
   | 'primary'
   | 'primaryText'
-  | 'secondary'
-  | 'secondaryText'
   | 'success'
   | 'warning'
   | 'danger'
@@ -263,8 +260,6 @@ const defaultColorPolicy: ColorPolicy = {
         brandText: '#172554',
         primary: '#2563eb',
         primaryText: '#ffffff',
-        secondary: '#475569',
-        secondaryText: '#ffffff',
         success: '#15803d',
         warning: '#b45309',
         danger: '#b91c1c',
@@ -283,8 +278,6 @@ const defaultColorPolicy: ColorPolicy = {
         brandText: '#f8fafc',
         primary: '#60a5fa',
         primaryText: '#0f172a',
-        secondary: '#94a3b8',
-        secondaryText: '#0f172a',
         success: '#4ade80',
         warning: '#fbbf24',
         danger: '#f87171',
@@ -323,7 +316,6 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#0f172a',
       lightBrandText: '#ffffff',
       lightPrimary: '#2563eb',
-      lightSecondary: '#475569',
       lightInfo: '#0f766e',
       lightSuccess: '#047857',
       lightWarning: '#b45309',
@@ -338,7 +330,6 @@ const colorProfiles: ColorProfile[] = [
       darkBrandText: '#f8fafc',
       darkPrimary: '#60a5fa',
       darkPrimaryText: '#0f172a',
-      darkSecondary: '#94a3b8',
       darkInfo: '#2dd4bf',
       darkSuccess: '#4ade80',
       darkWarning: '#fbbf24',
@@ -360,13 +351,11 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#fef2f2',
       lightBrandText: '#450a0a',
       lightPrimary: '#0066cc',
-      lightSecondary: '#57534e',
       lightInfo: '#0369a1',
       lightDanger: '#991b1b',
       darkBrandBackground: '#450a0a',
       darkPrimary: '#92c5f9',
       darkPrimaryText: '#032142',
-      darkSecondary: '#a8a29e',
       darkInfo: '#38bdf8',
       darkDanger: '#f87171',
     }),
@@ -380,14 +369,12 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#fff7ed',
       lightBrandText: '#431407',
       lightPrimary: '#1f75cb',
-      lightSecondary: '#45424d',
       lightInfo: '#0f766e',
       lightWarning: '#ab6100',
       darkBrandBackground: '#2a160d',
       darkBrandText: '#fff7ed',
       darkPrimary: '#63a6e9',
       darkPrimaryText: '#1d283e',
-      darkSecondary: '#a2a1a6',
       darkInfo: '#2dd4bf',
       darkWarning: '#e9be74',
     }),
@@ -401,12 +388,10 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#ecfdf3',
       lightBrandText: '#052e16',
       lightPrimary: '#2563eb',
-      lightSecondary: '#4b5563',
       lightInfo: '#0f766e',
       darkBrandBackground: '#052e16',
       darkPrimary: '#60a5fa',
       darkPrimaryText: '#0f172a',
-      darkSecondary: '#9ca3af',
       darkInfo: '#2dd4bf',
     }),
   },
@@ -419,11 +404,9 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#f0fdfa',
       lightBrandText: '#042f2e',
       lightPrimary: '#0f766e',
-      lightSecondary: '#475569',
       lightInfo: '#0369a1',
       darkBrandBackground: '#042f2e',
       darkPrimary: '#2dd4bf',
-      darkSecondary: '#94a3b8',
       darkInfo: '#38bdf8',
     }),
   },
@@ -436,13 +419,11 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#ecfeff',
       lightBrandText: '#164e63',
       lightPrimary: '#0e7490',
-      lightSecondary: '#475569',
       lightInfo: '#0284c7',
       darkBrandBackground: '#083344',
       darkBrandText: '#cffafe',
       darkPrimary: '#67e8f9',
       darkPrimaryText: '#164e63',
-      darkSecondary: '#94a3b8',
       darkInfo: '#38bdf8',
     }),
   },
@@ -455,11 +436,9 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#edf5ff',
       lightBrandText: '#001d6c',
       lightPrimary: '#0f62fe',
-      lightSecondary: '#525252',
       lightInfo: '#0072c3',
       darkBrandBackground: '#000000',
       darkPrimary: '#78a9ff',
-      darkSecondary: '#c6c6c6',
       darkInfo: '#33b1ff',
     }),
   },
@@ -472,13 +451,11 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#eff6ff',
       lightBrandText: '#172554',
       lightPrimary: '#1d4ed8',
-      lightSecondary: '#334155',
       lightInfo: '#0369a1',
       darkBrandBackground: '#0f172a',
       darkBrandText: '#dbeafe',
       darkPrimary: '#93c5fd',
       darkPrimaryText: '#172554',
-      darkSecondary: '#94a3b8',
       darkInfo: '#38bdf8',
     }),
   },
@@ -491,11 +468,9 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#eef2ff',
       lightBrandText: '#312e81',
       lightPrimary: '#4f46e5',
-      lightSecondary: '#64748b',
       lightInfo: '#2563eb',
       darkBrandBackground: '#111827',
       darkPrimary: '#818cf8',
-      darkSecondary: '#94a3b8',
       darkInfo: '#60a5fa',
     }),
   },
@@ -508,12 +483,10 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#f4f4f5',
       lightBrandText: '#18181b',
       lightPrimary: '#334155',
-      lightSecondary: '#64748b',
       lightInfo: '#2563eb',
       darkBrandBackground: '#09090b',
       darkPrimary: '#cbd5e1',
       darkPrimaryText: '#0f172a',
-      darkSecondary: '#94a3b8',
       darkInfo: '#60a5fa',
     }),
   },
@@ -526,13 +499,11 @@ const colorProfiles: ColorProfile[] = [
       lightBrandBackground: '#f8fafc',
       lightBrandText: '#0f172a',
       lightPrimary: '#334155',
-      lightSecondary: '#64748b',
       lightInfo: '#2563eb',
       darkBrandBackground: '#111827',
       darkBrandText: '#f8fafc',
       darkPrimary: '#cbd5e1',
       darkPrimaryText: '#0f172a',
-      darkSecondary: '#94a3b8',
       darkInfo: '#60a5fa',
     }),
   },
@@ -577,7 +548,7 @@ const sampleContract: UiContract = {
       primaryEmphasis: 'filled',
       secondaryEmphasis: 'outline',
       dangerPlacement: 'separated',
-      dangerEmphasis: 'quiet-outline',
+      dangerEmphasis: 'outline',
       iconAdornment: 'text-only-default',
       iconOnlyPolicy: 'avoid-icon-only',
     },
@@ -643,35 +614,58 @@ const menuItems: MenuEntry[] = [
   { label: 'Settings', page: 'Settings', status: 'placeholder' },
 ]
 
-const primaryEmphasisOptions: Array<{ value: PrimaryEmphasis; label: string; note: string }> = [
-  { value: 'filled', label: 'Filled', note: 'Primary actions are visually strongest.' },
-  { value: 'tonal', label: 'Tonal', note: 'Primary actions are clear but quieter.' },
-  { value: 'outline', label: 'Outline', note: 'Primary actions avoid heavy emphasis.' },
+const buttonColoringPatterns = {
+  filled: {
+    label: 'Filled',
+    note: 'Use a filled surface with the action color.',
+  },
+  outline: {
+    label: 'Outline',
+    note: 'Use colored text and border without a filled surface.',
+  },
+  neutralFilled: {
+    label: 'Neutral surface',
+    note: 'Use a neutral filled surface with normal text color.',
+  },
+  filledTonal: {
+    label: 'Filled tonal',
+    note: 'Use a tonal filled surface derived from the action color.',
+  },
+  text: {
+    label: 'Text',
+    note: 'Use colored text without a filled surface or border.',
+  },
+} as const
+
+const primaryEmphasisOptions: Array<ButtonColoringOption<PrimaryEmphasis>> = [
+  { value: 'filled', ...buttonColoringPatterns.filled },
+  { value: 'filled-tonal', ...buttonColoringPatterns.filledTonal },
+  { value: 'outline', ...buttonColoringPatterns.outline },
 ]
 
-const secondaryEmphasisOptions: Array<{ value: SecondaryEmphasis; label: string; note: string }> = [
-  { value: 'outline', label: 'Outline', note: 'Secondary actions remain visible.' },
-  { value: 'neutral-filled', label: 'Neutral filled', note: 'Secondary actions keep a clear button shape.' },
-  { value: 'tonal', label: 'Tonal', note: 'Secondary actions get a soft surface.' },
+const secondaryEmphasisOptions: Array<ButtonColoringOption<SecondaryEmphasis>> = [
+  { value: 'outline', ...buttonColoringPatterns.outline },
+  { value: 'neutral-filled', ...buttonColoringPatterns.neutralFilled },
+  { value: 'filled-tonal', ...buttonColoringPatterns.filledTonal },
 ]
 
 const dangerPlacementOptions: Array<{ value: DangerPlacement; label: string; note: string }> = [
   { value: 'separated', label: 'Separated', note: 'Keep danger actions away from normal actions.' },
-  { value: 'inline', label: 'Inline', note: 'Allow danger actions near related actions.' },
+  { value: 'inline', label: 'Inline row', note: 'Place danger actions in the same action row as related actions.' },
 ]
 
-const dangerEmphasisOptions: Array<{ value: DangerEmphasis; label: string; note: string }> = [
-  { value: 'low-emphasis', label: 'Low emphasis', note: 'Lowest visual weight for destructive actions.' },
-  { value: 'quiet-outline', label: 'Quiet outline', note: 'Visible destructive action without primary weight.' },
-  { value: 'strong-danger', label: 'Strong danger', note: 'Strong destructive action for required destructive steps.' },
+const dangerEmphasisOptions: Array<ButtonColoringOption<DangerEmphasis>> = [
+  { value: 'text', ...buttonColoringPatterns.text },
+  { value: 'outline', ...buttonColoringPatterns.outline },
+  { value: 'filled', ...buttonColoringPatterns.filled },
 ]
 
 const iconAdornmentOptions: Array<{ value: IconAdornment; label: string; note: string }> = [
-  { value: 'text-only-default', label: 'Text first', note: 'Do not add icons to labeled buttons by default.' },
+  { value: 'text-only-default', label: 'Text only', note: 'Keep button meaning in the visible label.' },
   {
     value: 'icons-when-clarifying',
     label: 'Clarifying icons',
-    note: 'Add icons only when they make the labeled action clearer.',
+    note: 'Add icons only when they clarify stable action meaning.',
   },
 ]
 
@@ -709,8 +703,8 @@ const focusIndicatorStyleOptions: Array<{ value: FocusIndicatorStyle; label: str
   },
   {
     value: 'high-contrast-highlight',
-    label: 'High contrast',
-    note: 'Bold focus treatment for accessibility-critical apps.',
+    label: 'High-contrast ring',
+    note: 'Use a focus ring with inner and outer contrast layers.',
   },
 ]
 
@@ -766,12 +760,12 @@ const availabilityTreatmentOptions: Array<{ value: AvailabilityTreatment; label:
 const availabilityLayoutOptions: Array<{ value: AvailabilityLayout; label: string; note: string }> = [
   {
     value: 'preserve-space-for-temporary-state',
-    label: 'Preserve',
+    label: 'Preserve temporary space',
     note: 'Keep temporary unavailable controls from shifting layout.',
   },
   {
     value: 'allow-reflow-when-not-applicable',
-    label: 'Reflow',
+    label: 'Allow reflow',
     note: 'Let layout close gaps when controls are not applicable.',
   },
 ]
@@ -779,17 +773,17 @@ const availabilityLayoutOptions: Array<{ value: AvailabilityLayout; label: strin
 const cardTreatmentOptions: Array<{ value: CardTreatment; label: string; note: string }> = [
   {
     value: 'outlined-card',
-    label: 'Outlined',
+    label: 'Outlined card',
     note: 'Use a border to group related content without adding depth.',
   },
   {
     value: 'filled-card',
-    label: 'Filled',
-    note: 'Use a quiet surface when cards sit on a plain background.',
+    label: 'Filled card',
+    note: 'Use a filled card surface to group content on a plain background.',
   },
   {
     value: 'elevated-card',
-    label: 'Elevated',
+    label: 'Elevated card',
     note: 'Use shadow only when layered content needs separation.',
   },
 ]
@@ -797,7 +791,7 @@ const cardTreatmentOptions: Array<{ value: CardTreatment; label: string; note: s
 const cardInteractionOptions: Array<{ value: CardInteraction; label: string; note: string }> = [
   {
     value: 'static-card',
-    label: 'Static content',
+    label: 'Static card',
     note: 'Cards group information; actions remain explicit controls.',
   },
   {
@@ -815,12 +809,12 @@ const cardInteractionOptions: Array<{ value: CardInteraction; label: string; not
 const sidePanelRelationshipOptions: Array<{ value: SidePanelRelationship; label: string; note: string }> = [
   {
     value: 'persistent-inspector',
-    label: 'Persistent inspector',
+    label: 'Persistent side panel',
     note: 'Keep companion details beside the main work area.',
   },
   {
     value: 'temporary-drawer',
-    label: 'Temporary drawer',
+    label: 'Temporary side panel',
     note: 'Open supporting details only when the user asks for them.',
   },
 ]
@@ -828,12 +822,12 @@ const sidePanelRelationshipOptions: Array<{ value: SidePanelRelationship; label:
 const sidePanelResponsiveOptions: Array<{ value: SidePanelResponsive; label: string; note: string }> = [
   {
     value: 'collapse-to-toggle',
-    label: 'Collapse to toggle',
+    label: 'Collapsed side panel',
     note: 'Keep the main task visible and expose the panel from a control.',
   },
   {
     value: 'full-screen-sheet',
-    label: 'Full-screen sheet',
+    label: 'Full-screen side sheet',
     note: 'Let the panel take the screen when side-by-side space is gone.',
   },
 ]
@@ -841,17 +835,17 @@ const sidePanelResponsiveOptions: Array<{ value: SidePanelResponsive; label: str
 const confirmationSurfaceOptions: Array<{ value: ConfirmationSurface; label: string; note: string }> = [
   {
     value: 'danger-dialog',
-    label: 'Danger dialog',
+    label: 'Confirmation dialog',
     note: 'Interrupt destructive actions with an explicit confirmation.',
   },
   {
     value: 'typed-confirmation',
-    label: 'Typed confirmation',
+    label: 'Typed confirmation dialog',
     note: 'Require typed intent for rare, high-impact destructive actions.',
   },
   {
     value: 'undo-when-reversible',
-    label: 'Undo when reversible',
+    label: 'Undo toast',
     note: 'Prefer undo feedback when the action can be safely reversed.',
   },
 ]
@@ -872,8 +866,8 @@ const confirmationScopeOptions: Array<{ value: ConfirmationScope; label: string;
 const overviewContent = overviewContentSource as Record<OverviewLanguage, OverviewContent>
 
 const textFieldStyleOptions: Array<{ value: TextFieldStyle; label: string; note: string }> = [
-  { value: 'outlined', label: 'Outlined', note: 'Clear field boundary for forms.' },
-  { value: 'filled', label: 'Filled', note: 'Soft field surface for dense screens.' },
+  { value: 'outlined', label: 'Outlined field', note: 'Clear field boundary for forms.' },
+  { value: 'filled', label: 'Filled field', note: 'Soft field surface for dense screens.' },
 ]
 
 const textFieldLabelPlacementOptions: Array<{
@@ -882,8 +876,8 @@ const textFieldLabelPlacementOptions: Array<{
   note: string
 }> = [
   { value: 'top', label: 'Top label', note: 'Most readable default.' },
-  { value: 'side-right', label: 'Side right', note: 'Side label kept close to the field.' },
-  { value: 'side-left', label: 'Side left', note: 'Side labels share one visual start line.' },
+  { value: 'side-right', label: 'Right-aligned side label', note: 'Side label kept close to the field.' },
+  { value: 'side-left', label: 'Left-aligned side label', note: 'Side labels share one visual start line.' },
 ]
 
 const textFieldRequiredIndicatorOptions: Array<{
@@ -894,12 +888,12 @@ const textFieldRequiredIndicatorOptions: Array<{
   { value: 'mark-optional', label: 'Mark optional', note: 'Required is the default assumption.' },
   {
     value: 'mark-required-default',
-    label: 'Required mark default',
+    label: 'Required mark, default color',
     note: 'Use the normal text color for required marks.',
   },
   {
     value: 'mark-required-danger',
-    label: 'Required mark danger',
+    label: 'Required mark, danger color',
     note: 'Use the danger color for required marks.',
   },
 ]
@@ -911,13 +905,13 @@ const textFieldMessageAreaBehaviorOptions: Array<{
 }> = [
   {
     value: 'reserved-message-area',
-    label: 'Reserved message area',
-    note: 'Keeps helper and error placement stable.',
+    label: 'Reserve helper/error space',
+    note: 'Reserve stable space for helper text and validation errors below the field.',
   },
   {
     value: 'dynamic-message-area',
-    label: 'Dynamic message area',
-    note: 'Uses space only when guidance or validation appears.',
+    label: 'Show only when needed',
+    note: 'Show helper text or validation errors only when needed; nearby layout may move.',
   },
 ]
 
@@ -928,13 +922,13 @@ const textFieldPlaceholderUsageOptions: Array<{
 }> = [
   {
     value: 'avoid-placeholder',
-    label: 'Avoid placeholder',
-    note: 'Keep guidance in label or helper text.',
+    label: 'Avoid placeholders',
+    note: 'Put guidance in labels or helper text, not inside the empty field.',
   },
   {
     value: 'format-example-only',
-    label: 'Format example only',
-    note: 'Use placeholder only for short examples or formats.',
+    label: 'Format examples only',
+    note: 'Allow only short format examples, such as dates or codes.',
   },
 ]
 
@@ -943,8 +937,6 @@ const colorRoleFields: Array<{ key: ColorRoleKey; group: string; label: string; 
   { key: 'brandText', group: 'Brand', label: 'Brand text', note: 'Text shown on brand background.' },
   { key: 'primary', group: 'Actions', label: 'Primary action', note: 'Main action and active control.' },
   { key: 'primaryText', group: 'Actions', label: 'Primary text', note: 'Text on primary action color.' },
-  { key: 'secondary', group: 'Actions', label: 'Secondary action', note: 'Supporting action color.' },
-  { key: 'secondaryText', group: 'Actions', label: 'Secondary text', note: 'Text on secondary action color.' },
   { key: 'success', group: 'Semantic', label: 'Success', note: 'Positive status and completed work.' },
   { key: 'warning', group: 'Semantic', label: 'Warning', note: 'Attention needed, not destructive.' },
   { key: 'danger', group: 'Semantic', label: 'Danger / error', note: 'Errors and destructive actions.' },
@@ -960,6 +952,9 @@ const colorRoleFields: Array<{ key: ColorRoleKey; group: string; label: string; 
 ]
 
 function App() {
+  const [language, setLanguage] = useState<OverviewLanguage>(() => {
+    return (localStorage.getItem('ui-contract-language') as OverviewLanguage | null) ?? 'ja'
+  })
   const [theme, setTheme] = useState<Theme>(() => {
     return (localStorage.getItem('ui-contract-theme') as Theme | null) ?? 'light'
   })
@@ -975,6 +970,14 @@ function App() {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('ui-contract-theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    localStorage.setItem('ui-contract-language', language)
+  }, [language])
+
+  useLayoutEffect(() => {
+    translateUiDocument(language)
+  })
 
   const contractText = useMemo(() => JSON.stringify(contract, null, 2), [contract])
 
@@ -1067,16 +1070,24 @@ function App() {
     key: Key,
     value: UiContract['interactionPolicy']['availability'][Key],
   ) => {
-    setContract((current) => ({
-      ...current,
-      interactionPolicy: {
-        ...current.interactionPolicy,
-        availability: {
-          ...current.interactionPolicy.availability,
-          [key]: value,
+    setContract((current) => {
+      const availability = {
+        ...current.interactionPolicy.availability,
+        [key]: value,
+      }
+
+      if (availability.treatment === 'hidden-when-not-applicable') {
+        availability.layout = 'allow-reflow-when-not-applicable'
+      }
+
+      return {
+        ...current,
+        interactionPolicy: {
+          ...current.interactionPolicy,
+          availability,
         },
-      },
-    }))
+      }
+    })
   }
 
   const updateSelectPolicy = <Key extends keyof UiContract['componentPolicy']['select']>(
@@ -1413,7 +1424,7 @@ function App() {
       return <SettingsPanel theme={theme} onThemeChange={setTheme} />
     }
 
-    return <OverviewPanel />
+    return <OverviewPanel language={language} />
   }
 
   return (
@@ -1445,6 +1456,19 @@ function App() {
         </div>
 
         <div className="topbar-actions">
+          <div className="topbar-language-switch" aria-label="Language">
+            {(['ja', 'en'] as OverviewLanguage[]).map((option) => (
+              <button
+                className={language === option ? 'is-active' : ''}
+                key={option}
+                onClick={() => setLanguage(option)}
+                type="button"
+                aria-pressed={language === option}
+              >
+                {option === 'ja' ? 'JP' : 'EN'}
+              </button>
+            ))}
+          </div>
           <input
             accept="application/json,.json"
             className="visually-hidden"
@@ -1475,7 +1499,8 @@ function App() {
             className="icon-button"
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             type="button"
-            aria-label="Switch theme"
+            aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+            title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
@@ -1502,8 +1527,7 @@ function App() {
                       type="button"
                     >
                       <span>{item.label}</span>
-                      <span className="menu-meta">
-                        {item.status === 'active' ? 'Now' : 'Soon'}
+                      <span className="menu-meta" aria-hidden="true">
                         <ChevronRight size={15} />
                       </span>
                     </button>
@@ -1519,8 +1543,7 @@ function App() {
                             type="button"
                           >
                             <span>{child.label}</span>
-                            <span className="menu-meta">
-                              {child.status === 'active' ? 'Now' : 'Soon'}
+                            <span className="menu-meta" aria-hidden="true">
                               <ChevronRight size={14} />
                             </span>
                           </button>
@@ -2027,11 +2050,11 @@ function ConfirmationContractPanel({
   return (
     <div className="select-sectioned-panel">
       <SelectLikePolicySection
-        title="Confirmation surface"
-        description="Choose the default confirmation surface for risky actions. Button danger styling stays button-owned."
+        title="Confirmation pattern"
+        description="Choose how risky actions are confirmed or recovered. Button danger styling stays button-owned."
         controls={
           <OptionGroup
-            title="Surface"
+            title="Pattern"
             value={confirmationPolicy.surface}
             options={confirmationSurfaceOptions}
             onChange={(value) => onUpdate('surface', value)}
@@ -2042,7 +2065,11 @@ function ConfirmationContractPanel({
 
       <SelectLikePolicySection
         title="Confirmation scope"
-        description="Define which action classes should interrupt the flow."
+        description={
+          confirmationPolicy.surface === 'undo-when-reversible'
+            ? 'Define which action classes need confirmation or recovery coverage.'
+            : 'Define which action classes should interrupt the flow.'
+        }
         controls={
           <OptionGroup
             title="Scope"
@@ -2181,7 +2208,7 @@ function ConfirmationSurfacePreview({
     return (
       <div className="classification-preview">
         <div className="confirmation-preview-row">
-          <button className="contract-button danger-emphasis-quiet-outline" type="button">Archive record</button>
+          <button className="contract-button danger-emphasis-outline" type="button">Archive record</button>
           <span>Action is reversible.</span>
         </div>
         <div className="confirmation-toast-preview">
@@ -2197,7 +2224,7 @@ function ConfirmationSurfacePreview({
   return (
     <div className="classification-preview">
       <div className="confirmation-preview-row">
-        <button className="contract-button danger-emphasis-quiet-outline" type="button">Delete record</button>
+        <button className="contract-button danger-emphasis-outline" type="button">Delete record</button>
         <span>Danger intent starts on the action.</span>
       </div>
       <div className="confirmation-box-preview">
@@ -2206,7 +2233,7 @@ function ConfirmationSurfacePreview({
         {isTyped ? <div className="confirmation-input-preview">DELETE</div> : null}
         <div>
           <button className="contract-button secondary-outline" type="button">Cancel</button>
-          <button className="contract-button danger-emphasis-strong-danger" type="button">Delete</button>
+          <button className="contract-button danger-emphasis-filled" type="button">Delete</button>
         </div>
       </div>
     </div>
@@ -2275,7 +2302,7 @@ function TextFieldSectionedContractPanel({
       />
 
       <SelectLikePolicySection
-        title="Requirement cue"
+        title="Required indicator"
         description="Show required or optional meaning without changing label alignment."
         controls={
           <OptionGroup
@@ -2289,18 +2316,18 @@ function TextFieldSectionedContractPanel({
       />
 
       <SelectLikePolicySection
-        title="Assistive text"
-        description="Keep labels durable; use helper, validation, and examples for field guidance."
+        title="Helper and error text"
+        description="Keep guidance and validation outside the value area. Decide whether helper text and errors reserve space or appear only when needed."
         controls={
           <>
             <OptionGroup
-              title="Message area behavior"
+              title="Helper/error text space"
               value={textFieldPolicy.messageAreaBehavior}
               options={textFieldMessageAreaBehaviorOptions}
               onChange={(value) => onUpdate('messageAreaBehavior', value)}
             />
             <OptionGroup
-              title="Placeholder usage"
+              title="Placeholder rule"
               value={textFieldPolicy.placeholderUsage}
               options={textFieldPlaceholderUsageOptions}
               onChange={(value) => onUpdate('placeholderUsage', value)}
@@ -2397,11 +2424,13 @@ function AvailabilitySectionedContractPanel({
     value: UiContract['interactionPolicy']['availability'][Key],
   ) => void
 }) {
+  const hidesNotApplicable = availabilityPolicy.treatment === 'hidden-when-not-applicable'
+
   return (
     <div className="select-sectioned-panel">
       <SelectLikePolicySection
         title="Availability policy"
-        description="Define how unavailable controls are shown and whether layout may move."
+        description="Define how unavailable controls are shown. Temporary unavailable layout is separate from not-applicable hiding."
         controls={
           <>
             <OptionGroup
@@ -2410,12 +2439,18 @@ function AvailabilitySectionedContractPanel({
               options={availabilityTreatmentOptions}
               onChange={(value) => onUpdate('treatment', value)}
             />
-            <OptionGroup
-              title="Unavailable layout"
-              value={availabilityPolicy.layout}
-              options={availabilityLayoutOptions}
-              onChange={(value) => onUpdate('layout', value)}
-            />
+            {hidesNotApplicable ? (
+              <p className="policy-note">
+                Hidden not-applicable controls close their space. Layout preservation only applies to temporary unavailable controls.
+              </p>
+            ) : (
+              <OptionGroup
+                title="Unavailable layout"
+                value={availabilityPolicy.layout}
+                options={availabilityLayoutOptions}
+                onChange={(value) => onUpdate('layout', value)}
+              />
+            )}
           </>
         }
         preview={<AvailabilityPreviewStage availabilityPolicy={availabilityPolicy} />}
@@ -2459,44 +2494,11 @@ function ComponentPreviewPanel({
   togglePolicy: UiContract['componentPolicy']['toggle']
   validationPolicy: UiContract['interactionPolicy']['validation']
 }) {
-  const previewTitle =
-    selectedComponent === 'button'
-      ? 'Buttons'
-      : selectedComponent === 'textField'
-        ? 'Text Fields'
-        : selectedComponent === 'select'
-          ? 'Selects'
-          : selectedComponent === 'tabs'
-            ? 'Tabs'
-            : selectedComponent === 'toggle'
-              ? 'Toggles'
-              : selectedComponent === 'checkbox'
-                ? 'Checkboxes'
-                : selectedComponent === 'card'
-                  ? 'Cards'
-                  : selectedComponent === 'sidePanel'
-                    ? 'Side Panels'
-                    : selectedComponent === 'confirmation'
-                      ? 'Confirmation'
-                      : selectedComponent === 'focus'
-                        ? 'Focus States'
-                        : selectedComponent === 'validation'
-                          ? 'Validation'
-                          : 'Availability'
-
   return (
     <div
       className="component-preview preview-panel"
       style={toColorPreviewStyle(colorPolicy, brandIdentity, theme)}
     >
-      <div className="policy-intro">
-        <div>
-          <p className="eyebrow">Component Preview</p>
-          <h3>{previewTitle}</h3>
-        </div>
-        <p>Preview focuses on the selected component while the full contract remains in JSON.</p>
-      </div>
-
       {selectedComponent === 'button' ? (
         <ButtonPreviewStage buttonPolicy={buttonPolicy} />
       ) : selectedComponent === 'textField' ? (
@@ -2522,99 +2524,6 @@ function ComponentPreviewPanel({
       ) : (
         <AvailabilityPreviewStage availabilityPolicy={availabilityPolicy} />
       )}
-
-      <div className="guidance-grid">
-        {selectedComponent === 'button' ? (
-          <>
-            <GuidanceCard title="Primary action" value={optionLabel(primaryEmphasisOptions, buttonPolicy.primaryEmphasis)} />
-            <GuidanceCard title="Secondary action" value={optionLabel(secondaryEmphasisOptions, buttonPolicy.secondaryEmphasis)} />
-            <GuidanceCard title="Danger placement" value={optionLabel(dangerPlacementOptions, buttonPolicy.dangerPlacement)} />
-            <GuidanceCard title="Danger emphasis" value={optionLabel(dangerEmphasisOptions, buttonPolicy.dangerEmphasis)} />
-            <GuidanceCard title="Loading preview" value="spinner with label" />
-            <GuidanceCard title="Icon adornment" value={optionLabel(iconAdornmentOptions, buttonPolicy.iconAdornment)} />
-            <GuidanceCard title="Icon-only policy" value={optionLabel(iconOnlyPolicyOptions, buttonPolicy.iconOnlyPolicy)} />
-            <GuidanceCard title="Unavailable preview" value="standard disabled state" />
-          </>
-        ) : selectedComponent === 'textField' ? (
-          <>
-            <GuidanceCard title="Field style" value={optionLabel(textFieldStyleOptions, textFieldPolicy.fieldStyle)} />
-            <GuidanceCard title="Label placement" value={optionLabel(textFieldLabelPlacementOptions, textFieldPolicy.labelPlacement)} />
-            <GuidanceCard title="Required marker" value={optionLabel(textFieldRequiredIndicatorOptions, textFieldPolicy.requiredIndicator)} />
-            <GuidanceCard title="Message area" value={optionLabel(textFieldMessageAreaBehaviorOptions, textFieldPolicy.messageAreaBehavior)} />
-            <GuidanceCard title="Placeholder" value={optionLabel(textFieldPlaceholderUsageOptions, textFieldPolicy.placeholderUsage)} />
-          </>
-        ) : selectedComponent === 'select' ? (
-          <>
-            <GuidanceCard title="Scenes" value="3 previews" />
-            <GuidanceCard title="Selected row" value="background + checkmark" />
-            <GuidanceCard title="Multi items" value={optionLabel(selectMultiSelectedItemDisplayOptions, selectPolicy.multiSelectedItemDisplay)} />
-            <GuidanceCard title="No results" value="plain message" />
-          </>
-        ) : selectedComponent === 'tabs' ? (
-          <>
-            <GuidanceCard title="Treatment" value={optionLabel(tabsTreatmentOptions, tabsPolicy.treatment)} />
-            <GuidanceCard title="Adornment" value={optionLabel(tabsAdornmentOptions, tabsPolicy.adornment)} />
-            <GuidanceCard title="Purpose" value="related panels" />
-            <GuidanceCard title="Boundary" value="panel switching" />
-          </>
-        ) : selectedComponent === 'toggle' ? (
-          <>
-            <GuidanceCard title="Treatment" value={optionLabel(toggleTreatmentOptions, togglePolicy.treatment)} />
-            <GuidanceCard title="State label" value={optionLabel(toggleLabelPolicyOptions, togglePolicy.labelPolicy)} />
-            <GuidanceCard title="Boundary" value="immediate setting" />
-            <GuidanceCard title="Not checkbox" value="not deferred choice" />
-          </>
-        ) : selectedComponent === 'checkbox' ? (
-          <>
-            <GuidanceCard title="Layout" value={optionLabel(checkboxGroupLayoutOptions, checkboxPolicy.groupLayout)} />
-            <GuidanceCard title="Choice surface" value={optionLabel(checkboxChoiceSurfaceOptions, checkboxPolicy.choiceSurface)} />
-            <GuidanceCard title="Mixed state" value={optionLabel(checkboxMixedStateOptions, checkboxPolicy.mixedState)} />
-            <GuidanceCard title="Boundary" value="independent choices" />
-          </>
-        ) : selectedComponent === 'card' ? (
-          <>
-            <GuidanceCard title="Treatment" value={optionLabel(cardTreatmentOptions, cardPolicy.treatment)} />
-            <GuidanceCard title="Interaction" value={optionLabel(cardInteractionOptions, cardPolicy.interaction)} />
-            <GuidanceCard title="Boundary" value="content container" />
-            <GuidanceCard title="Not owned" value="page grid size" />
-          </>
-        ) : selectedComponent === 'sidePanel' ? (
-          <>
-            <GuidanceCard title="Relationship" value={optionLabel(sidePanelRelationshipOptions, sidePanelPolicy.relationship)} />
-            <GuidanceCard title="Responsive" value={optionLabel(sidePanelResponsiveOptions, sidePanelPolicy.responsive)} />
-            <GuidanceCard title="Boundary" value="workspace companion" />
-            <GuidanceCard title="Not dialog" value="persistent or invoked panel" />
-          </>
-        ) : selectedComponent === 'confirmation' ? (
-          <>
-            <GuidanceCard title="Surface" value={optionLabel(confirmationSurfaceOptions, confirmationPolicy.surface)} />
-            <GuidanceCard title="Scope" value={optionLabel(confirmationScopeOptions, confirmationPolicy.scope)} />
-            <GuidanceCard title="Boundary" value="interaction policy" />
-            <GuidanceCard title="Not owned" value="button color" />
-          </>
-        ) : selectedComponent === 'focus' ? (
-          <>
-            <GuidanceCard title="Visibility" value={optionLabel(focusVisibilityOptions, focusPolicy.visibility)} />
-            <GuidanceCard title="Indicator" value={optionLabel(focusIndicatorStyleOptions, focusPolicy.indicatorStyle)} />
-            <GuidanceCard title="Scope" value="all interactive controls" />
-            <GuidanceCard title="Anti-pattern" value="never hide focus" />
-          </>
-        ) : selectedComponent === 'validation' ? (
-          <>
-            <GuidanceCard title="Timing" value={optionLabel(validationTriggerOptions, validationPolicy.trigger)} />
-            <GuidanceCard title="Presentation" value={optionLabel(validationPresentationOptions, validationPolicy.presentation)} />
-            <GuidanceCard title="Anti-pattern" value="avoid while-typing errors" />
-            <GuidanceCard title="Message" value="plain and actionable" />
-          </>
-        ) : (
-          <>
-            <GuidanceCard title="Treatment" value={availabilityTreatmentSummary(availabilityPolicy.treatment)} />
-            <GuidanceCard title="Layout" value={optionLabel(availabilityLayoutOptions, availabilityPolicy.layout)} />
-            <GuidanceCard title="Default" value="Recoverable" />
-            <GuidanceCard title="Boundary" value="Policy only" />
-          </>
-        )}
-      </div>
     </div>
   )
 }
@@ -2776,23 +2685,13 @@ function ButtonIconPreview({
 }
 
 function ButtonStateCard({
-  caption,
   children,
-  title,
 }: {
   caption: string
   children: React.ReactNode
   title: string
 }) {
-  return (
-    <div className="select-state-card">
-      <div>
-        <span className="select-scene-title">{title}</span>
-        <p>{caption}</p>
-      </div>
-      {children}
-    </div>
-  )
+  return <div className="select-state-card">{children}</div>
 }
 
 function TextFieldPreviewStage({
@@ -2834,23 +2733,19 @@ function TextFieldStructurePreview({
 }) {
   return (
     <div className="text-field-section-preview">
-      <TextFieldStateCard title="Resting" caption="Label remains visible outside the input">
+      <div className="select-state-card text-field-state-card text-field-preview-frame">
         <PreviewTextField
-          helper="Shown below the field and replaced by validation when needed."
           label="Customer name"
           required
           textFieldPolicy={textFieldPolicy}
           value="Northwind Co."
         />
-      </TextFieldStateCard>
-      <TextFieldStateCard title="Empty" caption="Empty field keeps the label as the durable name">
         <PreviewTextField
-          helper="Use helper text for guidance."
           label="Account code"
           textFieldPolicy={textFieldPolicy}
           value=""
         />
-      </TextFieldStateCard>
+      </div>
     </div>
   )
 }
@@ -2862,23 +2757,19 @@ function TextFieldRequirementPreview({
 }) {
   return (
     <div className="text-field-section-preview">
-      <TextFieldStateCard title="Required" caption="Required cue has its own reserved marker slot">
+      <div className="select-state-card text-field-state-card text-field-preview-frame">
         <PreviewTextField
-          helper="Required fields should not shift label alignment."
           label="Customer name"
           required
           textFieldPolicy={textFieldPolicy}
           value="Northwind Co."
         />
-      </TextFieldStateCard>
-      <TextFieldStateCard title="Optional" caption="Optional text belongs to the label, not the marker slot">
         <PreviewTextField
-          helper="Optional fields stay readable beside required fields."
           label="Account code"
           textFieldPolicy={textFieldPolicy}
           value="AC-1042"
         />
-      </TextFieldStateCard>
+      </div>
     </div>
   )
 }
@@ -2888,17 +2779,20 @@ function TextFieldAssistivePreview({
 }: {
   textFieldPolicy: UiContract['componentPolicy']['textField']
 }) {
+  const reservesSpace = textFieldPolicy.messageAreaBehavior === 'reserved-message-area'
+
   return (
     <div className="text-field-section-preview">
-      <TextFieldStateCard title="Helper" caption="Guidance stays outside the value area">
+      <div
+        className={`select-state-card text-field-state-card text-field-preview-frame text-field-spacing-preview ${
+          reservesSpace ? 'is-reserved' : 'is-dynamic'
+        }`}
+      >
         <PreviewTextField
-          helper="Use a short example instead of repeating the label."
           label="Account code"
           textFieldPolicy={textFieldPolicy}
           value=""
         />
-      </TextFieldStateCard>
-      <TextFieldStateCard title="Validation" caption="Validation replaces or occupies the same message area">
         <PreviewTextField
           error="Enter a valid email address."
           helper="Work email used for notifications."
@@ -2907,27 +2801,7 @@ function TextFieldAssistivePreview({
           textFieldPolicy={textFieldPolicy}
           value="billing@"
         />
-      </TextFieldStateCard>
-    </div>
-  )
-}
-
-function TextFieldStateCard({
-  caption,
-  children,
-  title,
-}: {
-  caption: string
-  children: React.ReactNode
-  title: string
-}) {
-  return (
-    <div className="select-state-card text-field-state-card">
-      <div>
-        <span className="select-scene-title">{title}</span>
-        <p>{caption}</p>
       </div>
-      {children}
     </div>
   )
 }
@@ -2951,12 +2825,6 @@ function ValidationPreviewStage({
         <input readOnly value="billing@" />
         <strong>Enter a valid email address.</strong>
       </label>
-
-      <p className="focus-preview-note">
-        {validationPolicy.trigger === 'submit-or-step'
-          ? 'Errors appear after submit or when moving to the next workflow step.'
-          : 'Errors appear after the edited field loses focus.'}
-      </p>
     </div>
   )
 }
@@ -2985,9 +2853,7 @@ function AvailabilityPreviewStage({
           </button>
         )}
         <span className="availability-status">
-          {availabilityPolicy.layout === 'preserve-space-for-temporary-state'
-            ? 'Temporary states keep layout stable.'
-            : 'Not-applicable controls may close their space.'}
+          {disabled ? 'Unavailable' : readonly ? 'Read only' : 'Ready'}
         </span>
       </div>
 
@@ -2997,7 +2863,7 @@ function AvailabilityPreviewStage({
       </label>
 
       {availabilityPolicy.treatment === 'keep-enabled-explain-on-action' ? (
-        <div className="availability-message">If requirements are missing, explain them when the user acts.</div>
+        <div className="availability-message">Complete billing details before export.</div>
       ) : null}
     </div>
   )
@@ -3014,7 +2880,6 @@ function FocusPreviewStage({
   return (
     <div className={`focus-stage ${focusClass}`}>
       <div className="focus-sample-section">
-        <span>Keyboard focus</span>
         <div className="focus-sample-row">
           <button className="focus-sample-control focus-sample-primary is-focused" type="button">
             Save changes
@@ -3026,7 +2891,6 @@ function FocusPreviewStage({
       </div>
 
       <div className="focus-sample-section">
-        <span>Pointer focus</span>
         <div className="focus-sample-row">
           <button
             className={`focus-sample-control ${showPointerFocus ? 'is-focused' : 'is-pointer-quiet'}`}
@@ -3034,23 +2898,14 @@ function FocusPreviewStage({
           >
             Preview
           </button>
-          <span className="focus-sample-caption">
-            {showPointerFocus ? 'Ring is visible after click.' : 'Click focus has no ring.'}
-          </span>
         </div>
       </div>
 
       <div className="focus-sample-section">
-        <span>Active text input</span>
         <label className="focus-sample-field">
           <span>Customer name</span>
           <input className="focus-sample-input is-focused" readOnly value="Northwind Co." />
         </label>
-      </div>
-
-      <div className="focus-preview-result">
-        <span>{focusPolicy.visibility === 'keyboard-and-active-inputs' ? 'Keyboard only' : 'Keyboard + pointer'}</span>
-        <span>{focusPolicy.indicatorStyle === 'outer-ring' ? 'Outer ring' : 'High contrast'}</span>
       </div>
     </div>
   )
@@ -3065,7 +2920,7 @@ function PreviewTextField({
   value,
 }: {
   error?: string
-  helper: string
+  helper?: string
   label: string
   required?: boolean
   textFieldPolicy: UiContract['componentPolicy']['textField']
@@ -3083,8 +2938,10 @@ function PreviewTextField({
       : !required && textFieldPolicy.requiredIndicator === 'mark-optional'
         ? '(optional)'
         : ''
-  const message = error ?? helper
-  const showAssistiveText = error || textFieldPolicy.messageAreaBehavior === 'reserved-message-area'
+  const reservesMessageSpace = textFieldPolicy.messageAreaBehavior === 'reserved-message-area'
+  const message = error ?? helper ?? ''
+  const showAssistiveText = Boolean(message) || reservesMessageSpace
+  const messageStateClass = error ? 'is-error' : message ? '' : 'is-reserved-empty'
   const reservesRequiredSlot = usesRequiredMark
   const indicatorTone =
     textFieldPolicy.requiredIndicator === 'mark-required-danger'
@@ -3115,10 +2972,10 @@ function PreviewTextField({
           value={value}
         />
         <p
-          className={`preview-field-message ${error ? 'is-error' : ''} ${showAssistiveText ? '' : 'is-empty'}`}
+          className={`preview-field-message ${messageStateClass} ${showAssistiveText ? '' : 'is-empty'}`}
           id={`${id}-message`}
         >
-          {showAssistiveText ? message : '\u00a0'}
+          {message || '\u00a0'}
         </p>
       </div>
     </div>
@@ -3127,7 +2984,7 @@ function PreviewTextField({
 
 function examplePlaceholder(label: string): string {
   if (label === 'Account code') return 'AC-1042'
-  return 'Example'
+  return ''
 }
 
 function labelPlacementClass(labelPlacement: TextFieldLabelPlacement): string {
@@ -3157,6 +3014,7 @@ function ColorSettingsPanel({
 }) {
   const colorGroups = Array.from(new Set(colorRoleFields.map((field) => field.group)))
   const selectedProfile = colorProfiles.find((profile) => profile.id === colorProfileId)
+  const contrastIssues = getColorContrastIssues(colorPolicy)
 
   return (
     <div className="editor-panel">
@@ -3208,14 +3066,30 @@ function ColorSettingsPanel({
                       title="Primary action"
                     />
                     <span
-                      style={{ background: profile.color.light.secondary }}
-                      title="Secondary action"
+                      style={{ background: profile.color.light.surfaceSoft }}
+                      title="Soft surface"
                     />
                   </span>
                 </button>
               ))}
             </div>
           </section>
+          <ColorSection title="Contrast checks">
+            {contrastIssues.length ? (
+              <div className="contrast-warning-list" role="status">
+                {contrastIssues.map((issue) => (
+                  <div className="contrast-warning" key={`${issue.mode}-${issue.pair}`}>
+                    <strong>{issue.mode === 'light' ? 'Light' : 'Dark'}: {issue.pair}</strong>
+                    <span>
+                      Contrast {issue.ratio.toFixed(2)}:1 is below {issue.minimum}:1.
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="contrast-ok">Key text, action, and focus color pairs meet the review thresholds.</p>
+            )}
+          </ColorSection>
           <ColorSection title="Brand identity">
             <div className="identity-grid">
               <IdentityColorField
@@ -3431,24 +3305,9 @@ function ColorPreviewPanel({
 }) {
   return (
     <div className="component-preview preview-panel">
-      <div className="policy-intro">
-        <div>
-          <p className="eyebrow">Color Preview</p>
-          <h3>Business Screen Sample</h3>
-        </div>
-        <p>Check brand, action, semantic, and neutral colors in both modes.</p>
-      </div>
-
       <div className="mode-preview-grid">
         <ModeColorPreview brandIdentity={brandIdentity} colorPolicy={colorPolicy} mode="light" />
         <ModeColorPreview brandIdentity={brandIdentity} colorPolicy={colorPolicy} mode="dark" />
-      </div>
-
-      <div className="guidance-grid">
-        <GuidanceCard title="Light primary" value={colorPolicy.light.primary} />
-        <GuidanceCard title="Dark primary" value={colorPolicy.dark.primary} />
-        <GuidanceCard title="Light surface" value={colorPolicy.light.surface} />
-        <GuidanceCard title="Dark surface" value={colorPolicy.dark.surface} />
       </div>
     </div>
   )
@@ -3642,8 +3501,7 @@ function SettingsPanel({
   )
 }
 
-function OverviewPanel() {
-  const [language, setLanguage] = useState<OverviewLanguage>('ja')
+function OverviewPanel({ language }: { language: OverviewLanguage }) {
   const content = overviewContent[language]
 
   return (
@@ -3658,19 +3516,6 @@ function OverviewPanel() {
               <span key={keyword}>{keyword}</span>
             ))}
           </div>
-        </div>
-        <div className="overview-language-switch" aria-label="Overview language">
-          {(['ja', 'en'] as OverviewLanguage[]).map((option) => (
-            <button
-              className={language === option ? 'is-active' : ''}
-              key={option}
-              onClick={() => setLanguage(option)}
-              type="button"
-            >
-              <span>{overviewContent[option].languageLabel}</span>
-              <small>{overviewContent[option].translationNote}</small>
-            </button>
-          ))}
         </div>
       </div>
 
@@ -3727,13 +3572,6 @@ function OptionGroup<T extends string>({
 
 function optionLabel<T extends string>(options: Array<{ value: T; label: string }>, value: T): string {
   return options.find((option) => option.value === value)?.label ?? value
-}
-
-function availabilityTreatmentSummary(value: AvailabilityTreatment): string {
-  if (value === 'keep-enabled-explain-on-action') return 'Enabled'
-  if (value === 'readonly-for-fixed-values') return 'Read-only'
-  if (value === 'disabled-when-impossible') return 'Disabled'
-  return 'Hidden'
 }
 
 function PreviewButton({
@@ -3806,28 +3644,29 @@ function shouldShowIcon(
   return policy.iconAdornment === 'icons-when-clarifying'
 }
 
-function GuidanceCard({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="guidance-card">
-      <span>{title}</span>
-      <strong>{value}</strong>
-    </div>
-  )
-}
-
 type LegacyButtonPolicy = Omit<
   Partial<UiContract['componentPolicy']['button']>,
-  'dangerEmphasis' | 'iconAdornment' | 'iconOnlyPolicy' | 'secondaryEmphasis'
+  'dangerEmphasis' | 'iconAdornment' | 'iconOnlyPolicy' | 'primaryEmphasis' | 'secondaryEmphasis'
 > & {
   dangerTreatment?: string
-  secondaryEmphasis?: SecondaryEmphasis | 'ghost'
+  primaryEmphasis?: PrimaryEmphasis | 'tonal'
+  secondaryEmphasis?: SecondaryEmphasis | 'ghost' | 'tonal'
   iconAdornment?: IconAdornment
   iconOnlyPolicy?: IconOnlyPolicy
   iconUsage?: 'text-only' | 'label-with-icon-when-clarifying' | 'icon-only-for-recognizable-actions'
   disabledTreatment?: 'muted' | 'outline-muted' | 'reason-hint' | 'low-opacity'
   disabledReasonPolicy?: string
   loadingState?: 'spinner-with-label' | 'spinner-replaces-label-preserve-width' | 'spinner-replaces-label' | 'spinner-only' | 'disabled-label'
-  dangerEmphasis?: DangerEmphasis | 'subtle' | 'outline' | 'filled' | 'ghost' | 'tertiary' | 'primary'
+  dangerEmphasis?:
+    | DangerEmphasis
+    | 'subtle'
+    | 'ghost'
+    | 'tertiary'
+    | 'primary'
+    | 'low-emphasis'
+    | 'danger-outline'
+    | 'quiet-outline'
+    | 'strong-danger'
   buttonSize?: string
 }
 
@@ -3873,9 +3712,10 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
     legacyDanger === 'inline' ? 'inline' : sampleContract.componentPolicy.button.dangerPlacement
   const legacyDangerEmphasis: DangerEmphasis =
     legacyDanger === 'confirmation-required'
-      ? 'strong-danger'
+      ? 'filled'
       : normalizeDangerEmphasis(parsedButton?.dangerEmphasis)
   const buttonWithoutLegacy = removeLegacyDangerTreatment(parsedButton)
+  const legacyPrimaryEmphasis = normalizePrimaryEmphasis(parsedButton?.primaryEmphasis)
   const legacySecondaryEmphasis = normalizeSecondaryEmphasis(parsedButton?.secondaryEmphasis)
   const legacyIconAdornment = normalizeIconAdornment(parsedButton)
   const legacyIconOnlyPolicy = normalizeIconOnlyPolicy(parsedButton)
@@ -3914,6 +3754,7 @@ function normalizeContract(parsed: Partial<UiContract>): UiContract {
         dangerPlacement: legacyDangerPlacement,
         dangerEmphasis: legacyDangerEmphasis,
         ...buttonWithoutLegacy,
+        primaryEmphasis: legacyPrimaryEmphasis,
         secondaryEmphasis: legacySecondaryEmphasis,
         iconAdornment: legacyIconAdornment,
         iconOnlyPolicy: legacyIconOnlyPolicy,
@@ -4228,8 +4069,6 @@ type ColorPolicySeed = {
   darkMutedText?: string
   darkPrimary?: string
   darkPrimaryText?: string
-  darkSecondary?: string
-  darkSecondaryText?: string
   darkSuccess?: string
   darkSurface?: string
   darkSurfaceSoft?: string
@@ -4246,7 +4085,6 @@ type ColorPolicySeed = {
   lightInfo?: string
   lightMutedText?: string
   lightPrimary?: string
-  lightSecondary?: string
   lightSuccess?: string
   lightSurface?: string
   lightSurfaceSoft?: string
@@ -4261,7 +4099,6 @@ function createColorPolicy(seed: ColorPolicySeed): ColorPolicy {
       brandBackground: seed.lightBrandBackground ?? defaultColorPolicy.light.brandBackground,
       brandText: seed.lightBrandText ?? defaultColorPolicy.light.brandText,
       primary: seed.lightPrimary ?? defaultColorPolicy.light.primary,
-      secondary: seed.lightSecondary ?? defaultColorPolicy.light.secondary,
       success: seed.lightSuccess ?? defaultColorPolicy.light.success,
       warning: seed.lightWarning ?? defaultColorPolicy.light.warning,
       danger: seed.lightDanger ?? defaultColorPolicy.light.danger,
@@ -4281,8 +4118,6 @@ function createColorPolicy(seed: ColorPolicySeed): ColorPolicy {
       brandText: seed.darkBrandText ?? defaultColorPolicy.dark.brandText,
       primary: seed.darkPrimary ?? defaultColorPolicy.dark.primary,
       primaryText: seed.darkPrimaryText ?? defaultColorPolicy.dark.primaryText,
-      secondary: seed.darkSecondary ?? defaultColorPolicy.dark.secondary,
-      secondaryText: seed.darkSecondaryText ?? defaultColorPolicy.dark.secondaryText,
       success: seed.darkSuccess ?? defaultColorPolicy.dark.success,
       warning: seed.darkWarning ?? defaultColorPolicy.dark.warning,
       danger: seed.darkDanger ?? defaultColorPolicy.dark.danger,
@@ -4378,7 +4213,6 @@ function legacyColorValue(
     info: value.semantic?.info ?? value.info,
     mutedText: value.mutedText,
     primary: value.action?.primary ?? legacyBrand,
-    secondary: value.action?.secondary,
     success: value.semantic?.success ?? value.success,
     surface: value.surface,
     surfaceSoft: value.surfaceSoft,
@@ -4424,8 +4258,12 @@ function toColorPreviewStyle(
     '--primary-strong': modeColors.primary,
     '--primary-soft': mixHex(modeColors.primary, modeColors.surface, 0.88),
     '--primary-text': modeColors.primaryText,
-    '--secondary-action': modeColors.secondary,
-    '--secondary-action-text': modeColors.secondaryText,
+    '--subtle-action': modeColors.text,
+    '--subtle-action-soft': mixHex(modeColors.primary, modeColors.surface, 0.9),
+    '--subtle-action-soft-border': mixHex(modeColors.primary, modeColors.surface, 0.74),
+    '--subtle-action-neutral': modeColors.surfaceSoft,
+    '--subtle-action-neutral-border': modeColors.border,
+    '--subtle-action-text': modeColors.text,
     '--success': modeColors.success,
     '--warning': modeColors.warning,
     '--danger': modeColors.danger,
@@ -4473,6 +4311,49 @@ function rgbToHex({ r, g, b }: { r: number; g: number; b: number }): string {
   return `#${[r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('')}`
 }
 
+type ColorContrastIssue = {
+  minimum: number
+  mode: ColorModeKey
+  pair: string
+  ratio: number
+}
+
+function getColorContrastIssues(colorPolicy: ColorPolicy): ColorContrastIssue[] {
+  return (['light', 'dark'] as const).flatMap((mode) => {
+    const colors = colorPolicy[mode]
+    const checks: Array<{ foreground: string; background: string; minimum: number; pair: string }> = [
+      { foreground: colors.brandText, background: colors.brandBackground, minimum: 4.5, pair: 'Brand text on brand background' },
+      { foreground: colors.primaryText, background: colors.primary, minimum: 4.5, pair: 'Primary text on primary action' },
+      { foreground: colors.text, background: colors.surface, minimum: 4.5, pair: 'Text on surface' },
+      { foreground: colors.text, background: colors.background, minimum: 4.5, pair: 'Text on page background' },
+      { foreground: colors.mutedText, background: colors.surface, minimum: 3, pair: 'Muted text on surface' },
+      { foreground: colors.focusOuter, background: colors.background, minimum: 3, pair: 'Focus outer on page background' },
+      { foreground: colors.focusInner, background: colors.focusOuter, minimum: 3, pair: 'Focus inner against focus outer' },
+    ]
+
+    return checks
+      .map((check) => ({ ...check, mode, ratio: contrastRatio(check.foreground, check.background) }))
+      .filter((check) => check.ratio < check.minimum)
+      .map(({ minimum, mode, pair, ratio }) => ({ minimum, mode, pair, ratio }))
+  })
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const fg = relativeLuminance(hexToRgb(foreground))
+  const bg = relativeLuminance(hexToRgb(background))
+  const lighter = Math.max(fg, bg)
+  const darker = Math.min(fg, bg)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+function relativeLuminance({ r, g, b }: { r: number; g: number; b: number }): number {
+  const [red, green, blue] = [r, g, b].map((channel) => {
+    const value = channel / 255
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+}
+
 function removeLegacyDangerTreatment(
   button: LegacyButtonPolicy | undefined,
 ): Partial<UiContract['componentPolicy']['button']> {
@@ -4489,8 +4370,13 @@ function removeLegacyDangerTreatment(
   }
   if (
     copy.dangerEmphasis === 'subtle' ||
-    copy.dangerEmphasis === 'outline' ||
-    copy.dangerEmphasis === 'filled'
+    copy.dangerEmphasis === 'ghost' ||
+    copy.dangerEmphasis === 'tertiary' ||
+    copy.dangerEmphasis === 'primary' ||
+    copy.dangerEmphasis === 'low-emphasis' ||
+    copy.dangerEmphasis === 'danger-outline' ||
+    copy.dangerEmphasis === 'quiet-outline' ||
+    copy.dangerEmphasis === 'strong-danger'
   ) {
     delete copy.dangerEmphasis
   }
@@ -4499,8 +4385,15 @@ function removeLegacyDangerTreatment(
 
 function normalizeSecondaryEmphasis(value: LegacyButtonPolicy['secondaryEmphasis']): SecondaryEmphasis {
   if (value === 'ghost') return sampleContract.componentPolicy.button.secondaryEmphasis
-  if (value === 'outline' || value === 'neutral-filled' || value === 'tonal') return value
+  if (value === 'tonal') return 'filled-tonal'
+  if (value === 'outline' || value === 'neutral-filled' || value === 'filled-tonal') return value
   return sampleContract.componentPolicy.button.secondaryEmphasis
+}
+
+function normalizePrimaryEmphasis(value: LegacyButtonPolicy['primaryEmphasis']): PrimaryEmphasis {
+  if (value === 'tonal') return 'filled-tonal'
+  if (value === 'filled' || value === 'filled-tonal' || value === 'outline') return value
+  return sampleContract.componentPolicy.button.primaryEmphasis
 }
 
 function normalizeIconAdornment(button: LegacyButtonPolicy | undefined): IconAdornment {
@@ -4525,10 +4418,10 @@ function normalizeIconOnlyPolicy(button: LegacyButtonPolicy | undefined): IconOn
 }
 
 function normalizeDangerEmphasis(value: LegacyButtonPolicy['dangerEmphasis']): DangerEmphasis {
-  if (value === 'subtle' || value === 'ghost') return 'low-emphasis'
-  if (value === 'outline' || value === 'tertiary') return 'quiet-outline'
-  if (value === 'filled' || value === 'primary') return 'strong-danger'
-  if (value === 'low-emphasis' || value === 'quiet-outline' || value === 'strong-danger') return value
+  if (value === 'subtle' || value === 'ghost' || value === 'low-emphasis') return 'text'
+  if (value === 'tertiary' || value === 'quiet-outline' || value === 'danger-outline') return 'outline'
+  if (value === 'primary' || value === 'strong-danger') return 'filled'
+  if (value === 'text' || value === 'outline' || value === 'filled') return value
   return sampleContract.componentPolicy.button.dangerEmphasis
 }
 

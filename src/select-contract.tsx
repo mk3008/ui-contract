@@ -27,35 +27,35 @@ type Option<T extends string> = {
 export const selectEmptyDisplayOptions: Array<Option<SelectEmptyDisplay>> = [
   {
     value: 'placeholder-text',
-    label: 'Placeholder',
-    note: 'Show prompt text when no value is selected.',
+    label: 'Empty prompt',
+    note: 'Show non-value prompt text when no option is selected.',
   },
   {
     value: 'blank-field',
-    label: 'Blank',
-    note: 'Leave the field visually empty when no value is selected.',
+    label: 'Blank empty field',
+    note: 'Leave the empty select visually blank when no option is selected.',
   },
 ]
 
 export const selectMultiSelectedItemDisplayOptions: Array<Option<SelectMultiSelectedItemDisplay>> = [
   {
     value: 'inline-text',
-    label: 'Inline text',
+    label: 'Selected inline text',
     note: 'Show selected labels as field text for short, read-heavy selections.',
   },
   {
     value: 'count-summary',
-    label: 'Count text',
+    label: 'Selected count text',
     note: 'Show selected count as the field text when labels would be too long.',
   },
   {
     value: 'chips',
-    label: 'Chips (all)',
+    label: 'All selected chips',
     note: 'Show every selected value as a chip when the count stays small.',
   },
   {
     value: 'chips-overflow-count',
-    label: 'Chips (partial)',
+    label: 'Visible chips + overflow count',
     note: 'Show a few chips and summarize overflow for longer selections.',
   },
 ]
@@ -63,12 +63,12 @@ export const selectMultiSelectedItemDisplayOptions: Array<Option<SelectMultiSele
 const selectMultiRemoveAffordanceOptions: Array<Option<SelectMultiRemoveAffordance>> = [
   {
     value: 'chip-remove-button',
-    label: 'Chip remove',
+    label: 'Remove button on chip',
     note: 'Allow removal directly from selected chips.',
   },
   {
     value: 'list-toggle-only',
-    label: 'Toggle in list',
+    label: 'Remove in reopened list',
     note: 'Remove by reopening the list and toggling options.',
   },
 ]
@@ -76,13 +76,13 @@ const selectMultiRemoveAffordanceOptions: Array<Option<SelectMultiRemoveAffordan
 const selectSearchFieldTreatmentOptions: Array<Option<SelectSearchFieldTreatment>> = [
   {
     value: 'embedded-search-field',
-    label: 'Editable lookup field',
-    note: 'Type a lookup term in the value field, then select a known item.',
+    label: 'Search in select field',
+    note: 'Type a search term in the select field, then select a known item.',
   },
   {
     value: 'separate-search-field',
-    label: 'Popup search field',
-    note: 'Keep the value field stable and search inside the popup.',
+    label: 'Search in popup list',
+    note: 'Keep the select field stable and search inside the popup list.',
   },
 ]
 
@@ -96,7 +96,7 @@ export function SelectSectionedContractPanel({
   return (
     <div className="select-sectioned-panel">
       <SelectPolicySection
-        title="Common listbox rules"
+        title="Select display rules"
         controls={
           <OptionGroup
             title="Empty display"
@@ -138,11 +138,11 @@ export function SelectSectionedContractPanel({
       />
 
       <SelectPolicySection
-        description="Small lookup for finding known items without opening a full search dialog. The data source is screen-owned."
+        description="Searchable select for finding known items without opening a full search dialog. The data source is screen-owned."
         title="Lookup select"
         controls={
           <OptionGroup
-            title="Search entry placement"
+            title="Search placement"
             value={selectPolicy.searchFieldTreatment}
             options={selectSearchFieldTreatmentOptions}
             onChange={(value) => onUpdate('searchFieldTreatment', value)}
@@ -437,7 +437,6 @@ function SelectInteractivePreview({
   return (
     <div className="select-stage select-try-grid">
       <div className="select-interactive-card">
-        <span className="select-scene-title">Single select</span>
         <button className="select-sample-control" onClick={() => setSingleOpen((value) => !value)} type="button">
           <span>{singleValue || selectEmptyDisplayText(selectPolicy)}</span>
           <ChevronRight size={16} />
@@ -462,7 +461,6 @@ function SelectInteractivePreview({
       </div>
 
       <div className="select-interactive-card">
-        <span className="select-scene-title">Multi select</span>
         <button className="select-sample-control" onClick={() => setMultiOpen((value) => !value)} type="button">
           <span>{multiSelectControlText(selectPolicy, selectedTeams)}</span>
           <ChevronRight size={16} />
@@ -494,7 +492,6 @@ function SelectInteractivePreview({
       </div>
 
       <div className="select-interactive-card">
-        <span className="select-scene-title">Lookup select</span>
         {selectPolicy.searchFieldTreatment === 'embedded-search-field' ? (
           <label className="select-search-control">
             <span className="visually-hidden">Search regions</span>
@@ -549,38 +546,22 @@ function SelectInteractivePreview({
 }
 
 function SelectStateCard({
-  caption,
   children,
-  title,
 }: {
   caption: string
   children: ReactNode
   title: string
 }) {
-  return (
-    <div className="select-state-card">
-      <div>
-        <span className="select-scene-title">{title}</span>
-        <p>{caption}</p>
-      </div>
-      {children}
-    </div>
-  )
+  return <div className="select-state-card">{children}</div>
 }
 
 function SelectStateSection({
   children,
-  title,
 }: {
   children: ReactNode
   title: string
 }) {
-  return (
-    <section className="select-state-section">
-      <h4>{title}</h4>
-      <div className="select-state-list">{children}</div>
-    </section>
-  )
+  return <div className="select-state-list">{children}</div>
 }
 
 function selectEmptyDisplayText(selectPolicy: SelectPolicy, placeholder = 'Choose a region') {

@@ -315,6 +315,34 @@ h3 {
   gap: 8px;
 }
 
+.topbar-language-switch {
+  min-height: 38px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: inline-flex;
+  gap: 3px;
+  background: var(--surface-raised);
+}
+
+.topbar-language-switch button {
+  min-width: 38px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 8px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.topbar-language-switch button.is-active {
+  color: var(--text);
+  background: var(--primary-soft);
+}
+
 .toolbar-button,
 .icon-button {
   min-height: 38px;
@@ -899,25 +927,47 @@ h3 {
   font: 12px "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
 
+.contrast-warning-list {
+  display: grid;
+  gap: 8px;
+}
+
+.contrast-warning,
+.contrast-ok {
+  margin: 0;
+  padding: 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+}
+
+.contrast-warning {
+  border: 1px solid color-mix(in srgb, var(--warning) 42%, var(--line));
+  background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+}
+
+.contrast-warning strong,
+.contrast-warning span {
+  display: block;
+}
+
+.contrast-warning strong {
+  color: var(--text);
+}
+
+.contrast-warning span {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.contrast-ok {
+  border: 1px solid color-mix(in srgb, var(--success) 34%, var(--line));
+  color: var(--muted);
+  background: color-mix(in srgb, var(--success) 8%, var(--surface));
+}
+
 .preview-panel {
   position: sticky;
   top: 18px;
-}
-
-.policy-intro {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-}
-
-.policy-intro p {
-  max-width: 520px;
-  color: var(--muted);
 }
 
 .option-group {
@@ -1631,6 +1681,19 @@ h3 {
   overflow: hidden;
 }
 
+.text-field-preview-frame {
+  gap: 12px;
+}
+
+.text-field-spacing-preview {
+  display: grid;
+  gap: 12px;
+}
+
+.text-field-spacing-preview.is-dynamic {
+  gap: 8px;
+}
+
 .select-preview-shell {
   margin-top: 16px;
   display: grid;
@@ -1996,22 +2059,6 @@ h3 {
   align-content: start;
 }
 
-.select-state-section {
-  display: grid;
-  gap: 10px;
-}
-
-.select-state-section + .select-state-section {
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.select-state-section h4 {
-  margin: 0;
-  color: var(--text);
-  font-size: 14px;
-}
-
 .select-state-list {
   display: grid;
   gap: 10px;
@@ -2031,19 +2078,6 @@ h3 {
 
 .select-interactive-card {
   min-height: 160px;
-}
-
-.select-scene-title {
-  display: block;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.select-state-card p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .select-sample-field,
@@ -2450,7 +2484,7 @@ h3 {
 }
 
 .preview-field-message.is-empty {
-  visibility: hidden;
+  display: none;
 }
 
 .focus-stage {
@@ -2509,11 +2543,6 @@ h3 {
   box-shadow: none;
 }
 
-.focus-sample-caption {
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .focus-sample-field {
   display: grid;
   gap: 6px;
@@ -2555,25 +2584,6 @@ h3 {
   box-shadow:
     0 0 0 6px var(--focus-outer),
     0 0 0 8px var(--surface);
-}
-
-.focus-preview-result {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.focus-preview-result span {
-  min-height: 24px;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  color: var(--text);
-  background: var(--surface);
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .preview-button-wrap {
@@ -2633,23 +2643,33 @@ h3 {
   background: var(--primary);
 }
 
-.contract-button.primary-tonal,
-.contract-button.secondary-tonal {
+.contract-button.primary-filled-tonal {
   border-color: rgba(37, 99, 235, 0.22);
   color: var(--primary-strong);
   background: var(--primary-soft);
 }
 
-.contract-button.secondary-neutral-filled {
-  border-color: color-mix(in srgb, var(--secondary-action, var(--text)) 32%, var(--surface));
-  color: var(--secondary-action-text, var(--text));
-  background: var(--secondary-action, var(--surface-raised));
+.contract-button.secondary-filled-tonal {
+  border-color: var(--subtle-action-soft-border, var(--line));
+  color: var(--primary-strong);
+  background: var(--subtle-action-soft, var(--surface-soft));
 }
 
-.contract-button.primary-outline,
-.contract-button.secondary-outline {
+.contract-button.secondary-neutral-filled {
+  border-color: var(--subtle-action-neutral-border, var(--line));
+  color: var(--subtle-action-text, var(--text));
+  background: var(--subtle-action-neutral, var(--surface-soft));
+}
+
+.contract-button.primary-outline {
   border-color: var(--primary);
   color: var(--primary-strong);
+  background: transparent;
+}
+
+.contract-button.secondary-outline {
+  border-color: var(--line-strong);
+  color: var(--subtle-action, var(--text));
   background: transparent;
 }
 
@@ -2661,19 +2681,19 @@ h3 {
   margin-left: 0;
 }
 
-.contract-button.danger-emphasis-low-emphasis {
+.contract-button.danger-emphasis-text {
   border-color: transparent;
   color: var(--danger);
   background: transparent;
 }
 
-.contract-button.danger-emphasis-quiet-outline {
+.contract-button.danger-emphasis-outline {
   border-color: rgba(185, 28, 28, 0.28);
   color: var(--danger);
   background: transparent;
 }
 
-.contract-button.danger-emphasis-strong-danger {
+.contract-button.danger-emphasis-filled {
   border-color: var(--danger);
   color: #ffffff;
   background: var(--danger);
@@ -2702,13 +2722,6 @@ h3 {
   }
 }
 
-.guidance-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.guidance-card,
 .setting-row {
   padding: 13px;
   border: 1px solid var(--line);
@@ -2716,14 +2729,12 @@ h3 {
   background: var(--surface-soft);
 }
 
-.guidance-card span,
 .setting-row span {
   display: block;
   color: var(--muted);
   font-size: 12px;
 }
 
-.guidance-card strong,
 .setting-row strong {
   display: block;
   overflow: hidden;
@@ -2865,7 +2876,6 @@ h3 {
     flex: 1 1 0;
   }
 
-  .policy-intro,
   .screen-pattern-intro,
   .setting-row,
   .profile-header {
@@ -2878,7 +2888,6 @@ h3 {
   }
 
   .option-grid,
-  .guidance-grid,
   .screen-pattern-grid,
   .profile-grid {
     grid-template-columns: 1fr;
