@@ -4,7 +4,7 @@
   "title": "UI Contract Option Governance",
   "message": {
     "tagline": "Contract options must be evidence-grounded design choices, not accumulated preferences.",
-    "supportingLine": "The editor should help business application teams choose from useful, defensible UI policies without presenting unreviewed or misleading options."
+    "supportingLine": "The editor should translate non-specialist visual intent into useful, defensible UI policy vocabulary that frontend implementers can act on."
   },
   "definition": [
     "UI Contract Option Governance is the concept that controls how selectable UI Contract values are admitted, named, kept, moved, or removed.",
@@ -12,8 +12,10 @@
   ],
   "responsibilities": [
     "Preserve the meaning of UI Contract options as intentional design-policy choices.",
+    "Translate a non-specialist user's visual preference into option labels and JSON values that product designers, CSS/HTML authors, and frontend programmers can understand.",
     "Translate DESIGN.md-style human design principles into JSON-friendly contract values without turning them into CSS implementation details.",
     "Keep option values, labels, and notes understandable to other AI agents as standalone DESIGN.md-like rules.",
+    "Require option names to predict the intended visual result with enough confidence that a competent frontend implementer would usually produce the previewed treatment.",
     "Require option sets to be checked against official design systems or well-established product UI patterns before implementation.",
     "Separate visual design policy from workflow behavior, permission policy, dialog behavior, form validation behavior, and screen-pattern behavior.",
     "Separate case-owned input semantics from component design rules: a contract may define how a selected input pattern is presented, but it must not decide which input pattern a specific screen must use.",
@@ -33,6 +35,12 @@
     "An option must not be added only because it is technically possible to preview.",
     "A contract question should normally ask how a meaningful state, operation, or affordance is represented, not whether a specific screen uses that state or operation.",
     "A contract option must remain meaningful as a design rule before it is encoded as JSON.",
+    "A contract option must be specific enough that its label, note, preview, and JSON value form the same translation pair.",
+    "Structurally identical visual treatments must use consistent base vocabulary across semantic roles; only the color, role, or risk qualifier should change.",
+    "Role-specific button options must be derived from a shared button coloring-pattern list before deciding which patterns are available for primary, secondary, or danger actions.",
+    "The same visual or interaction meaning must not appear under multiple user-facing names unless the difference describes a real design difference.",
+    "The same user-facing word must not be reused for materially different meanings without a qualifier that makes the difference explicit.",
+    "A contract option must not rely on a professional-sounding but ambiguous term when that term could produce materially different frontend implementations.",
     "A contract option must not require a specific CSS library, component package, or framework to preserve its meaning.",
     "A contract option must not depend on project-specific names, source-application names, private metaphors, CSS class names, or local implementation shorthand.",
     "Color roles and color values are the main allowed concrete design values; most non-color options should be portable rules rather than exact sizes, measurements, or implementation details.",
@@ -61,6 +69,13 @@
     "Does any dependent question become meaningless for one of the answers?",
     "Would this still make sense as a DESIGN.md rule before being represented in JSON?",
     "Can multiple CSS frameworks or UI libraries implement this option without changing the rule?",
+    "Would a competent frontend programmer or product designer understand the expected visual result from the option value and note?",
+    "Would handing this Contract value to a frontend programmer likely produce the previewed treatment most of the time?",
+    "Does the preview show the essential visual properties implied by the term, such as fill, border, text color, contrast, state, grouping, or interaction affordance?",
+    "When two options share the same visible structure, do their labels, notes, and JSON values use the same base term instead of inventing separate wording?",
+    "For button coloring, is there a shared base pattern such as filled, outline, neutral surface, tonal color, or text before role-specific availability/default choices are made?",
+    "Is the option vocabulary free of synonym drift, where the same meaning is described with different labels or notes in different control groups?",
+    "Is the option vocabulary free of overloaded terms, where the same label hides different expected visual or interaction results?",
     "Would another AI understand this option without repository-specific context or source-app history?",
     "Is the option name made from common design-system vocabulary or plain business UI language?",
     "Would this option be useful in a business application without encouraging layout instability or unclear interaction?",
@@ -69,14 +84,15 @@
   ],
   "classification": {
     "accept": "Use when the option is supported by external evidence, useful for business applications, and belongs in the current contract boundary.",
-    "hold": "Use when the option may be valid but evidence, naming, or ownership is not yet clear.",
-    "reject": "Use when the option is weakly evidenced, misleading, inaccessible, layout-breaking, or outside the product purpose.",
+    "hold": "Use when the option may be valid but evidence, naming, ownership, preview match, or frontend interpretation is not yet clear.",
+    "reject": "Use when the option is weakly evidenced, misleading, inaccessible, layout-breaking, outside the product purpose, or too ambiguous to guide implementation.",
     "moveToAnotherPolicy": "Use when the option is valid but belongs to another policy area such as dialog, destructive action, permission, form, or screen pattern."
   },
   "evidencePolicy": [
     "Prefer official design-system documentation.",
     "Check docs/knowledge/design-system-anti-patterns.md before doing new external research for known 'do not' guidance.",
     "Use multiple sources when a choice changes the meaning of a contract section.",
+    "Use evidence to confirm that a term names the same visual treatment that the preview shows, not merely that the term exists somewhere.",
     "Treat examples from individual apps as supporting evidence only, not as sufficient authority.",
     "Do not carry source-app names into the contract vocabulary; keep provenance in review notes or knowledge files.",
     "When evidence conflicts, preserve the uncertainty in the report instead of hiding it behind a new option."

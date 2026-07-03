@@ -36,6 +36,7 @@ Related source:
 
 For UI Contract Editor, system design means:
 
+- translating a non-specialist user's visual design preference into terms that product designers, CSS/HTML authors, and frontend programmers can reliably act on,
 - defining reusable UI rules across a product or family of products,
 - keeping control states, interaction affordances, layout patterns, accessibility, and visual roles consistent,
 - choosing stable policies that can be implemented in different CSS frameworks or component libraries,
@@ -51,6 +52,8 @@ The guidance should say what rule the product team wants the UI to follow, not w
 
 The rule must also be understandable as DESIGN.md-style guidance when read outside this application.
 The wording should stand on common design-system vocabulary or plain business-application language.
+When a Contract value is meant to name a visual treatment, it must be specific enough that a competent frontend programmer or designer would produce the intended visual result most of the time.
+If a term only sounds like design language but does not predict the resulting UI with reasonable confidence, the term is not good enough for this product's translation purpose.
 Do not rely on private product names, source-app names, local metaphors, or implementation-only terms to carry the meaning.
 Color is the main exception: concrete colors, color roles, and brand palettes may use specific values because color tokens are an explicit foundation.
 
@@ -138,6 +141,8 @@ Before adding or changing a Contract option, check:
 10. Can different CSS frameworks or UI libraries implement the same rule without changing its meaning?
 11. Would another AI understand the option without knowing this repository, a source application, or local shorthand?
 12. Are any concrete values limited to color tokens or named design roles rather than layout dimensions or CSS implementation?
+13. Would a competent frontend programmer or product designer likely produce the previewed visual result from the Contract term?
+14. Does the preview make the essential visual meaning of the term visible, such as fill, border, text color, contrast, state, grouping, or interaction affordance?
 
 If the answer is unclear, classify the proposal as `hold` or move it to the owning policy area.
 
@@ -148,5 +153,6 @@ If the answer is unclear, classify the proposal as `hold` or move it to the owni
 - Use local app designs as seeds, then compare them with design-system evidence.
 - Preserve defaults that are readable, accessible, stable, and familiar for business applications.
 - Keep option labels and JSON values portable; source-app evidence belongs in review notes, not in contract vocabulary.
+- Rename, split, or hold options when the label or JSON value does not predict the intended frontend implementation with reasonable confidence.
 - Keep "should not" knowledge in `docs/knowledge/design-system-anti-patterns.md`.
 - Keep option admission rules in `docs/concepts/ui-contract-option-governance/concept.json`.

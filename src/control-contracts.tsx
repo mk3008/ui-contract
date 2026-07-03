@@ -34,13 +34,13 @@ export type CheckboxPolicy = {
 export const tabsTreatmentOptions: Array<Option<TabsTreatment>> = [
   {
     value: 'segmented-contained',
-    label: 'Segmented',
-    note: 'Use a contained tab group for panels inside a work surface.',
+    label: 'Contained tabs',
+    note: 'Use contained tabs for panels inside a work surface.',
   },
   {
     value: 'underline-tabs',
-    label: 'Underline',
-    note: 'Use lighter page-level tabs when the surrounding structure is clear.',
+    label: 'Underline tabs',
+    note: 'Use an underline indicator for page-level tabs.',
   },
 ]
 
@@ -52,12 +52,12 @@ export const tabsAdornmentOptions: Array<Option<TabsAdornment>> = [
   },
   {
     value: 'icon-when-clarifying',
-    label: 'Icon when useful',
+    label: 'Clarifying icons',
     note: 'Add icons only when they clarify stable tab categories.',
   },
   {
     value: 'count-when-useful',
-    label: 'Count when useful',
+    label: 'Count badge',
     note: 'Show counts when users compare tab contents.',
   },
 ]
@@ -65,12 +65,12 @@ export const tabsAdornmentOptions: Array<Option<TabsAdornment>> = [
 export const toggleTreatmentOptions: Array<Option<ToggleTreatment>> = [
   {
     value: 'switch-control',
-    label: 'Switch',
+    label: 'Switch control',
     note: 'Use for one setting that takes effect immediately.',
   },
   {
     value: 'segmented-binary',
-    label: 'Segmented',
+    label: 'Segmented binary control',
     note: 'Use when both states need visible names.',
   },
 ]
@@ -83,7 +83,7 @@ export const toggleLabelPolicyOptions: Array<Option<ToggleLabelPolicy>> = [
   },
   {
     value: 'label-plus-state-text',
-    label: 'Label + state',
+    label: 'Visible label + state text',
     note: 'Add On/Off text when the state must be readable without color.',
   },
 ]
@@ -110,11 +110,11 @@ export const checkboxChoiceSurfaceOptions: Array<Option<CheckboxChoiceSurface>> 
   {
     value: 'row-surface',
     label: 'Row surface',
-    note: 'Use a row background when choices are scanned as a list.',
+    note: 'Use a filled row surface when choices are scanned as a list.',
   },
   {
     value: 'bordered-choice-row',
-    label: 'Bordered row',
+    label: 'Outlined row',
     note: 'Make the clickable choice area explicit for dense tools.',
   },
 ]
@@ -442,21 +442,11 @@ function CheckboxRow({
 }
 
 function ControlStateCard({
-  caption,
   children,
-  title,
 }: {
   caption: string
   children: ReactNode
   title: string
 }) {
-  return (
-    <div className="select-state-card control-state-card">
-      <div>
-        <span className="select-scene-title">{title}</span>
-        <p>{caption}</p>
-      </div>
-      {children}
-    </div>
-  )
+  return <div className="select-state-card control-state-card">{children}</div>
 }
