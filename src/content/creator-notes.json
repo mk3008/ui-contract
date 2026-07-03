@@ -1,8 +1,8 @@
 {
   "languagePolicy": {
-    "title": "Overviewだけ日本語を原文にする",
-    "targetFiles": ["src/content/overview-content.json"],
-    "body": "Overviewページだけは思想の説明を含むため、日本語で記述する。日本語を正とし、英語は日本語からの翻訳として扱う。Overview以外の画面や設定項目は多言語化しない。"
+    "title": "UI表示文言は日本語を正にする",
+    "targetFiles": ["src/content/overview-content.json", "src/i18n.ts", "src/main.tsx"],
+    "body": "UI Contract Editorの画面表示文言は日本語を正とし、英語は日本語からの翻訳として扱う。言語切替はアプリ全体に効くヘッダー操作に置く。Contract JSON、schema、Contract値、JSONキー、option id、出力ファイル名は英語の安定したContract語彙として保持し、UI表示の翻訳と混ぜない。"
   },
   "controlPreviewPolicy": {
     "title": "コントロールは静止状態と動的イメージを用意する",

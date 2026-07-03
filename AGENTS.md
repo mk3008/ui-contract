@@ -15,6 +15,19 @@ The design-system foundations knowledge is the durable source for what this prod
 The option governance concept is the durable source for how this product decides whether a contract option belongs in the editor.
 The anti-pattern knowledge base is the local source for design-system "do not" guidance that should block, constrain, or move proposed options before doing new web research.
 
+For UX reviews or screen improvements to UI Contract Editor itself, use `docs/reviews/nielsen-heuristic-review.md` as a review checklist.
+Do not treat that checklist as required reading for adding or changing Contract options.
+
+## Product Translation Purpose
+
+UI Contract Editor is a translation tool for visual design intent.
+It should help users who do not know design-system, CSS, HTML, or frontend implementation terminology choose a desired visual treatment from previews and export Contract vocabulary that product designers, CSS/HTML authors, and frontend programmers can act on.
+
+Contract labels and JSON values are only useful when they predict the intended UI with reasonable confidence.
+If a competent frontend implementer would not know what visual result to produce, or would likely produce several materially different results, the term should be renamed, split, previewed more clearly, or sent through option governance instead of accepted as-is.
+The same visual or interaction meaning must keep the same base vocabulary across the editor.
+Using different words for the same design treatment, or reusing the same word for different treatments without a qualifier, is a translation defect and should be caught during review.
+
 ## Option Governance Rule
 
 Treat user suggestions, agent ideas, and plausible UI preferences as hypotheses.
@@ -23,6 +36,8 @@ Do not turn them directly into UI Contract options.
 UI Contract values are intended to be read as DESIGN.md-like rules by other AI agents and humans.
 Except for color values and named color roles, option values, labels, and notes must use plain, established design language.
 Do not introduce project-specific names, source-app names, private metaphors, CSS class names, component package names, or local implementation jargon as contract vocabulary.
+Before adding role-specific option names, define or reuse the shared base pattern when one exists.
+For example, button roles should choose from shared coloring patterns such as filled, outline, neutral surface, tonal color, or text before adding primary-, secondary-, or danger-specific wording.
 
 Before changing an option set, compare the proposal against official design-system guidance or well-established product UI patterns, such as:
 
@@ -72,4 +87,5 @@ When reporting option-set changes, include:
 - why it belongs in the current foundation, component, interaction policy, or screen-pattern boundary, or why it was moved elsewhere
 - what external design-system evidence was checked
 - whether the option can be understood as a DESIGN.md rule without local project context
+- whether a frontend implementer would likely produce the previewed visual treatment from the label, note, and JSON value
 - any remaining uncertainty
