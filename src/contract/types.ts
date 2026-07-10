@@ -21,7 +21,7 @@ export type CardInteraction = 'static-card' | 'clickable-card' | 'selectable-car
 export type SidePanelRelationship = 'persistent-inspector' | 'temporary-drawer'
 export type SidePanelResponsive = 'collapse-to-toggle' | 'full-screen-sheet'
 export type ConfirmationSurface = 'danger-dialog' | 'typed-confirmation' | 'undo-when-reversible'
-export type ConfirmationScope = 'destructive-only' | 'destructive-bulk-unsaved'
+export type ConfirmationScope = 'destructive-only' | 'destructive-and-bulk'
 export type ColorProfileId = 'default' | 'deep-slate-blue' | 'enterprise-blue' | 'productivity-indigo' | 'trust-green' | 'teal-operations' | 'neutral-graphite' | 'corporate-red' | 'operations-orange' | 'office-neutral' | 'financial-navy' | 'horizon-cyan'
 export type ActiveColorProfileId = ColorProfileId | 'custom'
 export type ColorModeKey = 'light' | 'dark'
@@ -35,11 +35,11 @@ export type TogglePolicy = { treatment: 'switch-control' | 'segmented-binary'; l
 export type CheckboxPolicy = { groupLayout: 'stacked-list' | 'inline-compact'; choiceSurface: 'plain-label' | 'row-surface' | 'bordered-choice-row'; mixedState: 'show-indeterminate' | 'avoid-parent-checkbox' }
 export type SearchListPolicy = 'standard-search-list'
 export type UiContract = {
-  schemaVersion: '0.1.0'
+  schemaVersion: '0.2.0'
   meta: { name: string; description: string }
   product: { systemType: string; informationDensity: string; visualTone: string }
   designPolicy: { brandIdentity: BrandIdentityPolicy; colorProfileId: ActiveColorProfileId; color: ColorPolicy }
-  interactionPolicy: { focus: { visibility: FocusVisibility; indicatorStyle: FocusIndicatorStyle }; validation: { trigger: ValidationTrigger; presentation: ValidationPresentation }; availability: { treatment: AvailabilityTreatment; layout: AvailabilityLayout }; confirmation: { surface: ConfirmationSurface; scope: ConfirmationScope } }
+  interactionPolicy: { focus: { visibility: FocusVisibility; indicatorStyle: FocusIndicatorStyle }; validation: { trigger: ValidationTrigger; presentation: ValidationPresentation }; availability: { treatment: AvailabilityTreatment; layout: AvailabilityLayout }; confirmation: { surface: ConfirmationSurface; scope: ConfirmationScope }; loading: { feedback: 'communicate-busy-state' }; stateFeedback: { guidance: 'explain-condition-and-next-step' } }
   componentPolicy: { button: { primaryEmphasis: PrimaryEmphasis; secondaryEmphasis: SecondaryEmphasis; dangerPlacement: DangerPlacement; dangerEmphasis: DangerEmphasis; iconAdornment: IconAdornment; iconOnlyPolicy: IconOnlyPolicy }; textField: { fieldStyle: TextFieldStyle; labelPlacement: TextFieldLabelPlacement; requiredIndicator: TextFieldRequiredIndicator; messageAreaBehavior: TextFieldMessageAreaBehavior; placeholderUsage: TextFieldPlaceholderUsage }; select: SelectPolicy; tabs: TabsPolicy; toggle: TogglePolicy; checkbox: CheckboxPolicy; card: { treatment: CardTreatment; interaction: CardInteraction }; sidePanel: { relationship: SidePanelRelationship; responsive: SidePanelResponsive } }
   screenPatternPolicy: { searchList: SearchListPolicy }
 }

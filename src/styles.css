@@ -2019,7 +2019,8 @@ h3 {
 
 .select-stage,
 .validation-stage,
-.availability-stage {
+.availability-stage,
+.state-feedback-stage {
   min-height: 280px;
   padding: 16px;
   border: 1px solid var(--line);
@@ -2036,6 +2037,64 @@ h3 {
 .select-stage {
   min-height: 420px;
   justify-content: start;
+}
+
+.state-feedback-requirements {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.state-feedback-requirements strong {
+  color: var(--text);
+}
+
+.state-feedback-stage {
+  min-height: 330px;
+  justify-content: start;
+}
+
+.state-feedback-card {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.state-feedback-card.is-error {
+  border-color: var(--danger);
+}
+
+.state-feedback-card p,
+.state-feedback-card small {
+  margin: 0;
+  color: var(--muted);
+}
+
+.state-feedback-card button {
+  width: max-content;
+  border: 0;
+  padding: 0;
+  color: var(--primary);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+}
+
+.state-feedback-skeleton {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--surface-soft), var(--line), var(--surface-soft));
+}
+
+.state-feedback-skeleton.short {
+  width: 62%;
 }
 
 .select-section-preview {

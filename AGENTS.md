@@ -28,6 +28,10 @@ If a competent frontend implementer would not know what visual result to produce
 The same visual or interaction meaning must keep the same base vocabulary across the editor.
 Using different words for the same design treatment, or reusing the same word for different treatments without a qualifier, is a translation defect and should be caught during review.
 
+## Explanatory Copy Language Rule
+
+Headings and menu names may remain English. Any explanatory, state, helper, or action copy added to the editor must be available in both Japanese and English through the existing language switch. Add exact Japanese and English entries to `src/i18n.ts` for new UI copy so Japanese reviewers can evaluate the same behavior; do not bypass the established translation mechanism with hard-coded explanatory text. See `docs/knowledge/localization-and-review-copy.md` for the durable policy and semantic-equivalence requirement.
+
 ## Option Governance Rule
 
 Treat user suggestions, agent ideas, and plausible UI preferences as hypotheses.

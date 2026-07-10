@@ -62,6 +62,7 @@ type MenuItem =
   | 'Contract Editor / Focus'
   | 'Contract Editor / Validation'
   | 'Contract Editor / Availability'
+  | 'Contract Editor / State Feedback'
   | 'Contract Editor / Select'
   | 'Contract Editor / Tabs'
   | 'Contract Editor / Toggle'
@@ -83,7 +84,7 @@ type MenuEntry = {
     status: MenuStatus
   }>
 }
-type ContractEditorComponent = 'button' | 'textField' | 'focus' | 'validation' | 'availability' | 'select' | 'tabs' | 'toggle' | 'checkbox' | 'card' | 'sidePanel' | 'confirmation'
+type ContractEditorComponent = 'button' | 'textField' | 'focus' | 'validation' | 'availability' | 'stateFeedback' | 'select' | 'tabs' | 'toggle' | 'checkbox' | 'card' | 'sidePanel' | 'confirmation'
 type ButtonColoringOption<Value extends string> = {
   label: string
   note: string
@@ -345,6 +346,7 @@ const menuItems: MenuEntry[] = [
       { label: 'Focus', page: 'Contract Editor / Focus', status: 'active' },
       { label: 'Validation', page: 'Contract Editor / Validation', status: 'active' },
       { label: 'Availability', page: 'Contract Editor / Availability', status: 'active' },
+      { label: 'State Feedback', page: 'Contract Editor / State Feedback', status: 'active' },
       { label: 'Confirmation', page: 'Contract Editor / Confirmation', status: 'active' },
     ],
   },
@@ -755,7 +757,8 @@ function App() {
     selectedMenu === 'Contract Editor / Confirmation' ||
     selectedMenu === 'Contract Editor / Focus' ||
     selectedMenu === 'Contract Editor / Validation' ||
-    selectedMenu === 'Contract Editor / Availability'
+    selectedMenu === 'Contract Editor / Availability' ||
+    selectedMenu === 'Contract Editor / State Feedback'
   const selectedComponent: ContractEditorComponent =
     selectedMenu === 'Contract Editor / Text Field'
         ? 'textField'
@@ -779,6 +782,8 @@ function App() {
                           ? 'validation'
                           : selectedMenu === 'Contract Editor / Availability'
                             ? 'availability'
+                            : selectedMenu === 'Contract Editor / State Feedback'
+                              ? 'stateFeedback'
         : 'button'
   const pageTitle =
     selectedMenu === 'Contract Editor / Button'
@@ -805,6 +810,8 @@ function App() {
                           ? 'Validation Policy'
                           : selectedMenu === 'Contract Editor / Availability'
                             ? 'Availability Policy'
+                            : selectedMenu === 'Contract Editor / State Feedback'
+                              ? 'State Feedback Policy'
                 : selectedMenu
   const pageEyebrow = isContractEditorPage ? 'Contract Editor' : 'Main page'
   const pageStatus =
@@ -1257,6 +1264,10 @@ function ContractEditorPanel({
     )
   }
 
+  if (selectedComponent === 'stateFeedback') {
+    return <StateFeedbackContractPanel />
+  }
+
   return (
     <div className="editor-panel">
       <div className="contract-workbench">
@@ -1530,6 +1541,26 @@ function ConfirmationContractPanel({
   )
 }
 
+function StateFeedbackContractPanel() {
+  return (
+    <div className="select-sectioned-panel">
+      <SelectLikePolicySection
+        title="Fixed interaction requirements"
+        description="These are cross-cutting invariants, not component or screen-pattern choices. The application chooses data and recovery actions; every affected region follows the same feedback rule."
+        controls={
+          <div className="state-feedback-requirements">
+            <strong>Loading feedback</strong>
+            <span>Communicate that the affected region is busy to all users. Use a skeleton only for structured content; use an inline indicator for one processing action.</span>
+            <strong>Empty and error guidance</strong>
+            <span>Explain the condition in plain language and show a useful next step when one is available.</span>
+          </div>
+        }
+        preview={<StateFeedbackPreviewStage />}
+      />
+    </div>
+  )
+}
+
 function CardTreatmentPreview({
   cardPolicy,
 }: {
@@ -1691,7 +1722,7 @@ function ConfirmationScopePreview({
 }: {
   confirmationPolicy: UiContract['interactionPolicy']['confirmation']
 }) {
-  const includesBulk = confirmationPolicy.scope === 'destructive-bulk-unsaved'
+  const includesBulk = confirmationPolicy.scope === 'destructive-and-bulk'
 
   return (
     <div className="classification-preview">
@@ -1704,9 +1735,9 @@ function ConfirmationScopePreview({
           <strong>Delete 24 records</strong>
           <span>{includesBulk ? 'Confirmed' : 'Screen-owned'}</span>
         </div>
-        <div className={includesBulk ? 'is-active' : ''}>
+        <div>
           <strong>Leave unsaved edits</strong>
-          <span>{includesBulk ? 'Guarded' : 'Screen-owned'}</span>
+          <span>Screen-owned</span>
         </div>
       </div>
     </div>
@@ -2271,6 +2302,29 @@ function ValidationPreviewStage({
         <input readOnly value="billing@" />
         <strong>Enter a valid email address.</strong>
       </label>
+    </div>
+  )
+}
+
+function StateFeedbackPreviewStage() {
+  return (
+    <div className="state-feedback-stage">
+      <section aria-busy="true" className="state-feedback-card">
+        <strong>Loading customers</strong>
+        <span className="state-feedback-skeleton" />
+        <span className="state-feedback-skeleton short" />
+        <small>Busy status applies to this results region.</small>
+      </section>
+      <section className="state-feedback-card">
+        <strong>No matching customers</strong>
+        <p>Try clearing a filter or using a broader search term.</p>
+        <button type="button">Clear filters</button>
+      </section>
+      <section className="state-feedback-card is-error" role="status">
+        <strong>Customers could not be loaded</strong>
+        <p>Check the connection and try again.</p>
+        <button type="button">Try again</button>
+      </section>
     </div>
   )
 }
@@ -2870,7 +2924,7 @@ function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPoli
           <div className="search-list-table"><span>☐ Account</span><span>Status</span><span>Row actions</span><span>☐ Northwind</span><span>Active</span><span>View · Edit</span></div>
           <div className="search-list-label">Fixed states — loading skeleton · empty guidance · error message · paging (Previous / 1 / Next)</div>
           <div className="search-list-label">Narrow viewport — conditions stack; result columns become row summaries while actions remain visible.</div>
-          <div className="search-list-label">Screen-owned exceptions: which filters, columns, row actions, and bulk actions exist. Interaction Policy owns focus, availability, loading, validation, and confirmation.</div>
+          <div className="search-list-label">Screen-owned exceptions: which filters, columns, row actions, bulk actions, and recovery actions exist. Interaction Policy owns focus, availability, loading feedback, validation, empty/error guidance, and destructive confirmation.</div>
         </div>
       </section>
 

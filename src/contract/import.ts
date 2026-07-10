@@ -2,7 +2,8 @@ import { contractCatalog } from './catalog'
 import { defaultContract } from './defaults'
 import type { ImportResult, UiContract } from './types'
 
-const supportedVersion = '0.1.0'
+const supportedVersion = '0.2.0'
+const phaseTwoVersion = '0.1.0'
 const legacyVersion = '0.0.0'
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
@@ -11,7 +12,7 @@ const pathValue = (value: Record<string, unknown>, path: string): unknown => pat
 const allowedShape: Record<string, unknown> = {
   schemaVersion: true, meta: { name: true, description: true }, product: { systemType: true, informationDensity: true, visualTone: true }, screenPatternPolicy: { searchList: true },
   designPolicy: { colorProfileId: true, brandIdentity: { mark: true, markBackground: true, markBorder: true }, color: { light: '*', dark: '*' } },
-  interactionPolicy: { focus: { visibility: true, indicatorStyle: true }, validation: { trigger: true, presentation: true }, availability: { treatment: true, layout: true }, confirmation: { surface: true, scope: true } },
+  interactionPolicy: { focus: { visibility: true, indicatorStyle: true }, validation: { trigger: true, presentation: true }, availability: { treatment: true, layout: true }, confirmation: { surface: true, scope: true }, loading: { feedback: true }, stateFeedback: { guidance: true } },
   componentPolicy: { button: { primaryEmphasis: true, secondaryEmphasis: true, dangerPlacement: true, dangerEmphasis: true, iconAdornment: true, iconOnlyPolicy: true }, textField: { fieldStyle: true, labelPlacement: true, requiredIndicator: true, messageAreaBehavior: true, placeholderUsage: true }, select: { emptyDisplay: true, multiSelectedItemDisplay: true, multiRemoveAffordance: true, searchFieldTreatment: true }, tabs: { treatment: true, adornment: true }, toggle: { treatment: true, labelPolicy: true }, checkbox: { groupLayout: true, choiceSurface: true, mixedState: true }, card: { treatment: true, interaction: true }, sidePanel: { relationship: true, responsive: true } },
 }
 
@@ -37,15 +38,37 @@ function removeUnknown(value: Record<string, unknown>, shape: Record<string, unk
   return output
 }
 
-function migrateLegacy(value: Record<string, unknown>): Record<string, unknown> {
+function migrateLegacyToPhaseTwo(value: Record<string, unknown>): Record<string, unknown> {
   const migrated = clone(value)
-  migrated.schemaVersion = supportedVersion
+  migrated.schemaVersion = phaseTwoVersion
   if (!migrated.screenPatternPolicy || typeof migrated.screenPatternPolicy !== 'object') {
     migrated.screenPatternPolicy = clone(defaultContract.screenPatternPolicy)
   }
   const profile = pathValue(migrated, 'designPolicy.colorProfileId')
   if (profile === 'lineage-slate') ((migrated.designPolicy as Record<string, unknown>).colorProfileId = 'deep-slate-blue')
   return migrated
+}
+
+function migratePhaseTwoToCurrent(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  const diagnostics: string[] = []
+  migrated.schemaVersion = supportedVersion
+  const interactionPolicy = migrated.interactionPolicy as Record<string, unknown> | undefined
+  if (!interactionPolicy || typeof interactionPolicy !== 'object') return { value: migrated, diagnostics }
+  if (!interactionPolicy.loading) {
+    interactionPolicy.loading = clone(defaultContract.interactionPolicy.loading)
+    diagnostics.push('Added fixed Phase 3 invariant: interactionPolicy.loading.feedback = communicate-busy-state.')
+  }
+  if (!interactionPolicy.stateFeedback) {
+    interactionPolicy.stateFeedback = clone(defaultContract.interactionPolicy.stateFeedback)
+    diagnostics.push('Added fixed Phase 3 invariant: interactionPolicy.stateFeedback.guidance = explain-condition-and-next-step.')
+  }
+  const confirmation = interactionPolicy.confirmation as Record<string, unknown> | undefined
+  if (confirmation?.scope === 'destructive-bulk-unsaved') {
+    confirmation.scope = 'destructive-and-bulk'
+    diagnostics.push('Migrated confirmation.scope destructive-bulk-unsaved to destructive-and-bulk; unsaved-change navigation is now screen/application-flow owned.')
+  }
+  return { value: migrated, diagnostics }
 }
 
 function diagnosticsFor(value: Record<string, unknown>): string[] {
@@ -59,6 +82,8 @@ function diagnosticsFor(value: Record<string, unknown>): string[] {
       if (!/^#[0-9a-f]{6}$/i.test(selected) && selected !== 'transparent') diagnostics.push(`Invalid color at ${entry.path}: ${selected}`)
     } else if (!entry.options?.some((item) => item.value === selected)) diagnostics.push(`Unsupported selected value at ${entry.path}: ${selected}`)
   }
+  if (pathValue(value, 'interactionPolicy.loading.feedback') !== 'communicate-busy-state') diagnostics.push(`Invalid invariant at interactionPolicy.loading.feedback: ${String(pathValue(value, 'interactionPolicy.loading.feedback'))}`)
+  if (pathValue(value, 'interactionPolicy.stateFeedback.guidance') !== 'explain-condition-and-next-step') diagnostics.push(`Invalid invariant at interactionPolicy.stateFeedback.guidance: ${String(pathValue(value, 'interactionPolicy.stateFeedback.guidance'))}`)
   return diagnostics
 }
 
@@ -67,13 +92,16 @@ export function importContract(input: unknown): ImportResult {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return { outcome: 'invalid', diagnostics: ['Document must be an object.'] }
   const raw = input as Record<string, unknown>
   const version = raw.schemaVersion
-  if (version !== supportedVersion && version !== legacyVersion) return { outcome: 'unsupported-version', diagnostics: [`Unsupported schemaVersion: ${String(version)}`] }
-  const migrated = version === legacyVersion ? migrateLegacy(raw) : clone(raw)
+  if (version !== supportedVersion && version !== phaseTwoVersion && version !== legacyVersion) return { outcome: 'unsupported-version', diagnostics: [`Unsupported schemaVersion: ${String(version)}`] }
+  const phaseTwoInput = version === legacyVersion ? migrateLegacyToPhaseTwo(raw) : clone(raw)
+  const migration = version === supportedVersion ? { value: phaseTwoInput, diagnostics: [] } : migratePhaseTwoToCurrent(phaseTwoInput)
+  const migrated = migration.value
   const diagnostics = diagnosticsFor(migrated)
   if (diagnostics.length) return { outcome: 'invalid', diagnostics }
   const ignored = unknownFields(migrated, allowedShape)
   const contract = removeUnknown(migrated, allowedShape) as UiContract
-  if (version === legacyVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.0.0 to 0.1.0.', ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === legacyVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.0.0 to 0.1.0.', 'Migrated schemaVersion 0.1.0 to 0.2.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseTwoVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.1.0 to 0.2.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
   if (ignored.length) return { outcome: 'accepted-with-ignored-unknown-fields', diagnostics: ignored.map((field) => `Ignored unknown field: ${field}`), contract }
   return { outcome: 'valid', diagnostics: [], contract }
 }

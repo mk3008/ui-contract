@@ -5,7 +5,7 @@ exports[`output generators > generates deterministic Markdown from the same sour
 
 Button policy prototype for the UI Contract Editor.
 
-Schema version: \`0.1.0\`
+Schema version: \`0.2.0\`
 
 ## Product
 
@@ -64,6 +64,8 @@ Schema version: \`0.1.0\`
 - availability.layout: \`preserve-space-for-temporary-state\`
 - confirmation.surface: \`danger-dialog\`
 - confirmation.scope: \`destructive-only\`
+- loading.feedback: \`communicate-busy-state\`
+- stateFeedback.guidance: \`explain-condition-and-next-step\`
 
 ### Component policy
 
