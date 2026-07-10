@@ -33,6 +33,7 @@ export type SelectPolicy = { emptyDisplay: 'placeholder-text' | 'blank-field'; m
 export type TabsPolicy = { treatment: 'segmented-contained' | 'underline-tabs'; adornment: 'text-only' | 'icon-when-clarifying' | 'count-when-useful' }
 export type TogglePolicy = { treatment: 'switch-control' | 'segmented-binary'; labelPolicy: 'visible-label' | 'label-plus-state-text' }
 export type CheckboxPolicy = { groupLayout: 'stacked-list' | 'inline-compact'; choiceSurface: 'plain-label' | 'row-surface' | 'bordered-choice-row'; mixedState: 'show-indeterminate' | 'avoid-parent-checkbox' }
+export type SearchListPolicy = 'standard-search-list'
 export type UiContract = {
   schemaVersion: '0.1.0'
   meta: { name: string; description: string }
@@ -40,6 +41,7 @@ export type UiContract = {
   designPolicy: { brandIdentity: BrandIdentityPolicy; colorProfileId: ActiveColorProfileId; color: ColorPolicy }
   interactionPolicy: { focus: { visibility: FocusVisibility; indicatorStyle: FocusIndicatorStyle }; validation: { trigger: ValidationTrigger; presentation: ValidationPresentation }; availability: { treatment: AvailabilityTreatment; layout: AvailabilityLayout }; confirmation: { surface: ConfirmationSurface; scope: ConfirmationScope } }
   componentPolicy: { button: { primaryEmphasis: PrimaryEmphasis; secondaryEmphasis: SecondaryEmphasis; dangerPlacement: DangerPlacement; dangerEmphasis: DangerEmphasis; iconAdornment: IconAdornment; iconOnlyPolicy: IconOnlyPolicy }; textField: { fieldStyle: TextFieldStyle; labelPlacement: TextFieldLabelPlacement; requiredIndicator: TextFieldRequiredIndicator; messageAreaBehavior: TextFieldMessageAreaBehavior; placeholderUsage: TextFieldPlaceholderUsage }; select: SelectPolicy; tabs: TabsPolicy; toggle: TogglePolicy; checkbox: CheckboxPolicy; card: { treatment: CardTreatment; interaction: CardInteraction }; sidePanel: { relationship: SidePanelRelationship; responsive: SidePanelResponsive } }
+  screenPatternPolicy: { searchList: SearchListPolicy }
 }
 export type ImportOutcome = 'valid' | 'migrated' | 'accepted-with-ignored-unknown-fields' | 'invalid' | 'unsupported-version'
 export type ImportResult = { outcome: ImportOutcome; diagnostics: string[]; contract?: UiContract }

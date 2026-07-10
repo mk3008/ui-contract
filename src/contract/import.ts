@@ -9,7 +9,7 @@ const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 const pathValue = (value: Record<string, unknown>, path: string): unknown => path.split('.').reduce<unknown>((current, key) => current && typeof current === 'object' ? (current as Record<string, unknown>)[key] : undefined, value)
 
 const allowedShape: Record<string, unknown> = {
-  schemaVersion: true, meta: { name: true, description: true }, product: { systemType: true, informationDensity: true, visualTone: true },
+  schemaVersion: true, meta: { name: true, description: true }, product: { systemType: true, informationDensity: true, visualTone: true }, screenPatternPolicy: { searchList: true },
   designPolicy: { colorProfileId: true, brandIdentity: { mark: true, markBackground: true, markBorder: true }, color: { light: '*', dark: '*' } },
   interactionPolicy: { focus: { visibility: true, indicatorStyle: true }, validation: { trigger: true, presentation: true }, availability: { treatment: true, layout: true }, confirmation: { surface: true, scope: true } },
   componentPolicy: { button: { primaryEmphasis: true, secondaryEmphasis: true, dangerPlacement: true, dangerEmphasis: true, iconAdornment: true, iconOnlyPolicy: true }, textField: { fieldStyle: true, labelPlacement: true, requiredIndicator: true, messageAreaBehavior: true, placeholderUsage: true }, select: { emptyDisplay: true, multiSelectedItemDisplay: true, multiRemoveAffordance: true, searchFieldTreatment: true }, tabs: { treatment: true, adornment: true }, toggle: { treatment: true, labelPolicy: true }, checkbox: { groupLayout: true, choiceSurface: true, mixedState: true }, card: { treatment: true, interaction: true }, sidePanel: { relationship: true, responsive: true } },
@@ -40,6 +40,9 @@ function removeUnknown(value: Record<string, unknown>, shape: Record<string, unk
 function migrateLegacy(value: Record<string, unknown>): Record<string, unknown> {
   const migrated = clone(value)
   migrated.schemaVersion = supportedVersion
+  if (!migrated.screenPatternPolicy || typeof migrated.screenPatternPolicy !== 'object') {
+    migrated.screenPatternPolicy = clone(defaultContract.screenPatternPolicy)
+  }
   const profile = pathValue(migrated, 'designPolicy.colorProfileId')
   if (profile === 'lineage-slate') ((migrated.designPolicy as Record<string, unknown>).colorProfileId = 'deep-slate-blue')
   return migrated
@@ -47,7 +50,7 @@ function migrateLegacy(value: Record<string, unknown>): Record<string, unknown> 
 
 function diagnosticsFor(value: Record<string, unknown>): string[] {
   const diagnostics: string[] = []
-  for (const required of ['meta', 'product', 'designPolicy', 'interactionPolicy', 'componentPolicy']) if (!value[required] || typeof value[required] !== 'object') diagnostics.push(`Missing required object: ${required}`)
+  for (const required of ['meta', 'product', 'designPolicy', 'interactionPolicy', 'componentPolicy', 'screenPatternPolicy']) if (!value[required] || typeof value[required] !== 'object') diagnostics.push(`Missing required object: ${required}`)
   for (const entry of contractCatalog) {
     if (entry.kind !== 'decision') continue
     const selected = pathValue(value, entry.path)

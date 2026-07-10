@@ -93,5 +93,9 @@ Schema version: \`0.1.0\`
 - card.interaction: \`static-card\`
 - sidePanel.relationship: \`persistent-inspector\`
 - sidePanel.responsive: \`collapse-to-toggle\`
+
+### Screen patterns
+
+- searchList: \`standard-search-list\`
 "
 `;

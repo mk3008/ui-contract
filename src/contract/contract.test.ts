@@ -12,6 +12,8 @@ import validFixture from './fixtures/valid.json'
 import invalidSelectedValueFixture from './fixtures/invalid-selected-value.json'
 import unsupportedVersionFixture from './fixtures/unsupported-version.json'
 
+const schemaProperties = uiContractJsonSchema.properties as Record<string, Record<string, unknown>>
+
 describe('catalog integrity', () => {
   it('has unique IDs, resolved preview and translation references, and valid defaults', () => {
     expect(new Set(contractCatalog.map((entry) => entry.id)).size).toBe(contractCatalog.length)
@@ -42,13 +44,24 @@ describe('catalog integrity', () => {
 
 describe('schema and import outcomes', () => {
   it('publishes a versioned schema and classifies all import outcomes', () => {
-    expect(uiContractJsonSchema.properties.schemaVersion.const).toBe('0.1.0')
+    expect(schemaProperties.schemaVersion.const).toBe('0.1.0')
+    expect((schemaProperties.screenPatternPolicy.properties as Record<string, Record<string, unknown>>).searchList.enum).toEqual(['standard-search-list'])
+    for (const key of uiContractJsonSchema.required as string[]) expect(schemaProperties[key]).toBeDefined()
+    expect(((schemaProperties.componentPolicy.properties as Record<string, Record<string, unknown>>).button.properties as Record<string, Record<string, unknown>>).primaryEmphasis.enum).toContain('filled')
+    expect(((schemaProperties.componentPolicy.properties as Record<string, Record<string, unknown>>).button.properties as Record<string, Record<string, unknown>>).primaryEmphasis.enum).not.toContain('gradient')
     expect(importContract(defaultContract).outcome).toBe('valid')
     expect(importContract({ ...defaultContract, meta: validFixture.meta }).outcome).toBe('valid')
     expect(importContract({ ...defaultContract, extra: true }).outcome).toBe('accepted-with-ignored-unknown-fields')
     expect(importContract({ ...defaultContract, schemaVersion: '0.0.0' }).outcome).toBe('migrated')
     expect(importContract(invalidSelectedValueFixture).outcome).toBe('invalid')
     expect(importContract(unsupportedVersionFixture).outcome).toBe('unsupported-version')
+  })
+
+  it('migrates a pre-Phase-2 legacy document to the catalog default Search/List policy', () => {
+    const legacy = { ...defaultContract, schemaVersion: '0.0.0' as const }
+    delete (legacy as Partial<typeof legacy>).screenPatternPolicy
+    const result = importContract(legacy)
+    expect(result).toMatchObject({ outcome: 'migrated', contract: { screenPatternPolicy: { searchList: 'standard-search-list' } } })
   })
 
   it('never silently replaces an invalid selected value', () => {
@@ -74,6 +87,14 @@ describe('schema and import outcomes', () => {
 describe('output generators', () => {
   it('round-trips generated JSON through the validator', () => {
     expect(importContract(JSON.parse(generateJson(defaultContract)))).toMatchObject({ outcome: 'valid', contract: defaultContract })
+  })
+
+  it('exports the Search/List screen-pattern decision to JSON and Markdown', () => {
+    const json = generateJson(defaultContract)
+    const markdown = generateMarkdown(defaultContract)
+    expect(json).toContain('"searchList": "standard-search-list"')
+    expect(markdown).toContain('### Screen patterns')
+    expect(markdown).toContain('searchList: `standard-search-list`')
   })
 
   it('generates deterministic Markdown from the same source', () => {

@@ -863,7 +863,7 @@ function App() {
     }
 
     if (selectedMenu === 'Screen Patterns') {
-      return <ScreenPatternsPanel />
+      return <ScreenPatternsPanel policy={contract.screenPatternPolicy.searchList} />
     }
 
     if (selectedMenu === 'Settings') {
@@ -2845,18 +2845,33 @@ function StatusChip({
   )
 }
 
-function ScreenPatternsPanel() {
+function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPolicy']['searchList'] }) {
+  const entry = catalogDecision('search-list-pattern')
   return (
     <div className="screen-pattern-panel">
       <section className="screen-pattern-intro">
         <div>
-          <p className="eyebrow">Screen policy backlog</p>
-          <h3>画面全体で扱うべき規約</h3>
+          <p className="eyebrow">Screen pattern</p>
+          <h3>{entry.label}</h3>
         </div>
         <p>
           Component ContractやInteraction Policyではなく、アプリシェルや画面全体の振る舞いとして扱う候補を整理します。
           Card、Side Panel、ConfirmationはContract Editor側へ移動しました。
         </p>
+      </section>
+
+      <section className="screen-pattern-card">
+        <span className="screen-pattern-scope">Selectable decision: {policy}</span>
+        <p>{entry.note}</p>
+        <div className="search-list-preview">
+          <div className="search-list-label">Fixed structure — search conditions</div>
+          <div className="search-list-controls"><input value="Quarterly review" readOnly /><button type="button">Search</button><button type="button">Reset</button></div>
+          <div className="search-list-label">Fixed structure — results: 24 · Sort: Updated ↓ · bulk actions appear after selection</div>
+          <div className="search-list-table"><span>☐ Account</span><span>Status</span><span>Row actions</span><span>☐ Northwind</span><span>Active</span><span>View · Edit</span></div>
+          <div className="search-list-label">Fixed states — loading skeleton · empty guidance · error message · paging (Previous / 1 / Next)</div>
+          <div className="search-list-label">Narrow viewport — conditions stack; result columns become row summaries while actions remain visible.</div>
+          <div className="search-list-label">Screen-owned exceptions: which filters, columns, row actions, and bulk actions exist. Interaction Policy owns focus, availability, loading, validation, and confirmation.</div>
+        </div>
       </section>
 
       <div className="screen-pattern-grid">
