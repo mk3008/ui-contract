@@ -1170,6 +1170,83 @@ h3 {
   background: var(--primary-soft);
 }
 
+.form-section-card {
+  gap: 10px;
+}
+
+.form-section-preview {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.form-section-preview fieldset {
+  margin: 0;
+  padding: 16px;
+  border: 0;
+}
+
+.form-section-preview legend {
+  padding: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.form-section-helper {
+  margin: 6px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.form-section-preview label {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-section-preview input {
+  width: min(100%, 420px);
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+  font-weight: 400;
+}
+
+.form-section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding: 12px 16px;
+  background: var(--surface);
+}
+
+.form-section-actions span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.form-section-actions button {
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--primary-text);
+  background: var(--primary);
+  font: inherit;
+  font-weight: 700;
+}
+
 .classification-notes {
   display: grid;
   gap: 12px;

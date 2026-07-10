@@ -14,6 +14,11 @@ test('audits every active view in JP and EN while preserving only structural and
       await expect(page.locator('main h2').first()).toBeVisible()
       await expect(page.getByRole('navigation')).toContainText('Button')
       await expect(page.getByRole('navigation')).toContainText('State Feedback')
+      if (view === 'Screen Patterns') {
+        await expect(page.getByText('Grouped form section', { exact: true })).toBeVisible()
+        await expect(page.getByText('Account details', { exact: true })).toBeVisible()
+        await expect(page.getByText(language === 'JP' ? '明確に分けたアクション領域' : 'Distinct action area', { exact: true })).toBeVisible()
+      }
       const untranslatedStructure = await page.locator(englishStructureSelector).allTextContents()
       expect(untranslatedStructure.filter((text) => /[ぁ-んァ-ン一-龯]/.test(text)), `${view} has a structural label that does not remain English`).toEqual([])
       const visibleCopy = await page.locator('main *').evaluateAll((nodes, excludedSelector) => {

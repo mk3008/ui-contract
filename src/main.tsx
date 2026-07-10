@@ -870,7 +870,7 @@ function App() {
     }
 
     if (selectedMenu === 'Screen Patterns') {
-      return <ScreenPatternsPanel policy={contract.screenPatternPolicy.searchList} />
+      return <ScreenPatternsPanel policy={contract.screenPatternPolicy} />
     }
 
     if (selectedMenu === 'Settings') {
@@ -2933,21 +2933,22 @@ function StatusChip({
   )
 }
 
-function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPolicy']['searchList'] }) {
-  const entry = catalogDecision('search-list-pattern')
+function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPolicy'] }) {
+  const searchListEntry = catalogDecision('search-list-pattern')
+  const formSectionEntry = catalogDecision('form-section-pattern')
   return (
     <div className="screen-pattern-panel">
       <section className="screen-pattern-intro">
         <div>
           <p className="eyebrow">Screen pattern</p>
-          <h3>{entry.label}</h3>
+          <h3>Screen Patterns</h3>
         </div>
-        <p>This lists candidates that belong to application-shell or whole-screen behavior rather than Component Contract or Interaction Policy. Card, Side Panel, and Confirmation moved into Contract Editor.</p>
+        <p>Screen Patterns define reusable structures that compose existing Component Contracts. They do not choose fields, workflow behavior, or layout mechanics.</p>
       </section>
 
       <section className="screen-pattern-card">
-        <span className="screen-pattern-scope">{`Selectable decision: ${policy}`}</span>
-        <p>{entry.note}</p>
+        <span className="screen-pattern-scope">{`Selectable decision: ${policy.searchList}`}</span>
+        <p>{searchListEntry.note}</p>
         <div className="search-list-preview">
           <div className="search-list-label">Fixed structure — search conditions</div>
           <div className="search-list-controls"><input value="Quarterly review" readOnly /><button type="button">Search</button><button type="button">Reset</button></div>
@@ -2957,6 +2958,36 @@ function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPoli
           <div className="search-list-label">Narrow viewport — conditions stack; result columns become row summaries while actions remain visible.</div>
           <div className="search-list-label">Screen-owned exceptions: which filters, columns, row actions, bulk actions, and recovery actions exist. Interaction Policy owns focus, availability, loading feedback, validation, empty/error guidance, and destructive confirmation.</div>
         </div>
+      </section>
+
+      <section className="screen-pattern-card form-section-card">
+        <div className="screen-pattern-card-heading">
+          <div>
+            <span className="screen-pattern-scope">{`Selectable decision: ${policy.formSection}`}</span>
+            <h3>{formSectionEntry.label}</h3>
+            <span className="option-title">{formSectionEntry.options![0].label}</span>
+          </div>
+        </div>
+        <p>{formSectionEntry.note}</p>
+        <p>Use this fixed structure to show a related group of existing inputs. Field choice, requiredness, validation, availability, and action behavior remain owned elsewhere.</p>
+        <form className="form-section-preview" aria-label="Grouped form section preview">
+          <fieldset>
+            <legend className="option-title">Account details</legend>
+            <p className="form-section-helper">Related fields are scanned from top to bottom beneath this group heading.</p>
+            <label>
+              Account name
+              <input value="Northwind Traders" readOnly />
+            </label>
+            <label>
+              Account owner
+              <input value="Avery Morgan" readOnly />
+            </label>
+          </fieldset>
+          <div className="form-section-actions">
+            <span>Distinct action area</span>
+            <button type="button">Example action</button>
+          </div>
+        </form>
       </section>
 
       <div className="screen-pattern-grid">

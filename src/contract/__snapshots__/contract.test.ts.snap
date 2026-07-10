@@ -5,7 +5,7 @@ exports[`output generators > generates deterministic Markdown from the same sour
 
 Button policy prototype for the UI Contract Editor.
 
-Schema version: \`0.2.0\`
+Schema version: \`0.3.0\`
 
 ## Product
 
@@ -99,5 +99,6 @@ Schema version: \`0.2.0\`
 ### Screen patterns
 
 - searchList: \`standard-search-list\`
+- formSection: \`grouped-form-section\`
 "
 `;
