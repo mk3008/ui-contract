@@ -20,16 +20,18 @@ import {
   TabsSectionedContractPanel,
   TogglePreviewStage,
   ToggleSectionedContractPanel,
-  type CheckboxPolicy,
-  type TabsPolicy,
-  type TogglePolicy,
 } from './control-contracts'
 import {
   SelectPreviewStage,
   SelectSectionedContractPanel,
-  type SelectPolicy,
 } from './select-contract'
 import { translateUiDocument, type UiLanguage } from './i18n'
+import { defaultContract } from './contract/defaults'
+import { importContract } from './contract/import'
+import { generateJson } from './contract/output'
+import { catalogDecision, catalogOptions } from './contract/catalog'
+import { renderedMainDecisionIds } from './contract/rendered-decisions'
+import type { ActiveColorProfileId, AvailabilityLayout, AvailabilityTreatment, BrandIdentityPolicy, CardInteraction, CardTreatment, ColorModeKey, ColorPolicy, ColorProfile, ColorProfileId, ColorRoleKey, ConfirmationScope, ConfirmationSurface, DangerEmphasis, DangerPlacement, FocusIndicatorStyle, FocusVisibility, IconAdornment, IconOnlyPolicy, PrimaryEmphasis, SecondaryEmphasis, SidePanelRelationship, SidePanelResponsive, TextFieldLabelPlacement, TextFieldMessageAreaBehavior, TextFieldPlaceholderUsage, TextFieldRequiredIndicator, TextFieldStyle, UiContract, ValidationPresentation, ValidationTrigger } from './contract/types'
 import './styles.css'
 
 declare global {
@@ -81,172 +83,11 @@ type MenuEntry = {
     status: MenuStatus
   }>
 }
-type ButtonColoringPattern = 'filled' | 'outline' | 'neutral-surface' | 'filled-tonal' | 'text'
-type ButtonColoringOption<Value extends string = ButtonColoringPattern> = {
+type ContractEditorComponent = 'button' | 'textField' | 'focus' | 'validation' | 'availability' | 'select' | 'tabs' | 'toggle' | 'checkbox' | 'card' | 'sidePanel' | 'confirmation'
+type ButtonColoringOption<Value extends string> = {
   label: string
   note: string
   value: Value
-}
-type PrimaryEmphasis = Extract<ButtonColoringPattern, 'filled' | 'filled-tonal' | 'outline'>
-type SecondaryEmphasis = 'outline' | 'neutral-filled' | 'filled-tonal'
-type DangerPlacement = 'separated' | 'inline'
-type DangerEmphasis = Extract<ButtonColoringPattern, 'text' | 'outline' | 'filled'>
-type IconAdornment = 'text-only-default' | 'icons-when-clarifying'
-type IconOnlyPolicy = 'avoid-icon-only' | 'allow-recognizable-with-accessible-name'
-type TextFieldStyle = 'outlined' | 'filled'
-type TextFieldLabelPlacement = 'top' | 'side-left' | 'side-right'
-type TextFieldRequiredIndicator =
-  | 'mark-optional'
-  | 'mark-required-default'
-  | 'mark-required-danger'
-type TextFieldMessageAreaBehavior = 'reserved-message-area' | 'dynamic-message-area'
-type TextFieldPlaceholderUsage = 'avoid-placeholder' | 'format-example-only'
-type FocusVisibility = 'keyboard-and-active-inputs' | 'all-focused-controls'
-type FocusIndicatorStyle = 'outer-ring' | 'high-contrast-highlight'
-type ValidationTrigger = 'submit-or-step' | 'blur-after-edit'
-type ValidationPresentation = 'field-and-summary' | 'field-message-only'
-type AvailabilityTreatment =
-  | 'keep-enabled-explain-on-action'
-  | 'readonly-for-fixed-values'
-  | 'disabled-when-impossible'
-  | 'hidden-when-not-applicable'
-type AvailabilityLayout = 'preserve-space-for-temporary-state' | 'allow-reflow-when-not-applicable'
-type CardTreatment = 'outlined-card' | 'filled-card' | 'elevated-card'
-type CardInteraction = 'static-card' | 'clickable-card' | 'selectable-card'
-type SidePanelRelationship = 'persistent-inspector' | 'temporary-drawer'
-type SidePanelResponsive = 'collapse-to-toggle' | 'full-screen-sheet'
-type ConfirmationSurface = 'danger-dialog' | 'typed-confirmation' | 'undo-when-reversible'
-type ConfirmationScope = 'destructive-only' | 'destructive-bulk-unsaved'
-type ContractEditorComponent =
-  | 'button'
-  | 'textField'
-  | 'focus'
-  | 'validation'
-  | 'availability'
-  | 'select'
-  | 'tabs'
-  | 'toggle'
-  | 'checkbox'
-  | 'card'
-  | 'sidePanel'
-  | 'confirmation'
-type ColorProfileId =
-  | 'default'
-  | 'deep-slate-blue'
-  | 'enterprise-blue'
-  | 'productivity-indigo'
-  | 'trust-green'
-  | 'teal-operations'
-  | 'neutral-graphite'
-  | 'corporate-red'
-  | 'operations-orange'
-  | 'office-neutral'
-  | 'financial-navy'
-  | 'horizon-cyan'
-type ActiveColorProfileId = ColorProfileId | 'custom'
-type ColorModeKey = 'light' | 'dark'
-type ColorRoleKey =
-  | 'brandBackground'
-  | 'brandText'
-  | 'primary'
-  | 'primaryText'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'info'
-  | 'focusOuter'
-  | 'focusInner'
-  | 'background'
-  | 'surface'
-  | 'surfaceSoft'
-  | 'border'
-  | 'text'
-  | 'mutedText'
-
-type ColorPolicy = Record<ColorModeKey, Record<ColorRoleKey, string>>
-
-type BrandIdentityPolicy = {
-  mark: string
-  markBackground: string
-  markBorder: string
-}
-
-type ColorProfile = {
-  brandIdentity: BrandIdentityPolicy
-  color: ColorPolicy
-  description: string
-  id: ColorProfileId
-  name: string
-}
-
-type UiContract = {
-  schemaVersion: string
-  meta: {
-    name: string
-    description: string
-  }
-  product: {
-    systemType: string
-    informationDensity: string
-    visualTone: string
-  }
-  designPolicy: {
-    brandIdentity: BrandIdentityPolicy
-    colorProfileId: ActiveColorProfileId
-    color: ColorPolicy
-  }
-  interactionPolicy: {
-    focus: {
-      visibility: FocusVisibility
-      indicatorStyle: FocusIndicatorStyle
-    }
-    validation: {
-      trigger: ValidationTrigger
-      presentation: ValidationPresentation
-    }
-    availability: {
-      treatment: AvailabilityTreatment
-      layout: AvailabilityLayout
-    }
-    confirmation: {
-      surface: ConfirmationSurface
-      scope: ConfirmationScope
-    }
-  }
-  componentPolicy: {
-    button: {
-      primaryEmphasis: PrimaryEmphasis
-      secondaryEmphasis: SecondaryEmphasis
-      dangerPlacement: DangerPlacement
-      dangerEmphasis: DangerEmphasis
-      iconAdornment: IconAdornment
-      iconOnlyPolicy: IconOnlyPolicy
-    }
-    textField: {
-      fieldStyle: TextFieldStyle
-      labelPlacement: TextFieldLabelPlacement
-      requiredIndicator: TextFieldRequiredIndicator
-      messageAreaBehavior: TextFieldMessageAreaBehavior
-      placeholderUsage: TextFieldPlaceholderUsage
-    }
-    select: {
-      emptyDisplay: SelectPolicy['emptyDisplay']
-      multiSelectedItemDisplay: SelectPolicy['multiSelectedItemDisplay']
-      multiRemoveAffordance: SelectPolicy['multiRemoveAffordance']
-      searchFieldTreatment: SelectPolicy['searchFieldTreatment']
-    }
-    tabs: TabsPolicy
-    toggle: TogglePolicy
-    checkbox: CheckboxPolicy
-    card: {
-      treatment: CardTreatment
-      interaction: CardInteraction
-    }
-    sidePanel: {
-      relationship: SidePanelRelationship
-      responsive: SidePanelResponsive
-    }
-  }
 }
 
 type LoadedFile = {
@@ -302,15 +143,11 @@ const defaultBrandIdentity: BrandIdentityPolicy = {
 const colorProfiles: ColorProfile[] = [
   {
     id: 'default',
-    name: 'Default Slate Blue',
-    description: 'General blue.',
     brandIdentity: defaultBrandIdentity,
     color: defaultColorPolicy,
   },
   {
     id: 'deep-slate-blue',
-    name: 'Deep Slate Blue',
-    description: 'Dark header, blue actions.',
     brandIdentity: { mark: '#0f172a', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#0f172a',
@@ -344,8 +181,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'corporate-red',
-    name: 'Corporate Red',
-    description: 'Red brand.',
     brandIdentity: { mark: '#dc2626', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#fef2f2',
@@ -362,8 +197,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'operations-orange',
-    name: 'Operations Orange',
-    description: 'Orange brand.',
     brandIdentity: { mark: '#fc6d26', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#fff7ed',
@@ -381,8 +214,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'trust-green',
-    name: 'Trust Green',
-    description: 'Stable green.',
     brandIdentity: { mark: '#15803d', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#ecfdf3',
@@ -397,8 +228,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'teal-operations',
-    name: 'Teal Operations',
-    description: 'Teal tools.',
     brandIdentity: { mark: '#0f766e', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#f0fdfa',
@@ -412,8 +241,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'horizon-cyan',
-    name: 'Horizon Cyan',
-    description: 'Clean cyan.',
     brandIdentity: { mark: '#0891b2', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#ecfeff',
@@ -429,8 +256,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'enterprise-blue',
-    name: 'Enterprise Blue',
-    description: 'Clear blue.',
     brandIdentity: { mark: '#0f62fe', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#edf5ff',
@@ -444,8 +269,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'financial-navy',
-    name: 'Financial Navy',
-    description: 'Conservative navy.',
     brandIdentity: { mark: '#1e3a8a', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#eff6ff',
@@ -461,8 +284,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'productivity-indigo',
-    name: 'Productivity Indigo',
-    description: 'Indigo work.',
     brandIdentity: { mark: '#4f46e5', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#eef2ff',
@@ -476,8 +297,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'neutral-graphite',
-    name: 'Neutral Graphite',
-    description: 'Graphite.',
     brandIdentity: { mark: '#3b82f6', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#f4f4f5',
@@ -492,8 +311,6 @@ const colorProfiles: ColorProfile[] = [
   },
   {
     id: 'office-neutral',
-    name: 'Office Neutral',
-    description: 'Low color.',
     brandIdentity: { mark: '#475569', markBackground: '#ffffff', markBorder: '#cbd5e1' },
     color: createColorPolicy({
       lightBrandBackground: '#f8fafc',
@@ -509,85 +326,7 @@ const colorProfiles: ColorProfile[] = [
   },
 ]
 
-const sampleContract: UiContract = {
-  schemaVersion: '0.1.0',
-  meta: {
-    name: 'Business UI Contract',
-    description: 'Button policy prototype for the UI Contract Editor.',
-  },
-  product: {
-    systemType: 'business-admin',
-    informationDensity: 'compact',
-    visualTone: 'calm',
-  },
-  designPolicy: {
-    brandIdentity: defaultBrandIdentity,
-    colorProfileId: 'default',
-    color: defaultColorPolicy,
-  },
-  interactionPolicy: {
-    focus: {
-      visibility: 'keyboard-and-active-inputs',
-      indicatorStyle: 'outer-ring',
-    },
-    validation: {
-      trigger: 'submit-or-step',
-      presentation: 'field-and-summary',
-    },
-    availability: {
-      treatment: 'keep-enabled-explain-on-action',
-      layout: 'preserve-space-for-temporary-state',
-    },
-    confirmation: {
-      surface: 'danger-dialog',
-      scope: 'destructive-only',
-    },
-  },
-  componentPolicy: {
-    button: {
-      primaryEmphasis: 'filled',
-      secondaryEmphasis: 'outline',
-      dangerPlacement: 'separated',
-      dangerEmphasis: 'outline',
-      iconAdornment: 'text-only-default',
-      iconOnlyPolicy: 'avoid-icon-only',
-    },
-    textField: {
-      fieldStyle: 'outlined',
-      labelPlacement: 'top',
-      requiredIndicator: 'mark-optional',
-      messageAreaBehavior: 'reserved-message-area',
-      placeholderUsage: 'avoid-placeholder',
-    },
-    select: {
-      emptyDisplay: 'placeholder-text',
-      multiSelectedItemDisplay: 'chips',
-      multiRemoveAffordance: 'chip-remove-button',
-      searchFieldTreatment: 'embedded-search-field',
-    },
-    tabs: {
-      treatment: 'segmented-contained',
-      adornment: 'text-only',
-    },
-    toggle: {
-      treatment: 'switch-control',
-      labelPolicy: 'visible-label',
-    },
-    checkbox: {
-      groupLayout: 'stacked-list',
-      choiceSurface: 'plain-label',
-      mixedState: 'show-indeterminate',
-    },
-    card: {
-      treatment: 'outlined-card',
-      interaction: 'static-card',
-    },
-    sidePanel: {
-      relationship: 'persistent-inspector',
-      responsive: 'collapse-to-toggle',
-    },
-  },
-}
+const sampleContract = defaultContract as unknown as UiContract
 
 const menuItems: MenuEntry[] = [
   { label: 'Overview', page: 'Overview', status: 'active' },
@@ -614,342 +353,45 @@ const menuItems: MenuEntry[] = [
   { label: 'Settings', page: 'Settings', status: 'placeholder' },
 ]
 
-const buttonColoringPatterns = {
-  filled: {
-    label: 'Filled',
-    note: 'Use a filled surface with the action color.',
-  },
-  outline: {
-    label: 'Outline',
-    note: 'Use colored text and border without a filled surface.',
-  },
-  neutralFilled: {
-    label: 'Neutral surface',
-    note: 'Use a neutral filled surface with normal text color.',
-  },
-  filledTonal: {
-    label: 'Filled tonal',
-    note: 'Use a tonal filled surface derived from the action color.',
-  },
-  text: {
-    label: 'Text',
-    note: 'Use colored text without a filled surface or border.',
-  },
-} as const
+const primaryEmphasisOptions: Array<ButtonColoringOption<PrimaryEmphasis>> = catalogOptions('button-primary-emphasis')
+const secondaryEmphasisOptions: Array<ButtonColoringOption<SecondaryEmphasis>> = catalogOptions('button-secondary-emphasis')
+const dangerPlacementOptions: Array<{ value: DangerPlacement; label: string; note: string }> = catalogOptions('button-danger-placement')
+const dangerEmphasisOptions: Array<ButtonColoringOption<DangerEmphasis>> = catalogOptions('button-danger-emphasis')
+const iconAdornmentOptions: Array<{ value: IconAdornment; label: string; note: string }> = catalogOptions('button-icon-adornment')
+const iconOnlyPolicyOptions: Array<{ value: IconOnlyPolicy; label: string; note: string }> = catalogOptions('button-icon-only-policy')
 
-const primaryEmphasisOptions: Array<ButtonColoringOption<PrimaryEmphasis>> = [
-  { value: 'filled', ...buttonColoringPatterns.filled },
-  { value: 'filled-tonal', ...buttonColoringPatterns.filledTonal },
-  { value: 'outline', ...buttonColoringPatterns.outline },
-]
+const focusVisibilityOptions: Array<{ value: FocusVisibility; label: string; note: string }> = catalogOptions('focus-visibility')
+const focusIndicatorStyleOptions: Array<{ value: FocusIndicatorStyle; label: string; note: string }> = catalogOptions('focus-indicator-style')
+const validationTriggerOptions: Array<{ value: ValidationTrigger; label: string; note: string }> = catalogOptions('validation-trigger')
+const validationPresentationOptions: Array<{ value: ValidationPresentation; label: string; note: string }> = catalogOptions('validation-presentation')
 
-const secondaryEmphasisOptions: Array<ButtonColoringOption<SecondaryEmphasis>> = [
-  { value: 'outline', ...buttonColoringPatterns.outline },
-  { value: 'neutral-filled', ...buttonColoringPatterns.neutralFilled },
-  { value: 'filled-tonal', ...buttonColoringPatterns.filledTonal },
-]
+const availabilityTreatmentOptions: Array<{ value: AvailabilityTreatment; label: string; note: string }> = catalogOptions('availability-treatment')
+const availabilityLayoutOptions: Array<{ value: AvailabilityLayout; label: string; note: string }> = catalogOptions('availability-layout')
 
-const dangerPlacementOptions: Array<{ value: DangerPlacement; label: string; note: string }> = [
-  { value: 'separated', label: 'Separated', note: 'Keep danger actions away from normal actions.' },
-  { value: 'inline', label: 'Inline row', note: 'Place danger actions in the same action row as related actions.' },
-]
-
-const dangerEmphasisOptions: Array<ButtonColoringOption<DangerEmphasis>> = [
-  { value: 'text', ...buttonColoringPatterns.text },
-  { value: 'outline', ...buttonColoringPatterns.outline },
-  { value: 'filled', ...buttonColoringPatterns.filled },
-]
-
-const iconAdornmentOptions: Array<{ value: IconAdornment; label: string; note: string }> = [
-  { value: 'text-only-default', label: 'Text only', note: 'Keep button meaning in the visible label.' },
-  {
-    value: 'icons-when-clarifying',
-    label: 'Clarifying icons',
-    note: 'Add icons only when they clarify stable action meaning.',
-  },
-]
-
-const iconOnlyPolicyOptions: Array<{ value: IconOnlyPolicy; label: string; note: string }> = [
-  {
-    value: 'avoid-icon-only',
-    label: 'Avoid icon-only',
-    note: 'Prefer visible text for ordinary business actions.',
-  },
-  {
-    value: 'allow-recognizable-with-accessible-name',
-    label: 'Constrained icon-only',
-    note: 'Allow only recognizable, space-limited actions with an accessible name.',
-  },
-]
-
-const focusVisibilityOptions: Array<{ value: FocusVisibility; label: string; note: string }> = [
-  {
-    value: 'keyboard-and-active-inputs',
-    label: 'Keyboard focus only',
-    note: 'Show rings for keyboard navigation; pointer focus stays quiet.',
-  },
-  {
-    value: 'all-focused-controls',
-    label: 'Keyboard + pointer focus',
-    note: 'Show rings for keyboard and mouse-click focus.',
-  },
-]
-
-const focusIndicatorStyleOptions: Array<{ value: FocusIndicatorStyle; label: string; note: string }> = [
-  {
-    value: 'outer-ring',
-    label: 'Outer ring',
-    note: 'Offset ring preserves the control shape and border.',
-  },
-  {
-    value: 'high-contrast-highlight',
-    label: 'High-contrast ring',
-    note: 'Use a focus ring with inner and outer contrast layers.',
-  },
-]
-
-const validationTriggerOptions: Array<{ value: ValidationTrigger; label: string; note: string }> = [
-  {
-    value: 'submit-or-step',
-    label: 'Submit or step',
-    note: 'Show validation after submit or moving to the next step.',
-  },
-  {
-    value: 'blur-after-edit',
-    label: 'After field exit',
-    note: 'Validate after the user edits a field and leaves it.',
-  },
-]
-
-const validationPresentationOptions: Array<{ value: ValidationPresentation; label: string; note: string }> = [
-  {
-    value: 'field-and-summary',
-    label: 'Field + summary',
-    note: 'Show field errors and a page-level error summary.',
-  },
-  {
-    value: 'field-message-only',
-    label: 'Field message only',
-    note: 'Show errors beside the relevant field.',
-  },
-]
-
-const availabilityTreatmentOptions: Array<{ value: AvailabilityTreatment; label: string; note: string }> = [
-  {
-    value: 'keep-enabled-explain-on-action',
-    label: 'Keep enabled',
-    note: 'Let the action explain missing requirements when used.',
-  },
-  {
-    value: 'readonly-for-fixed-values',
-    label: 'Read-only',
-    note: 'Show values that can be reviewed but not changed.',
-  },
-  {
-    value: 'disabled-when-impossible',
-    label: 'Disabled',
-    note: 'Disable only when the control truly cannot be used.',
-  },
-  {
-    value: 'hidden-when-not-applicable',
-    label: 'Hidden',
-    note: 'Remove controls that do not apply in the current context.',
-  },
-]
-
-const availabilityLayoutOptions: Array<{ value: AvailabilityLayout; label: string; note: string }> = [
-  {
-    value: 'preserve-space-for-temporary-state',
-    label: 'Preserve temporary space',
-    note: 'Keep temporary unavailable controls from shifting layout.',
-  },
-  {
-    value: 'allow-reflow-when-not-applicable',
-    label: 'Allow reflow',
-    note: 'Let layout close gaps when controls are not applicable.',
-  },
-]
-
-const cardTreatmentOptions: Array<{ value: CardTreatment; label: string; note: string }> = [
-  {
-    value: 'outlined-card',
-    label: 'Outlined card',
-    note: 'Use a border to group related content without adding depth.',
-  },
-  {
-    value: 'filled-card',
-    label: 'Filled card',
-    note: 'Use a filled card surface to group content on a plain background.',
-  },
-  {
-    value: 'elevated-card',
-    label: 'Elevated card',
-    note: 'Use shadow only when layered content needs separation.',
-  },
-]
-
-const cardInteractionOptions: Array<{ value: CardInteraction; label: string; note: string }> = [
-  {
-    value: 'static-card',
-    label: 'Static card',
-    note: 'Cards group information; actions remain explicit controls.',
-  },
-  {
-    value: 'clickable-card',
-    label: 'Clickable card',
-    note: 'The whole card opens one target; avoid nested primary actions.',
-  },
-  {
-    value: 'selectable-card',
-    label: 'Selectable card',
-    note: 'Show selected state clearly when cards behave like choices.',
-  },
-]
-
-const sidePanelRelationshipOptions: Array<{ value: SidePanelRelationship; label: string; note: string }> = [
-  {
-    value: 'persistent-inspector',
-    label: 'Persistent side panel',
-    note: 'Keep companion details beside the main work area.',
-  },
-  {
-    value: 'temporary-drawer',
-    label: 'Temporary side panel',
-    note: 'Open supporting details only when the user asks for them.',
-  },
-]
-
-const sidePanelResponsiveOptions: Array<{ value: SidePanelResponsive; label: string; note: string }> = [
-  {
-    value: 'collapse-to-toggle',
-    label: 'Collapsed side panel',
-    note: 'Keep the main task visible and expose the panel from a control.',
-  },
-  {
-    value: 'full-screen-sheet',
-    label: 'Full-screen side sheet',
-    note: 'Let the panel take the screen when side-by-side space is gone.',
-  },
-]
-
-const confirmationSurfaceOptions: Array<{ value: ConfirmationSurface; label: string; note: string }> = [
-  {
-    value: 'danger-dialog',
-    label: 'Confirmation dialog',
-    note: 'Interrupt destructive actions with an explicit confirmation.',
-  },
-  {
-    value: 'typed-confirmation',
-    label: 'Typed confirmation dialog',
-    note: 'Require typed intent for rare, high-impact destructive actions.',
-  },
-  {
-    value: 'undo-when-reversible',
-    label: 'Undo toast',
-    note: 'Prefer undo feedback when the action can be safely reversed.',
-  },
-]
-
-const confirmationScopeOptions: Array<{ value: ConfirmationScope; label: string; note: string }> = [
-  {
-    value: 'destructive-only',
-    label: 'Destructive only',
-    note: 'Confirm destructive or irreversible actions.',
-  },
-  {
-    value: 'destructive-bulk-unsaved',
-    label: 'Destructive + bulk',
-    note: 'Also cover bulk actions and leaving unsaved work.',
-  },
-]
+const cardTreatmentOptions: Array<{ value: CardTreatment; label: string; note: string }> = catalogOptions('card-treatment')
+const cardInteractionOptions: Array<{ value: CardInteraction; label: string; note: string }> = catalogOptions('card-interaction')
+const sidePanelRelationshipOptions: Array<{ value: SidePanelRelationship; label: string; note: string }> = catalogOptions('side-panel-relationship')
+const sidePanelResponsiveOptions: Array<{ value: SidePanelResponsive; label: string; note: string }> = catalogOptions('side-panel-responsive')
+const confirmationSurfaceOptions: Array<{ value: ConfirmationSurface; label: string; note: string }> = catalogOptions('confirmation-surface')
+const confirmationScopeOptions: Array<{ value: ConfirmationScope; label: string; note: string }> = catalogOptions('confirmation-scope')
 
 const overviewContent = overviewContentSource as Record<OverviewLanguage, OverviewContent>
 
-const textFieldStyleOptions: Array<{ value: TextFieldStyle; label: string; note: string }> = [
-  { value: 'outlined', label: 'Outlined field', note: 'Clear field boundary for forms.' },
-  { value: 'filled', label: 'Filled field', note: 'Soft field surface for dense screens.' },
+const textFieldStyleOptions: Array<{ value: TextFieldStyle; label: string; note: string }> = catalogOptions('text-field-style')
+const textFieldLabelPlacementOptions: Array<{ value: TextFieldLabelPlacement; label: string; note: string }> = catalogOptions('text-field-label-placement')
+const textFieldRequiredIndicatorOptions: Array<{ value: TextFieldRequiredIndicator; label: string; note: string }> = catalogOptions('text-field-required-indicator')
+const textFieldMessageAreaBehaviorOptions: Array<{ value: TextFieldMessageAreaBehavior; label: string; note: string }> = catalogOptions('text-field-message-area')
+const textFieldPlaceholderUsageOptions: Array<{ value: TextFieldPlaceholderUsage; label: string; note: string }> = catalogOptions('text-field-placeholder')
+
+void renderedMainDecisionIds
+
+const colorRoleFields: Array<{ key: ColorRoleKey; group: string }> = [
+  { key: 'brandBackground', group: 'Brand' }, { key: 'brandText', group: 'Brand' }, { key: 'primary', group: 'Actions' }, { key: 'primaryText', group: 'Actions' }, { key: 'success', group: 'Semantic' }, { key: 'warning', group: 'Semantic' }, { key: 'danger', group: 'Semantic' }, { key: 'info', group: 'Semantic' }, { key: 'focusOuter', group: 'Interaction' }, { key: 'focusInner', group: 'Interaction' }, { key: 'background', group: 'Neutral' }, { key: 'surface', group: 'Neutral' }, { key: 'surfaceSoft', group: 'Neutral' }, { key: 'border', group: 'Neutral' }, { key: 'text', group: 'Neutral' }, { key: 'mutedText', group: 'Neutral' },
 ]
 
-const textFieldLabelPlacementOptions: Array<{
-  value: TextFieldLabelPlacement
-  label: string
-  note: string
-}> = [
-  { value: 'top', label: 'Top label', note: 'Most readable default.' },
-  { value: 'side-right', label: 'Right-aligned side label', note: 'Side label kept close to the field.' },
-  { value: 'side-left', label: 'Left-aligned side label', note: 'Side labels share one visual start line.' },
-]
-
-const textFieldRequiredIndicatorOptions: Array<{
-  value: TextFieldRequiredIndicator
-  label: string
-  note: string
-}> = [
-  { value: 'mark-optional', label: 'Mark optional', note: 'Required is the default assumption.' },
-  {
-    value: 'mark-required-default',
-    label: 'Required mark, default color',
-    note: 'Use the normal text color for required marks.',
-  },
-  {
-    value: 'mark-required-danger',
-    label: 'Required mark, danger color',
-    note: 'Use the danger color for required marks.',
-  },
-]
-
-const textFieldMessageAreaBehaviorOptions: Array<{
-  value: TextFieldMessageAreaBehavior
-  label: string
-  note: string
-}> = [
-  {
-    value: 'reserved-message-area',
-    label: 'Reserve helper/error space',
-    note: 'Reserve stable space for helper text and validation errors below the field.',
-  },
-  {
-    value: 'dynamic-message-area',
-    label: 'Show only when needed',
-    note: 'Show helper text or validation errors only when needed; nearby layout may move.',
-  },
-]
-
-const textFieldPlaceholderUsageOptions: Array<{
-  value: TextFieldPlaceholderUsage
-  label: string
-  note: string
-}> = [
-  {
-    value: 'avoid-placeholder',
-    label: 'Avoid placeholders',
-    note: 'Put guidance in labels or helper text, not inside the empty field.',
-  },
-  {
-    value: 'format-example-only',
-    label: 'Format examples only',
-    note: 'Allow only short format examples, such as dates or codes.',
-  },
-]
-
-const colorRoleFields: Array<{ key: ColorRoleKey; group: string; label: string; note: string }> = [
-  { key: 'brandBackground', group: 'Brand', label: 'Brand background', note: 'Header and product chrome.' },
-  { key: 'brandText', group: 'Brand', label: 'Brand text', note: 'Text shown on brand background.' },
-  { key: 'primary', group: 'Actions', label: 'Primary action', note: 'Main action and active control.' },
-  { key: 'primaryText', group: 'Actions', label: 'Primary text', note: 'Text on primary action color.' },
-  { key: 'success', group: 'Semantic', label: 'Success', note: 'Positive status and completed work.' },
-  { key: 'warning', group: 'Semantic', label: 'Warning', note: 'Attention needed, not destructive.' },
-  { key: 'danger', group: 'Semantic', label: 'Danger / error', note: 'Errors and destructive actions.' },
-  { key: 'info', group: 'Semantic', label: 'Information', note: 'Neutral informational status.' },
-  { key: 'focusOuter', group: 'Interaction', label: 'Focus outer', note: 'Outer edge of the focus indicator.' },
-  { key: 'focusInner', group: 'Interaction', label: 'Focus inner', note: 'Contrast layer for focus indicators.' },
-  { key: 'background', group: 'Neutral', label: 'Background', note: 'Page and workspace background.' },
-  { key: 'surface', group: 'Neutral', label: 'Surface', note: 'Default panel background.' },
-  { key: 'surfaceSoft', group: 'Neutral', label: 'Soft surface', note: 'Secondary panel and table background.' },
-  { key: 'border', group: 'Neutral', label: 'Border', note: 'Rules, dividers, and panel borders.' },
-  { key: 'text', group: 'Neutral', label: 'Text', note: 'Primary readable text color.' },
-  { key: 'mutedText', group: 'Neutral', label: 'Muted text', note: 'Secondary labels and helper text.' },
-]
+function colorProfileOption(id: ActiveColorProfileId) {
+  return catalogDecision('color-profile').options?.find((option) => option.value === id)
+}
 
 function App() {
   const [language, setLanguage] = useState<OverviewLanguage>(() => {
@@ -979,7 +421,7 @@ function App() {
     translateUiDocument(language)
   })
 
-  const contractText = useMemo(() => JSON.stringify(contract, null, 2), [contract])
+  const contractText = useMemo(() => generateJson(contract as unknown as import('./contract/types').UiContract), [contract])
 
   const buttonPolicy = contract.componentPolicy.button
   const textFieldPolicy = contract.componentPolicy.textField
@@ -1261,13 +703,17 @@ function App() {
 
     try {
       const content = await file.text()
-      const parsed = JSON.parse(content) as Partial<UiContract>
-      setContract(normalizeContract(parsed))
+      const result = importContract(JSON.parse(content))
+      if (!result.contract) {
+        setLoadMessage(`${result.outcome}: ${result.diagnostics.join(' ')}`)
+        return
+      }
+      setContract(result.contract as unknown as UiContract)
       setLoadedFile({
         name: file.name,
         loadedAt: new Date().toLocaleString(),
       })
-      setLoadMessage('Loaded JSON into the editable contract state.')
+      setLoadMessage(`${result.outcome}: ${result.diagnostics.join(' ') || 'Loaded JSON into the editable contract state.'}`)
     } catch {
       setLoadMessage('Could not load this file as a UI Contract JSON.')
     } finally {
@@ -3013,7 +2459,6 @@ function ColorSettingsPanel({
   onUpdate: (mode: ColorModeKey, key: ColorRoleKey, value: string) => void
 }) {
   const colorGroups = Array.from(new Set(colorRoleFields.map((field) => field.group)))
-  const selectedProfile = colorProfiles.find((profile) => profile.id === colorProfileId)
   const contrastIssues = getColorContrastIssues(colorPolicy)
 
   return (
@@ -3025,7 +2470,7 @@ function ColorSettingsPanel({
               <div>
                 <h4>Profile Preset</h4>
                 <p>
-                  {selectedProfile?.description ??
+                  {colorProfileOption(colorProfileId)?.note ??
                     'Custom colors based on a preset or imported contract.'}
                 </p>
               </div>
@@ -3041,7 +2486,7 @@ function ColorSettingsPanel({
               >
                 {colorProfiles.map((profile) => (
                   <option key={profile.id} value={profile.id}>
-                    {profile.name}
+                    {colorProfileOption(profile.id)?.label}
                   </option>
                 ))}
                 <option value="custom">Custom</option>
@@ -3055,7 +2500,7 @@ function ColorSettingsPanel({
                   onClick={() => onProfileChange(profile.id)}
                   type="button"
                 >
-                  <span className="profile-card-name">{profile.name}</span>
+                  <span className="profile-card-name">{colorProfileOption(profile.id)?.label}</span>
                   <span aria-hidden="true" className="profile-card-swatches">
                     <span
                       style={{ background: profile.brandIdentity.mark }}
@@ -3192,23 +2637,24 @@ function ColorRoleRow({
   onChange,
 }: {
   darkValue: string
-  field: { key: ColorRoleKey; label: string; note: string }
+  field: { key: ColorRoleKey }
   lightValue: string
   onChange: (mode: ColorModeKey, value: string) => void
 }) {
+  const entry = catalogDecision(`color-light-${field.key}`)
   return (
     <div className="color-role-row">
       <span className="color-copy">
-        <strong>{field.label}</strong>
-        <span>{field.note}</span>
+        <strong>{entry.label}</strong>
+        <span>{entry.note}</span>
       </span>
       <ColorValueInput
-        label={`${field.label} light`}
+        label={`${entry.label} light`}
         value={lightValue}
         onChange={(value) => onChange('light', value)}
       />
       <ColorValueInput
-        label={`${field.label} dark`}
+        label={`${entry.label} dark`}
         value={darkValue}
         onChange={(value) => onChange('dark', value)}
       />
@@ -3644,453 +3090,11 @@ function shouldShowIcon(
   return policy.iconAdornment === 'icons-when-clarifying'
 }
 
-type LegacyButtonPolicy = Omit<
-  Partial<UiContract['componentPolicy']['button']>,
-  'dangerEmphasis' | 'iconAdornment' | 'iconOnlyPolicy' | 'primaryEmphasis' | 'secondaryEmphasis'
-> & {
-  dangerTreatment?: string
-  primaryEmphasis?: PrimaryEmphasis | 'tonal'
-  secondaryEmphasis?: SecondaryEmphasis | 'ghost' | 'tonal'
-  iconAdornment?: IconAdornment
-  iconOnlyPolicy?: IconOnlyPolicy
-  iconUsage?: 'text-only' | 'label-with-icon-when-clarifying' | 'icon-only-for-recognizable-actions'
-  disabledTreatment?: 'muted' | 'outline-muted' | 'reason-hint' | 'low-opacity'
-  disabledReasonPolicy?: string
-  loadingState?: 'spinner-with-label' | 'spinner-replaces-label-preserve-width' | 'spinner-replaces-label' | 'spinner-only' | 'disabled-label'
-  dangerEmphasis?:
-    | DangerEmphasis
-    | 'subtle'
-    | 'ghost'
-    | 'tertiary'
-    | 'primary'
-    | 'low-emphasis'
-    | 'danger-outline'
-    | 'quiet-outline'
-    | 'strong-danger'
-  buttonSize?: string
-}
-
-function normalizeContract(parsed: Partial<UiContract>): UiContract {
-  const parsedButton = parsed.componentPolicy?.button as LegacyButtonPolicy | undefined
-  const parsedTextField = parsed.componentPolicy?.textField as
-    | Partial<UiContract['componentPolicy']['textField']>
-    | undefined
-  const parsedFocus = parsed.interactionPolicy?.focus as
-    | Partial<UiContract['interactionPolicy']['focus']>
-    | undefined
-  const parsedValidation = parsed.interactionPolicy?.validation as
-    | Partial<UiContract['interactionPolicy']['validation']>
-    | undefined
-  const parsedAvailability = parsed.interactionPolicy?.availability as
-    | Partial<UiContract['interactionPolicy']['availability']>
-    | undefined
-  const parsedConfirmation = parsed.interactionPolicy?.confirmation as
-    | Partial<UiContract['interactionPolicy']['confirmation']>
-    | undefined
-  const parsedSelect = parsed.componentPolicy?.select as
-    | Partial<UiContract['componentPolicy']['select']>
-    | undefined
-  const parsedTabs = parsed.componentPolicy?.tabs as
-    | Partial<UiContract['componentPolicy']['tabs']>
-    | undefined
-  const parsedToggle = parsed.componentPolicy?.toggle as
-    | Partial<UiContract['componentPolicy']['toggle']>
-    | undefined
-  const parsedCheckbox = parsed.componentPolicy?.checkbox as
-    | Partial<UiContract['componentPolicy']['checkbox']>
-    | undefined
-  const parsedCard = parsed.componentPolicy?.card as
-    | Partial<UiContract['componentPolicy']['card']>
-    | undefined
-  const parsedSidePanel = parsed.componentPolicy?.sidePanel as
-    | Partial<UiContract['componentPolicy']['sidePanel']>
-    | undefined
-  const parsedColor = parsed.designPolicy?.color as LegacyColorPolicy | undefined
-  const parsedBrandIdentity = parsed.designPolicy?.brandIdentity as Partial<BrandIdentityPolicy> | undefined
-  const legacyDanger = parsedButton?.dangerTreatment
-  const legacyDangerPlacement: DangerPlacement =
-    legacyDanger === 'inline' ? 'inline' : sampleContract.componentPolicy.button.dangerPlacement
-  const legacyDangerEmphasis: DangerEmphasis =
-    legacyDanger === 'confirmation-required'
-      ? 'filled'
-      : normalizeDangerEmphasis(parsedButton?.dangerEmphasis)
-  const buttonWithoutLegacy = removeLegacyDangerTreatment(parsedButton)
-  const legacyPrimaryEmphasis = normalizePrimaryEmphasis(parsedButton?.primaryEmphasis)
-  const legacySecondaryEmphasis = normalizeSecondaryEmphasis(parsedButton?.secondaryEmphasis)
-  const legacyIconAdornment = normalizeIconAdornment(parsedButton)
-  const legacyIconOnlyPolicy = normalizeIconOnlyPolicy(parsedButton)
-
-  return {
-    ...sampleContract,
-    ...parsed,
-    meta: {
-      ...sampleContract.meta,
-      ...parsed.meta,
-    },
-    product: {
-      ...sampleContract.product,
-      ...parsed.product,
-    },
-    designPolicy: {
-      ...sampleContract.designPolicy,
-      ...parsed.designPolicy,
-      brandIdentity: normalizeBrandIdentity(parsedBrandIdentity, parsedColor),
-      colorProfileId: normalizeColorProfileId(parsed.designPolicy?.colorProfileId),
-      color: normalizeColorTokens(parsedColor),
-    },
-    interactionPolicy: {
-      ...sampleContract.interactionPolicy,
-      ...parsed.interactionPolicy,
-      focus: normalizeFocusPolicy(parsedFocus),
-      validation: normalizeValidationPolicy(parsedValidation),
-      availability: normalizeAvailabilityPolicy(parsedAvailability),
-      confirmation: normalizeConfirmationPolicy(parsedConfirmation),
-    },
-    componentPolicy: {
-      ...sampleContract.componentPolicy,
-      ...parsed.componentPolicy,
-      button: {
-        ...sampleContract.componentPolicy.button,
-        dangerPlacement: legacyDangerPlacement,
-        dangerEmphasis: legacyDangerEmphasis,
-        ...buttonWithoutLegacy,
-        primaryEmphasis: legacyPrimaryEmphasis,
-        secondaryEmphasis: legacySecondaryEmphasis,
-        iconAdornment: legacyIconAdornment,
-        iconOnlyPolicy: legacyIconOnlyPolicy,
-      },
-      textField: normalizeTextFieldPolicy(parsedTextField),
-      select: normalizeSelectPolicy(parsedSelect),
-      tabs: normalizeTabsPolicy(parsedTabs),
-      toggle: normalizeTogglePolicy(parsedToggle),
-      checkbox: normalizeCheckboxPolicy(parsedCheckbox),
-      card: normalizeCardPolicy(parsedCard),
-      sidePanel: normalizeSidePanelPolicy(parsedSidePanel),
-    },
-  }
-}
-
-function normalizeFocusPolicy(
-  value: Partial<UiContract['interactionPolicy']['focus']> | undefined,
-): UiContract['interactionPolicy']['focus'] {
-  const sample = sampleContract.interactionPolicy.focus
-
-  return {
-    visibility: isOneOf(value?.visibility, ['keyboard-and-active-inputs', 'all-focused-controls'])
-      ? value.visibility
-      : sample.visibility,
-    indicatorStyle: isOneOf(value?.indicatorStyle, ['outer-ring', 'high-contrast-highlight'])
-      ? value.indicatorStyle
-      : sample.indicatorStyle,
-  }
-}
-
-function normalizeValidationPolicy(
-  value: Partial<UiContract['interactionPolicy']['validation']> | undefined,
-): UiContract['interactionPolicy']['validation'] {
-  const sample = sampleContract.interactionPolicy.validation
-
-  return {
-    trigger: isOneOf(value?.trigger, ['submit-or-step', 'blur-after-edit'])
-      ? value.trigger
-      : sample.trigger,
-    presentation: isOneOf(value?.presentation, ['field-and-summary', 'field-message-only'])
-      ? value.presentation
-      : sample.presentation,
-  }
-}
-
-function normalizeAvailabilityPolicy(
-  value: Partial<UiContract['interactionPolicy']['availability']> | undefined,
-): UiContract['interactionPolicy']['availability'] {
-  const sample = sampleContract.interactionPolicy.availability
-
-  return {
-    treatment: isOneOf(value?.treatment, [
-      'keep-enabled-explain-on-action',
-      'readonly-for-fixed-values',
-      'disabled-when-impossible',
-      'hidden-when-not-applicable',
-    ])
-      ? value.treatment
-      : sample.treatment,
-    layout: isOneOf(value?.layout, [
-      'preserve-space-for-temporary-state',
-      'allow-reflow-when-not-applicable',
-    ])
-      ? value.layout
-      : sample.layout,
-  }
-}
-
-function normalizeConfirmationPolicy(
-  value: Partial<UiContract['interactionPolicy']['confirmation']> | undefined,
-): UiContract['interactionPolicy']['confirmation'] {
-  const sample = sampleContract.interactionPolicy.confirmation
-
-  return {
-    surface: isOneOf(value?.surface, ['danger-dialog', 'typed-confirmation', 'undo-when-reversible'])
-      ? value.surface
-      : sample.surface,
-    scope: isOneOf(value?.scope, ['destructive-only', 'destructive-bulk-unsaved'])
-      ? value.scope
-      : sample.scope,
-  }
-}
-
-function normalizeSelectPolicy(
-  value: Partial<UiContract['componentPolicy']['select']> | undefined,
-): UiContract['componentPolicy']['select'] {
-  const sample = sampleContract.componentPolicy.select
-  const legacyValue = value as
-    | {
-        multiSelectedItemDisplay?: string
-      }
-    | undefined
-  const migratedMultiSelectedItemDisplay =
-    legacyValue?.multiSelectedItemDisplay === 'summary-count' ||
-    legacyValue?.multiSelectedItemDisplay === 'count-badge'
-      ? 'count-summary'
-      : undefined
-
-  return {
-    emptyDisplay: isOneOf(value?.emptyDisplay, ['placeholder-text', 'blank-field'])
-      ? value.emptyDisplay
-      : sample.emptyDisplay,
-    multiSelectedItemDisplay: isOneOf(value?.multiSelectedItemDisplay, [
-      'chips',
-      'inline-text',
-      'chips-overflow-count',
-      'count-summary',
-    ])
-      ? value.multiSelectedItemDisplay
-      : migratedMultiSelectedItemDisplay ?? sample.multiSelectedItemDisplay,
-    multiRemoveAffordance: isOneOf(value?.multiRemoveAffordance, [
-      'chip-remove-button',
-      'list-toggle-only',
-    ])
-      ? value.multiRemoveAffordance
-      : sample.multiRemoveAffordance,
-    searchFieldTreatment: isOneOf(value?.searchFieldTreatment, [
-      'embedded-search-field',
-      'separate-search-field',
-    ])
-      ? value.searchFieldTreatment
-      : sample.searchFieldTreatment,
-  }
-}
-
-function normalizeTabsPolicy(
-  value: Partial<UiContract['componentPolicy']['tabs']> | undefined,
-): UiContract['componentPolicy']['tabs'] {
-  const sample = sampleContract.componentPolicy.tabs
-
-  return {
-    treatment: isOneOf(value?.treatment, ['segmented-contained', 'underline-tabs'])
-      ? value.treatment
-      : sample.treatment,
-    adornment: isOneOf(value?.adornment, ['text-only', 'icon-when-clarifying', 'count-when-useful'])
-      ? value.adornment
-      : sample.adornment,
-  }
-}
-
-function normalizeTogglePolicy(
-  value: Partial<UiContract['componentPolicy']['toggle']> | undefined,
-): UiContract['componentPolicy']['toggle'] {
-  const sample = sampleContract.componentPolicy.toggle
-
-  return {
-    treatment: isOneOf(value?.treatment, ['switch-control', 'segmented-binary'])
-      ? value.treatment
-      : sample.treatment,
-    labelPolicy: isOneOf(value?.labelPolicy, ['visible-label', 'label-plus-state-text'])
-      ? value.labelPolicy
-      : sample.labelPolicy,
-  }
-}
-
-function normalizeCheckboxPolicy(
-  value: Partial<UiContract['componentPolicy']['checkbox']> | undefined,
-): UiContract['componentPolicy']['checkbox'] {
-  const sample = sampleContract.componentPolicy.checkbox
-
-  return {
-    groupLayout: isOneOf(value?.groupLayout, ['stacked-list', 'inline-compact'])
-      ? value.groupLayout
-      : sample.groupLayout,
-    choiceSurface: isOneOf(value?.choiceSurface, ['plain-label', 'row-surface', 'bordered-choice-row'])
-      ? value.choiceSurface
-      : sample.choiceSurface,
-    mixedState: isOneOf(value?.mixedState, ['show-indeterminate', 'avoid-parent-checkbox'])
-      ? value.mixedState
-      : sample.mixedState,
-  }
-}
-
-function normalizeCardPolicy(
-  value: Partial<UiContract['componentPolicy']['card']> | undefined,
-): UiContract['componentPolicy']['card'] {
-  const sample = sampleContract.componentPolicy.card
-
-  return {
-    treatment: isOneOf(value?.treatment, ['outlined-card', 'filled-card', 'elevated-card'])
-      ? value.treatment
-      : sample.treatment,
-    interaction: isOneOf(value?.interaction, ['static-card', 'clickable-card', 'selectable-card'])
-      ? value.interaction
-      : sample.interaction,
-  }
-}
-
-function normalizeSidePanelPolicy(
-  value: Partial<UiContract['componentPolicy']['sidePanel']> | undefined,
-): UiContract['componentPolicy']['sidePanel'] {
-  const sample = sampleContract.componentPolicy.sidePanel
-
-  return {
-    relationship: isOneOf(value?.relationship, ['persistent-inspector', 'temporary-drawer'])
-      ? value.relationship
-      : sample.relationship,
-    responsive: isOneOf(value?.responsive, ['collapse-to-toggle', 'full-screen-sheet'])
-      ? value.responsive
-      : sample.responsive,
-  }
-}
-
-function normalizeTextFieldPolicy(
-  value: Partial<UiContract['componentPolicy']['textField']> | undefined,
-): UiContract['componentPolicy']['textField'] {
-  const sample = sampleContract.componentPolicy.textField
-  const legacyValue = value as
-    | (Partial<UiContract['componentPolicy']['textField']> & {
-        assistiveText?: string
-        fieldSize?: string
-        labelPlacement?: string
-        placeholderUsage?: string
-        sideLabelAlignment?: string
-      })
-    | undefined
-  const normalizedLabelPlacement = normalizeTextFieldLabelPlacement(
-    legacyValue?.labelPlacement,
-    legacyValue?.sideLabelAlignment,
-  )
-
-  return {
-    fieldStyle: isOneOf(value?.fieldStyle, ['outlined', 'filled']) ? value.fieldStyle : sample.fieldStyle,
-    labelPlacement: normalizedLabelPlacement ?? sample.labelPlacement,
-    requiredIndicator: normalizeTextFieldRequiredIndicator(value?.requiredIndicator) ?? sample.requiredIndicator,
-    messageAreaBehavior:
-      normalizeTextFieldMessageAreaBehavior(
-        legacyValue?.messageAreaBehavior,
-        legacyValue?.assistiveText,
-      ) ?? sample.messageAreaBehavior,
-    placeholderUsage:
-      normalizeTextFieldPlaceholderUsage(legacyValue?.placeholderUsage) ?? sample.placeholderUsage,
-  }
-}
-
-function normalizeTextFieldLabelPlacement(
-  labelPlacement: string | undefined,
-  sideLabelAlignment: string | undefined,
-): TextFieldLabelPlacement | undefined {
-  if (isOneOf(labelPlacement, ['top', 'side-left', 'side-right'])) return labelPlacement
-  if (labelPlacement === 'side') {
-    return sideLabelAlignment === 'left' ? 'side-left' : 'side-right'
-  }
-  return undefined
-}
-
-function normalizeTextFieldRequiredIndicator(
-  value: string | undefined,
-): TextFieldRequiredIndicator | undefined {
-  if (isOneOf(value, ['mark-optional', 'mark-required-default', 'mark-required-danger'])) return value
-  if (value === 'mark-required') return 'mark-required-default'
-  return undefined
-}
-
-function normalizeTextFieldMessageAreaBehavior(
-  value: string | undefined,
-  legacyAssistiveText: string | undefined,
-): TextFieldMessageAreaBehavior | undefined {
-  if (isOneOf(value, ['reserved-message-area', 'dynamic-message-area'])) return value
-  if (legacyAssistiveText === 'helper-reserved') return 'reserved-message-area'
-  if (legacyAssistiveText === 'message-when-needed') return 'dynamic-message-area'
-  return undefined
-}
-
-function normalizeTextFieldPlaceholderUsage(
-  value: string | undefined,
-): TextFieldPlaceholderUsage | undefined {
-  if (isOneOf(value, ['avoid-placeholder', 'format-example-only'])) return value
-  if (value === 'example-only') return 'format-example-only'
-  if (value === 'avoid-repeating-label') return 'avoid-placeholder'
-  return undefined
-}
-
-function isOneOf<T extends string>(value: string | undefined, allowed: readonly T[]): value is T {
-  return allowed.includes(value as T)
-}
-
-function normalizeColorProfileId(value: unknown): ActiveColorProfileId {
-  if (value === 'lineage-slate') return 'deep-slate-blue'
-  if (colorProfiles.some((profile) => profile.id === value)) return value as ColorProfileId
-  if (value === 'custom') return 'custom'
-  return sampleContract.designPolicy.colorProfileId
-}
-
-type LegacyColorPolicy = {
-  action?: Partial<Record<'primary' | 'secondary', string>>
-  background?: string
-  border?: string
-  brand?: Partial<Record<'header' | 'mark', string>> | string
-  dark?: Partial<Record<ColorRoleKey | 'brandMark', string>>
-  danger?: string
-  info?: string
-  light?: Partial<Record<ColorRoleKey | 'brandMark', string>>
-  modes?: Partial<Record<ColorModeKey, Partial<Record<string, string>>>>
-  mutedText?: string
-  semantic?: Partial<Record<'success' | 'warning' | 'danger' | 'info', string>>
-  success?: string
-  surface?: string
-  surfaceSoft?: string
-  text?: string
-  warning?: string
-}
-
-type ColorPolicySeed = {
-  darkBackground?: string
-  darkBrandBackground?: string
-  darkBrandText?: string
-  darkDanger?: string
-  darkFocusInner?: string
-  darkFocusOuter?: string
-  darkInfo?: string
-  darkMutedText?: string
-  darkPrimary?: string
-  darkPrimaryText?: string
-  darkSuccess?: string
-  darkSurface?: string
-  darkSurfaceSoft?: string
-  darkBorder?: string
-  darkText?: string
-  darkWarning?: string
-  lightBackground?: string
-  lightBrandBackground?: string
-  lightBrandText?: string
-  lightBorder?: string
-  lightDanger?: string
-  lightFocusInner?: string
-  lightFocusOuter?: string
-  lightInfo?: string
-  lightMutedText?: string
-  lightPrimary?: string
-  lightSuccess?: string
-  lightSurface?: string
-  lightSurfaceSoft?: string
-  lightText?: string
-  lightWarning?: string
-}
+type ColorPolicySeed = Partial<Record<
+  | 'lightBackground' | 'lightBrandBackground' | 'lightBrandText' | 'lightBorder' | 'lightDanger' | 'lightFocusInner' | 'lightFocusOuter' | 'lightInfo' | 'lightMutedText' | 'lightPrimary' | 'lightSuccess' | 'lightSurface' | 'lightSurfaceSoft' | 'lightText' | 'lightWarning'
+  | 'darkBackground' | 'darkBrandBackground' | 'darkBrandText' | 'darkBorder' | 'darkDanger' | 'darkFocusInner' | 'darkFocusOuter' | 'darkInfo' | 'darkMutedText' | 'darkPrimary' | 'darkPrimaryText' | 'darkSuccess' | 'darkSurface' | 'darkSurfaceSoft' | 'darkText' | 'darkWarning',
+  string
+>>
 
 function createColorPolicy(seed: ColorPolicySeed): ColorPolicy {
   return {
@@ -4143,99 +3147,6 @@ function cloneColorPolicy(policy: ColorPolicy): ColorPolicy {
     light: { ...policy.light },
     dark: { ...policy.dark },
   }
-}
-
-function normalizeBrandIdentity(
-  value: Partial<BrandIdentityPolicy> | undefined,
-  legacyColor: LegacyColorPolicy | undefined,
-): BrandIdentityPolicy {
-  const legacyBrand = typeof legacyColor?.brand === 'string' ? legacyColor.brand : undefined
-  const brandObject = typeof legacyColor?.brand === 'object' ? legacyColor.brand : undefined
-  const legacyMark =
-    legacyColor?.light?.brandMark ??
-    legacyColor?.dark?.brandMark ??
-    legacyColor?.modes?.light?.brandMark ??
-    legacyColor?.modes?.dark?.brandMark ??
-    brandObject?.mark ??
-    legacyBrand
-
-  return {
-    mark: pickHex(value?.mark, legacyMark, sampleContract.designPolicy.brandIdentity.mark),
-    markBackground: pickIdentitySurfaceValue(
-      value?.markBackground,
-      undefined,
-      sampleContract.designPolicy.brandIdentity.markBackground,
-    ),
-    markBorder: pickIdentitySurfaceValue(
-      value?.markBorder,
-      undefined,
-      sampleContract.designPolicy.brandIdentity.markBorder,
-    ),
-  }
-}
-
-function normalizeColorTokens(value: LegacyColorPolicy | undefined): ColorPolicy {
-  return {
-    light: normalizeModeColors(value, 'light'),
-    dark: normalizeModeColors(value, 'dark'),
-  }
-}
-
-function normalizeModeColors(value: LegacyColorPolicy | undefined, mode: ColorModeKey): Record<ColorRoleKey, string> {
-  const sampleMode = sampleContract.designPolicy.color[mode]
-  return colorRoleFields.reduce<Record<ColorRoleKey, string>>((tokens, field) => {
-    tokens[field.key] = pickHex(
-      value?.[mode]?.[field.key],
-      legacyColorValue(value, mode, field.key),
-      sampleMode[field.key],
-    )
-    return tokens
-  }, { ...sampleMode })
-}
-
-function legacyColorValue(
-  value: LegacyColorPolicy | undefined,
-  mode: ColorModeKey,
-  key: ColorRoleKey,
-): string | undefined {
-  if (!value) return undefined
-  if (value.modes?.[mode]?.[key]) return value.modes[mode]?.[key]
-  if (mode === 'dark') return undefined
-
-  const legacyBrand = typeof value.brand === 'string' ? value.brand : undefined
-  const brandObject = typeof value.brand === 'object' ? value.brand : undefined
-
-  const legacyMap: Partial<Record<ColorRoleKey, string | undefined>> = {
-    background: value.background,
-    border: value.border,
-    brandBackground: brandObject?.header ?? legacyBrand,
-    danger: value.semantic?.danger ?? value.danger,
-    info: value.semantic?.info ?? value.info,
-    mutedText: value.mutedText,
-    primary: value.action?.primary ?? legacyBrand,
-    success: value.semantic?.success ?? value.success,
-    surface: value.surface,
-    surfaceSoft: value.surfaceSoft,
-    text: value.text,
-    warning: value.semantic?.warning ?? value.warning,
-  }
-  return legacyMap[key]
-}
-
-function pickHex(primary: string | undefined, fallback: string | undefined, defaultValue: string): string {
-  if (isHexColor(primary)) return primary.toLowerCase()
-  if (isHexColor(fallback)) return fallback.toLowerCase()
-  return defaultValue
-}
-
-function pickIdentitySurfaceValue(
-  primary: string | undefined,
-  fallback: string | undefined,
-  defaultValue: string,
-): string {
-  if (isIdentitySurfaceValue(primary)) return primary.toLowerCase()
-  if (isIdentitySurfaceValue(fallback)) return fallback.toLowerCase()
-  return defaultValue
 }
 
 function isHexColor(value: string | undefined): value is string {
@@ -4354,76 +3265,6 @@ function relativeLuminance({ r, g, b }: { r: number; g: number; b: number }): nu
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue
 }
 
-function removeLegacyDangerTreatment(
-  button: LegacyButtonPolicy | undefined,
-): Partial<UiContract['componentPolicy']['button']> {
-  if (!button) return {}
-  const copy: Record<string, unknown> = { ...button }
-  delete copy.dangerTreatment
-  delete copy.disabledReasonPolicy
-  delete copy.disabledTreatment
-  delete copy.loadingState
-  delete copy.iconUsage
-  delete copy.buttonSize
-  if (copy.secondaryEmphasis === 'ghost') {
-    delete copy.secondaryEmphasis
-  }
-  if (
-    copy.dangerEmphasis === 'subtle' ||
-    copy.dangerEmphasis === 'ghost' ||
-    copy.dangerEmphasis === 'tertiary' ||
-    copy.dangerEmphasis === 'primary' ||
-    copy.dangerEmphasis === 'low-emphasis' ||
-    copy.dangerEmphasis === 'danger-outline' ||
-    copy.dangerEmphasis === 'quiet-outline' ||
-    copy.dangerEmphasis === 'strong-danger'
-  ) {
-    delete copy.dangerEmphasis
-  }
-  return copy as Partial<UiContract['componentPolicy']['button']>
-}
-
-function normalizeSecondaryEmphasis(value: LegacyButtonPolicy['secondaryEmphasis']): SecondaryEmphasis {
-  if (value === 'ghost') return sampleContract.componentPolicy.button.secondaryEmphasis
-  if (value === 'tonal') return 'filled-tonal'
-  if (value === 'outline' || value === 'neutral-filled' || value === 'filled-tonal') return value
-  return sampleContract.componentPolicy.button.secondaryEmphasis
-}
-
-function normalizePrimaryEmphasis(value: LegacyButtonPolicy['primaryEmphasis']): PrimaryEmphasis {
-  if (value === 'tonal') return 'filled-tonal'
-  if (value === 'filled' || value === 'filled-tonal' || value === 'outline') return value
-  return sampleContract.componentPolicy.button.primaryEmphasis
-}
-
-function normalizeIconAdornment(button: LegacyButtonPolicy | undefined): IconAdornment {
-  if (button?.iconAdornment === 'text-only-default' || button?.iconAdornment === 'icons-when-clarifying') {
-    return button.iconAdornment
-  }
-  if (button?.iconUsage === 'label-with-icon-when-clarifying') return 'icons-when-clarifying'
-  return sampleContract.componentPolicy.button.iconAdornment
-}
-
-function normalizeIconOnlyPolicy(button: LegacyButtonPolicy | undefined): IconOnlyPolicy {
-  if (
-    button?.iconOnlyPolicy === 'avoid-icon-only' ||
-    button?.iconOnlyPolicy === 'allow-recognizable-with-accessible-name'
-  ) {
-    return button.iconOnlyPolicy
-  }
-  if (button?.iconUsage === 'icon-only-for-recognizable-actions') {
-    return 'allow-recognizable-with-accessible-name'
-  }
-  return sampleContract.componentPolicy.button.iconOnlyPolicy
-}
-
-function normalizeDangerEmphasis(value: LegacyButtonPolicy['dangerEmphasis']): DangerEmphasis {
-  if (value === 'subtle' || value === 'ghost' || value === 'low-emphasis') return 'text'
-  if (value === 'tertiary' || value === 'quiet-outline' || value === 'danger-outline') return 'outline'
-  if (value === 'primary' || value === 'strong-danger') return 'filled'
-  if (value === 'text' || value === 'outline' || value === 'filled') return value
-  return sampleContract.componentPolicy.button.dangerEmphasis
-}
 
 globalThis.uiContractEditorRoot ??= createRoot(document.getElementById('root')!)
 

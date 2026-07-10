@@ -1,22 +1,15 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Check, ChevronRight, X } from 'lucide-react'
+import { catalogOptions } from './contract/catalog'
+import type { SelectPolicy } from './contract/types'
 
-export type SelectEmptyDisplay = 'placeholder-text' | 'blank-field'
-export type SelectMultiSelectedItemDisplay =
-  | 'chips'
-  | 'inline-text'
-  | 'chips-overflow-count'
-  | 'count-summary'
-export type SelectMultiRemoveAffordance = 'chip-remove-button' | 'list-toggle-only'
-export type SelectSearchFieldTreatment = 'embedded-search-field' | 'separate-search-field'
+export type { SelectPolicy } from './contract/types'
 
-export type SelectPolicy = {
-  emptyDisplay: SelectEmptyDisplay
-  multiSelectedItemDisplay: SelectMultiSelectedItemDisplay
-  multiRemoveAffordance: SelectMultiRemoveAffordance
-  searchFieldTreatment: SelectSearchFieldTreatment
-}
+export type SelectEmptyDisplay = SelectPolicy['emptyDisplay']
+export type SelectMultiSelectedItemDisplay = SelectPolicy['multiSelectedItemDisplay']
+export type SelectMultiRemoveAffordance = SelectPolicy['multiRemoveAffordance']
+export type SelectSearchFieldTreatment = SelectPolicy['searchFieldTreatment']
 
 type Option<T extends string> = {
   value: T
@@ -24,67 +17,14 @@ type Option<T extends string> = {
   note: string
 }
 
-export const selectEmptyDisplayOptions: Array<Option<SelectEmptyDisplay>> = [
-  {
-    value: 'placeholder-text',
-    label: 'Empty prompt',
-    note: 'Show non-value prompt text when no option is selected.',
-  },
-  {
-    value: 'blank-field',
-    label: 'Blank empty field',
-    note: 'Leave the empty select visually blank when no option is selected.',
-  },
-]
+export const selectEmptyDisplayOptions: Array<Option<SelectEmptyDisplay>> = catalogOptions('select-empty-display')
+export const selectMultiSelectedItemDisplayOptions: Array<Option<SelectMultiSelectedItemDisplay>> = catalogOptions('select-multi-selected-display')
+const selectMultiRemoveAffordanceOptions: Array<Option<SelectMultiRemoveAffordance>> = catalogOptions('select-multi-remove')
+const selectSearchFieldTreatmentOptions: Array<Option<SelectSearchFieldTreatment>> = catalogOptions('select-search-treatment')
 
-export const selectMultiSelectedItemDisplayOptions: Array<Option<SelectMultiSelectedItemDisplay>> = [
-  {
-    value: 'inline-text',
-    label: 'Selected inline text',
-    note: 'Show selected labels as field text for short, read-heavy selections.',
-  },
-  {
-    value: 'count-summary',
-    label: 'Selected count text',
-    note: 'Show selected count as the field text when labels would be too long.',
-  },
-  {
-    value: 'chips',
-    label: 'All selected chips',
-    note: 'Show every selected value as a chip when the count stays small.',
-  },
-  {
-    value: 'chips-overflow-count',
-    label: 'Visible chips + overflow count',
-    note: 'Show a few chips and summarize overflow for longer selections.',
-  },
-]
-
-const selectMultiRemoveAffordanceOptions: Array<Option<SelectMultiRemoveAffordance>> = [
-  {
-    value: 'chip-remove-button',
-    label: 'Remove button on chip',
-    note: 'Allow removal directly from selected chips.',
-  },
-  {
-    value: 'list-toggle-only',
-    label: 'Remove in reopened list',
-    note: 'Remove by reopening the list and toggling options.',
-  },
-]
-
-const selectSearchFieldTreatmentOptions: Array<Option<SelectSearchFieldTreatment>> = [
-  {
-    value: 'embedded-search-field',
-    label: 'Search in select field',
-    note: 'Type a search term in the select field, then select a known item.',
-  },
-  {
-    value: 'separate-search-field',
-    label: 'Search in popup list',
-    note: 'Keep the select field stable and search inside the popup list.',
-  },
-]
+export const renderedSelectDecisionIds = [
+  'select-empty-display', 'select-multi-selected-display', 'select-multi-remove', 'select-search-treatment',
+] as const
 
 export function SelectSectionedContractPanel({
   selectPolicy,

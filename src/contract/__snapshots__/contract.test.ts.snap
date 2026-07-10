@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`output generators > generates deterministic Markdown from the same source 1`] = `
+"# Business UI Contract
+
+Button policy prototype for the UI Contract Editor.
+
+Schema version: \`0.1.0\`
+
+## Product
+
+- System type: business-admin
+- Information density: compact
+- Visual tone: calm
+
+## Design decisions
+
+### Foundations
+
+- colorProfileId: \`default\`
+- brandIdentity.mark: \`#2563eb\`
+- brandIdentity.markBackground: \`#ffffff\`
+- brandIdentity.markBorder: \`#cbd5e1\`
+- color.light.brandBackground: \`#eff6ff\`
+- color.light.brandText: \`#172554\`
+- color.light.primary: \`#2563eb\`
+- color.light.primaryText: \`#ffffff\`
+- color.light.success: \`#15803d\`
+- color.light.warning: \`#b45309\`
+- color.light.danger: \`#b91c1c\`
+- color.light.info: \`#0f766e\`
+- color.light.focusOuter: \`#111827\`
+- color.light.focusInner: \`#facc15\`
+- color.light.background: \`#f1f5f9\`
+- color.light.surface: \`#ffffff\`
+- color.light.surfaceSoft: \`#f8fafc\`
+- color.light.border: \`#cbd5e1\`
+- color.light.text: \`#0f172a\`
+- color.light.mutedText: \`#64748b\`
+- color.dark.brandBackground: \`#020617\`
+- color.dark.brandText: \`#f8fafc\`
+- color.dark.primary: \`#60a5fa\`
+- color.dark.primaryText: \`#0f172a\`
+- color.dark.success: \`#4ade80\`
+- color.dark.warning: \`#fbbf24\`
+- color.dark.danger: \`#f87171\`
+- color.dark.info: \`#2dd4bf\`
+- color.dark.focusOuter: \`#facc15\`
+- color.dark.focusInner: \`#111827\`
+- color.dark.background: \`#0f172a\`
+- color.dark.surface: \`#111827\`
+- color.dark.surfaceSoft: \`#1f2937\`
+- color.dark.border: \`#334155\`
+- color.dark.text: \`#f8fafc\`
+- color.dark.mutedText: \`#cbd5e1\`
+
+### Interaction policy
+
+- focus.visibility: \`keyboard-and-active-inputs\`
+- focus.indicatorStyle: \`outer-ring\`
+- validation.trigger: \`submit-or-step\`
+- validation.presentation: \`field-and-summary\`
+- availability.treatment: \`keep-enabled-explain-on-action\`
+- availability.layout: \`preserve-space-for-temporary-state\`
+- confirmation.surface: \`danger-dialog\`
+- confirmation.scope: \`destructive-only\`
+
+### Component policy
+
+- button.primaryEmphasis: \`filled\`
+- button.secondaryEmphasis: \`outline\`
+- button.dangerPlacement: \`separated\`
+- button.dangerEmphasis: \`outline\`
+- button.iconAdornment: \`text-only-default\`
+- button.iconOnlyPolicy: \`avoid-icon-only\`
+- textField.fieldStyle: \`outlined\`
+- textField.labelPlacement: \`top\`
+- textField.requiredIndicator: \`mark-optional\`
+- textField.messageAreaBehavior: \`reserved-message-area\`
+- textField.placeholderUsage: \`avoid-placeholder\`
+- select.emptyDisplay: \`placeholder-text\`
+- select.multiSelectedItemDisplay: \`chips\`
+- select.multiRemoveAffordance: \`chip-remove-button\`
+- select.searchFieldTreatment: \`embedded-search-field\`
+- tabs.treatment: \`segmented-contained\`
+- tabs.adornment: \`text-only\`
+- toggle.treatment: \`switch-control\`
+- toggle.labelPolicy: \`visible-label\`
+- checkbox.groupLayout: \`stacked-list\`
+- checkbox.choiceSurface: \`plain-label\`
+- checkbox.mixedState: \`show-indeterminate\`
+- card.treatment: \`outlined-card\`
+- card.interaction: \`static-card\`
+- sidePanel.relationship: \`persistent-inspector\`
+- sidePanel.responsive: \`collapse-to-toggle\`
+"
+`;
