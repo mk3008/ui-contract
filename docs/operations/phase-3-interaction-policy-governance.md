@@ -27,3 +27,9 @@ Phase 3 is published as schema version `0.2.0`; `0.1.0` remains the prior suppor
 The invariant names and literal values are plain, portable DESIGN.md rules. A frontend implementer can produce the previewed region-busy, empty-guidance, and error-recovery treatments without framework-specific props or local terminology. The preview deliberately demonstrates state feedback only; it does not choose data, permissions, retry behavior, filters, actions, or a workflow.
 
 Remaining uncertainty: exact copy, recovery action, loading duration, and whether a particular action is reversible are case-owned and intentionally absent from this Contract.
+
+## State-section layout and deferral
+
+The editor presents loading feedback, empty state, and error guidance as three Interaction Policy sections. Each section makes the boundary visible: Interaction Policy governs the shared feedback requirement, while a Screen Pattern such as Search/List owns the affected region, result criteria, data, failure cause, and any case-specific action.
+
+No selectable loading, empty-state, or error alternatives were added. Carbon distinguishes skeletons for structured content from inline indicators for a single processing action, and its empty-state guidance makes the appropriate layout, action, and detail dependent on the situation. Those contextual choices are application or screen-pattern owned, so the portable Contract retains one invariant for each rule rather than creating mutually exclusive preferences.

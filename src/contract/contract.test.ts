@@ -54,11 +54,12 @@ describe('catalog integrity', () => {
 
 describe('Phase 3 localization', () => {
   const stateFeedbackCopy = [
-    'These are cross-cutting invariants, not component or screen-pattern choices. The application chooses data and recovery actions; every affected region follows the same feedback rule.',
-    'Loading feedback',
-    'Communicate that the affected region is busy to all users. Use a skeleton only for structured content; use an inline indicator for one processing action.',
-    'Empty and error guidance',
-    'Explain the condition in plain language and show a useful next step when one is available.',
+    'Interaction Policy requires observable busy feedback. Search/List owns which result region loads and the data it requests.',
+    'Busy feedback is required; skeletons are only for structured content and inline indicators are for a single processing action.',
+    'Interaction Policy requires plain-language explanation and an available next step. Search/List owns filters, result criteria, and whether no results exist.',
+    'Explain empty conditions and an available next step; no-result criteria remain screen-owned.',
+    'Interaction Policy requires plain-language recovery guidance. The screen pattern owns the failure cause, retry action, and affected content.',
+    'Explain the problem and recovery path; error classification and retry behavior remain application-owned.',
     'Loading customers',
     'Busy status applies to this results region.',
     'No matching customers',
@@ -74,6 +75,29 @@ describe('Phase 3 localization', () => {
       const japanese = translateUiText(english, 'ja')
       expect(japanese).not.toBe(english)
       expect(translateUiText(japanese, 'en')).toBe(english)
+    }
+  })
+
+  it('keeps page, section, and navigation labels English while translating explanatory copy', () => {
+    for (const label of ['Button', 'Confirmation Policy', 'Loading feedback', 'Empty state', 'Error guidance']) {
+      expect(translateUiText(label, 'ja', true)).toBe(label)
+    }
+    const mainSource = readFileSync(new URL('../main.tsx', import.meta.url), 'utf8')
+    const i18nSource = readFileSync(new URL('../i18n.ts', import.meta.url), 'utf8')
+    expect(mainSource).toContain('title="Loading feedback"')
+    expect(mainSource).toContain('title="Empty state"')
+    expect(mainSource).toContain('title="Error guidance"')
+    expect(i18nSource).toContain("nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title")
+  })
+
+  it('covers every persisted catalog option label and note with a bilingual display translation', () => {
+    for (const entry of contractCatalog) {
+      if (entry.kind !== 'decision') continue
+      for (const option of entry.options ?? []) {
+        expect(translateUiText(option.label, 'ja', true)).toBe(option.label)
+        expect(translateUiText(option.note, 'ja')).not.toBe(option.note)
+        expect(translateUiText(translateUiText(option.note, 'ja'), 'en')).toBe(option.note)
+      }
     }
   })
 })

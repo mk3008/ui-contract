@@ -7,11 +7,14 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --exclude src/ui-audit/**",
+    "test:ui-audit:install": "playwright install chromium",
+    "test:ui-audit": "playwright test",
     "test:watch": "vitest",
-    "verify": "npm run test && npm run build"
+    "verify": "npm run test && npm run test:ui-audit && npm run build"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^25.9.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

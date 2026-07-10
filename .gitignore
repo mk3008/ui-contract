@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local browser-audit state and human-review evidence. Keep output/playwright/ as the
+# shared local capture location, but do not commit generated browser artifacts.
+.playwright-cli/
+test-results/
+playwright-report/
+output/playwright/

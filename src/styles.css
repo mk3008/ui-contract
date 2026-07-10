@@ -2052,7 +2052,7 @@ h3 {
 }
 
 .state-feedback-stage {
-  min-height: 330px;
+  min-height: 200px;
   justify-content: start;
 }
 

@@ -1545,17 +1545,37 @@ function StateFeedbackContractPanel() {
   return (
     <div className="select-sectioned-panel">
       <SelectLikePolicySection
-        title="Fixed interaction requirements"
-        description="These are cross-cutting invariants, not component or screen-pattern choices. The application chooses data and recovery actions; every affected region follows the same feedback rule."
+        title="Loading feedback"
+        description="Interaction Policy requires observable busy feedback. Search/List owns which result region loads and the data it requests."
         controls={
           <div className="state-feedback-requirements">
-            <strong>Loading feedback</strong>
-            <span>Communicate that the affected region is busy to all users. Use a skeleton only for structured content; use an inline indicator for one processing action.</span>
-            <strong>Empty and error guidance</strong>
-            <span>Explain the condition in plain language and show a useful next step when one is available.</span>
+            <h4>Invariant</h4>
+            <span>Busy feedback is required; skeletons are only for structured content and inline indicators are for a single processing action.</span>
           </div>
         }
-        preview={<StateFeedbackPreviewStage />}
+        preview={<LoadingFeedbackPreview />}
+      />
+      <SelectLikePolicySection
+        title="Empty state"
+        description="Interaction Policy requires plain-language explanation and an available next step. Search/List owns filters, result criteria, and whether no results exist."
+        controls={
+          <div className="state-feedback-requirements">
+            <h4>Invariant</h4>
+            <span>Explain empty conditions and an available next step; no-result criteria remain screen-owned.</span>
+          </div>
+        }
+        preview={<EmptyStatePreview />}
+      />
+      <SelectLikePolicySection
+        title="Error guidance"
+        description="Interaction Policy requires plain-language recovery guidance. The screen pattern owns the failure cause, retry action, and affected content."
+        controls={
+          <div className="state-feedback-requirements">
+            <h4>Invariant</h4>
+            <span>Explain the problem and recovery path; error classification and retry behavior remain application-owned.</span>
+          </div>
+        }
+        preview={<ErrorGuidancePreview />}
       />
     </div>
   )
@@ -2306,7 +2326,7 @@ function ValidationPreviewStage({
   )
 }
 
-function StateFeedbackPreviewStage() {
+function LoadingFeedbackPreview() {
   return (
     <div className="state-feedback-stage">
       <section aria-busy="true" className="state-feedback-card">
@@ -2315,11 +2335,25 @@ function StateFeedbackPreviewStage() {
         <span className="state-feedback-skeleton short" />
         <small>Busy status applies to this results region.</small>
       </section>
+    </div>
+  )
+}
+
+function EmptyStatePreview() {
+  return (
+    <div className="state-feedback-stage">
       <section className="state-feedback-card">
         <strong>No matching customers</strong>
         <p>Try clearing a filter or using a broader search term.</p>
         <button type="button">Clear filters</button>
       </section>
+    </div>
+  )
+}
+
+function ErrorGuidancePreview() {
+  return (
+    <div className="state-feedback-stage">
       <section className="state-feedback-card is-error" role="status">
         <strong>Customers could not be loaded</strong>
         <p>Check the connection and try again.</p>
@@ -2530,7 +2564,7 @@ function ColorSettingsPanel({
               </div>
               <select
                 aria-label="Color profile preset"
-                className="profile-select"
+                className="profile-select option-title"
                 onChange={(event) => {
                   if (event.target.value !== 'custom') {
                     onProfileChange(event.target.value as ColorProfileId)
@@ -2554,8 +2588,8 @@ function ColorSettingsPanel({
                   onClick={() => onProfileChange(profile.id)}
                   type="button"
                 >
-                  <span className="profile-card-name">{colorProfileOption(profile.id)?.label}</span>
-                  <span aria-hidden="true" className="profile-card-swatches">
+                  <span className="profile-card-name option-title">{colorProfileOption(profile.id)?.label}</span>
+                  <span aria-hidden="true" className="profile-card-swatches option-title">
                     <span
                       style={{ background: profile.brandIdentity.mark }}
                       title="Brand mark"
@@ -2616,9 +2650,9 @@ function ColorSettingsPanel({
           {colorGroups.map((group) => (
             <ColorSection key={group} title={group}>
               <div className="color-matrix-head">
-                <span>Role</span>
-                <span>Light</span>
-                <span>Dark</span>
+                <span className="option-title">Role</span>
+                <span className="option-title">Light</span>
+                <span className="option-title">Dark</span>
               </div>
               {colorRoleFields
                 .filter((field) => field.group === group)
@@ -2656,7 +2690,7 @@ function IdentityColorField({
   return (
     <div className="identity-color-field">
       <span className="color-copy">
-        <strong>{label}</strong>
+        <strong className="option-title">{label}</strong>
         <span>{note}</span>
       </span>
       <FlexibleColorValueInput
@@ -2699,7 +2733,7 @@ function ColorRoleRow({
   return (
     <div className="color-role-row">
       <span className="color-copy">
-        <strong>{entry.label}</strong>
+        <strong className="option-title">{entry.label}</strong>
         <span>{entry.note}</span>
       </span>
       <ColorValueInput
@@ -2862,19 +2896,19 @@ function ModeColorPreview({
             <span>Owner</span>
           </div>
           <div className="sample-table-row">
-            <span>Northwind Co.</span>
+            <span data-i18n-skip>Northwind Co.</span>
             <span className="status-text success">Complete</span>
-            <span>A. Tanaka</span>
+            <span data-i18n-skip>A. Tanaka</span>
           </div>
           <div className="sample-table-row">
-            <span>Contoso Ltd.</span>
+            <span data-i18n-skip>Contoso Ltd.</span>
             <span className="status-text warning">Needs review</span>
-            <span>M. Suzuki</span>
+            <span data-i18n-skip>M. Suzuki</span>
           </div>
           <div className="sample-table-row">
-            <span>Fabrikam</span>
+            <span data-i18n-skip>Fabrikam</span>
             <span className="status-text danger">Blocked</span>
-            <span>K. Sato</span>
+            <span data-i18n-skip>K. Sato</span>
           </div>
         </div>
       </div>
@@ -2908,14 +2942,11 @@ function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPoli
           <p className="eyebrow">Screen pattern</p>
           <h3>{entry.label}</h3>
         </div>
-        <p>
-          Component ContractやInteraction Policyではなく、アプリシェルや画面全体の振る舞いとして扱う候補を整理します。
-          Card、Side Panel、ConfirmationはContract Editor側へ移動しました。
-        </p>
+        <p>This lists candidates that belong to application-shell or whole-screen behavior rather than Component Contract or Interaction Policy. Card, Side Panel, and Confirmation moved into Contract Editor.</p>
       </section>
 
       <section className="screen-pattern-card">
-        <span className="screen-pattern-scope">Selectable decision: {policy}</span>
+        <span className="screen-pattern-scope">{`Selectable decision: ${policy}`}</span>
         <p>{entry.note}</p>
         <div className="search-list-preview">
           <div className="search-list-label">Fixed structure — search conditions</div>
@@ -3018,6 +3049,7 @@ function SettingsPanel({
 
 function OverviewPanel({ language }: { language: OverviewLanguage }) {
   const content = overviewContent[language]
+  const englishSectionsByEyebrow = new Map(overviewContent.en.sections.map((section) => [section.eyebrow, section]))
 
   return (
     <div className="overview-panel">
@@ -3038,7 +3070,7 @@ function OverviewPanel({ language }: { language: OverviewLanguage }) {
         {content.sections.map((section) => (
           <section className="overview-item" key={section.title}>
             <p className="eyebrow">{section.eyebrow}</p>
-            <h4>{section.title}</h4>
+            <h4>{englishSectionsByEyebrow.get(section.eyebrow)?.title ?? section.title}</h4>
             <p>{section.body}</p>
             {section.items ? (
               <ul>

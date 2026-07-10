@@ -30,7 +30,7 @@ Using different words for the same design treatment, or reusing the same word fo
 
 ## Explanatory Copy Language Rule
 
-Headings and menu names may remain English. Any explanatory, state, helper, or action copy added to the editor must be available in both Japanese and English through the existing language switch. Add exact Japanese and English entries to `src/i18n.ts` for new UI copy so Japanese reviewers can evaluate the same behavior; do not bypass the established translation mechanism with hard-coded explanatory text. See `docs/knowledge/localization-and-review-copy.md` for the durable policy and semantic-equivalence requirement.
+Page titles, section headings, navigation/menu labels, shared UI/Contract vocabulary, and selectable option labels must remain English in both language modes. Explanatory option notes, state, helper, recovery, and action copy must be available in both Japanese and English through the existing language switch. Add exact Japanese and English entries to `src/i18n.ts` for new explanatory UI copy so Japanese reviewers can evaluate the same behavior; do not bypass the established translation mechanism with hard-coded prose. See `docs/knowledge/localization-and-review-copy.md` for the durable policy and semantic-equivalence requirement.
 
 ## Option Governance Rule
 

@@ -6,6 +6,55 @@ type TranslationEntry = {
 }
 
 const translationEntries: TranslationEntry[] = [
+  { ja: 'プレビュータブ', en: 'Preview tabs' },
+  { ja: '準備完了', en: 'Ready' },
+  { ja: 'エクスポート前に請求先情報を入力してください。', en: 'Complete billing details before export.' },
+  // Catalog option notes are explanatory copy; selectable labels remain shared English vocabulary.
+  { ja: 'プライマリカラーで塗りつぶします。', en: 'Filled with the primary color.' }, { ja: 'トーナルなアクション面', en: 'Tonal action surface.' }, { ja: '色付きの文字と枠線', en: 'Colored text and border.' },
+  { ja: '上', en: 'Top' }, { ja: '左側', en: 'Side left' }, { ja: '右側', en: 'Side right' },
+  { ja: '必須を表示', en: 'Mark required' }, { ja: '危険色で必須を表示', en: 'Mark required in danger color' }, { ja: '予約', en: 'Reserved' }, { ja: '動的', en: 'Dynamic' },
+  { ja: '危険色で必須', en: 'Required in danger color' }, { ja: 'フィールドメッセージのみ', en: 'Field message only' },
+  { ja: 'プレースホルダーを避ける', en: 'Avoid placeholder' }, { ja: '形式例のみ許可', en: 'Format examples only' }, { ja: '読み込みとアクティブ入力', en: 'Keyboard and active inputs' },
+  { ja: '形式例のみ', en: 'Format example only' }, { ja: 'キーボードとアクティブ入力', en: 'Keyboard and active inputs' }, { ja: 'すべてのフォーカス済みコントロール', en: 'All focused controls' },
+  { ja: '外側リング', en: 'Outer ring' }, { ja: '高コントラスト強調', en: 'High contrast highlight' }, { ja: '送信またはステップ', en: 'Submit or step' }, { ja: '編集後のブラー', en: 'Blur after edit' },
+  { ja: 'フィールドとサマリー', en: 'Field and summary' }, { ja: '操作時に説明', en: 'Explain on action' }, { ja: '読み取り専用', en: 'Read-only' }, { ja: '不可能な時は無効', en: 'Disabled when impossible' }, { ja: '該当しない時は隠す', en: 'Hidden when not applicable' },
+  { ja: '領域を保つ', en: 'Preserve space' }, { ja: '再配置を許可', en: 'Allow reflow' }, { ja: '危険ダイアログ', en: 'Danger dialog' }, { ja: '入力確認', en: 'Typed confirmation' }, { ja: '元に戻す', en: 'Undo when reversible' },
+  { ja: 'プレースホルダーテキスト', en: 'Placeholder text' }, { ja: '空のフィールド', en: 'Blank field' }, { ja: 'チップ', en: 'Chips' }, { ja: 'オーバーフロー付きチップ', en: 'Chips with overflow' }, { ja: 'インラインテキスト', en: 'Inline text' }, { ja: '件数サマリー', en: 'Count summary' },
+  { ja: 'チップ削除ボタン', en: 'Chip remove button' }, { ja: 'リスト切替のみ', en: 'List toggle only' }, { ja: '埋め込み検索', en: 'Embedded search' }, { ja: '個別検索', en: 'Separate search' },
+  { ja: 'セグメント', en: 'Segmented' }, { ja: '下線タブ', en: 'Underline' }, { ja: '明確化アイコン', en: 'Clarifying icon' }, { ja: '有用な件数', en: 'Count when useful' },
+  { ja: 'スイッチ', en: 'Switch' }, { ja: '二択セグメント', en: 'Segmented binary' }, { ja: '表示ラベル', en: 'Visible label' }, { ja: 'ラベルと状態', en: 'Label and state' },
+  { ja: '縦並びリスト', en: 'Stacked list' }, { ja: 'コンパクトな横並び', en: 'Inline compact' }, { ja: '通常ラベル', en: 'Plain label' }, { ja: '行の面', en: 'Row surface' }, { ja: '枠線付き選択行', en: 'Bordered row' },
+  { ja: '中間状態を示す', en: 'Show indeterminate' }, { ja: '親チェックボックスを避ける', en: 'Avoid parent checkbox' }, { ja: 'アウトラインカード', en: 'Outlined' }, { ja: '塗りカード', en: 'Filled card' }, { ja: 'エレベーションカード', en: 'Elevated' },
+  { ja: '静的', en: 'Static' }, { ja: 'クリック可能', en: 'Clickable' }, { ja: '選択可能', en: 'Selectable' }, { ja: '常設インスペクター', en: 'Persistent inspector' }, { ja: '一時ドロワー', en: 'Temporary drawer' },
+  { ja: '切替へ折りたたむ', en: 'Collapse to toggle' }, { ja: '全画面シート', en: 'Full-screen sheet' }, { ja: '標準の検索とリスト', en: 'Standard search and list' },
+  { ja: 'ニュートラルな塗り面', en: 'Neutral filled surface.' }, { ja: '通常アクションから離す', en: 'Keep away from normal actions.' }, { ja: '関連するアクション列に置く', en: 'Place in related action row.' },
+  { ja: '色付き文字のみ', en: 'Colored text only.' }, { ja: '危険な塗り面', en: 'Filled danger surface.' }, { ja: '表示ラベルで意味を伝える', en: 'Visible label carries meaning.' },
+  { ja: '意味を明確にする時だけ使う', en: 'Use only when meaning is clarified.' }, { ja: '表示テキストを優先する', en: 'Prefer visible text.' }, { ja: '認識しやすく、スペースが限られる操作だけ', en: 'Recognizable, space-limited actions only.' },
+  { ja: '枠線付きフィールド', en: 'Bordered field.' }, { ja: '塗りフィールド面', en: 'Filled field surface.' }, { ja: 'フィールド上のラベル', en: 'Label above field.' },
+  { ja: '左側のラベル', en: 'Label left of field.' }, { ja: '右側のラベル', en: 'Label right of field.' }, { ja: '任意項目を表示する', en: 'Show optional fields.' },
+  { ja: '必須項目を表示する', en: 'Show required fields.' }, { ja: '必須の手掛かりに危険色を使う', en: 'Use danger color for required cue.' }, { ja: 'メッセージ領域を予約する', en: 'Reserve message space.' },
+  { ja: '必要な時だけ表示する', en: 'Show when needed.' }, { ja: 'ラベルを繰り返さない', en: 'Do not repeat label.' }, { ja: '形式例だけに使う', en: 'Use only for format examples.' },
+  { ja: 'キーボード操作とアクティブな入力で表示', en: 'Visible for keyboard and active inputs.' }, { ja: 'すべてのフォーカスで表示', en: 'Visible on all focus.' },
+  { ja: 'コントロール外側のリング', en: 'Ring outside control.' }, { ja: '高コントラストのフォーカス強調', en: 'High contrast focus highlight.' }, { ja: '送信または次ステップ後', en: 'After submit or advance.' },
+  { ja: '編集済みフィールドから離れた後', en: 'After user leaves an edited field.' }, { ja: 'フィールドメッセージとサマリー', en: 'Field messages plus summary.' }, { ja: 'フィールドのメッセージ', en: 'Messages at fields.' },
+  { ja: '操作時に説明する', en: 'Keep recoverable action enabled.' }, { ja: '確認可能な固定値', en: 'Fixed but reviewable values.' }, { ja: '不可能な時だけ使う', en: 'Use only when impossible.' },
+  { ja: '本当に該当しない時に隠す', en: 'Hide truly inapplicable controls.' }, { ja: '一時的な再配置を避ける', en: 'Avoid temporary reflow.' }, { ja: '恒久的に該当しない時に使う', en: 'For permanently inapplicable controls.' },
+  { ja: '明示的な危険ダイアログ', en: 'Explicit destructive dialog.' }, { ja: '確認語の入力を求める', en: 'Require typed confirmation.' }, { ja: '元に戻す操作を提供する', en: 'Offer reversal.' },
+  { ja: '短い例を表示する', en: 'Show a short example.' }, { ja: 'フィールドを空のままにする', en: 'Leave field empty.' }, { ja: '選択済み項目をチップで表示', en: 'Show selected items as chips.' },
+  { ja: '1つのチップと件数を表示', en: 'Show one chip and count.' }, { ja: '値をテキストで表示', en: 'Show values as text.' }, { ja: '選択件数を表示', en: 'Show selected count.' },
+  { ja: 'チップから直接削除する', en: 'Remove directly from chip.' }, { ja: '選択肢リストだけで削除する', en: 'Remove in option list.' }, { ja: 'コントロール内で検索する', en: 'Search in control.' },
+  { ja: 'リスト内で検索する', en: 'Search in list.' }, { ja: '含まれたセグメント', en: 'Contained segments.' }, { ja: 'アクティブなタブを下線で示す', en: 'Underline active tab.' },
+  { ja: '表示テキストを使う', en: 'Use visible text.' }, { ja: '意味を補う場合だけ使う', en: 'Use only when clarifying.' }, { ja: '有用な件数を表示する', en: 'Show useful count.' },
+  { ja: 'スイッチコントロールの扱い', en: 'Switch control.' }, { ja: '二つの含まれた選択肢', en: 'Two contained choices.' }, { ja: '表示ラベルを示す', en: 'Show label.' }, { ja: 'ラベルと状態テキストを示す', en: 'Show label and state text.' },
+  { ja: '縦方向のリスト', en: 'Vertical list.' }, { ja: 'コンパクトな横並びグループ', en: 'Compact inline group.' }, { ja: 'コントロール横のラベル', en: 'Label beside control.' },
+  { ja: '選択可能な行', en: 'Selectable row.' }, { ja: '枠線付きの選択可能な行', en: 'Bordered selectable row.' }, { ja: '一部選択を示す', en: 'Show partial selection.' },
+  { ja: '親コントロールを使わない', en: 'Do not use parent control.' }, { ja: '枠線付きカード', en: 'Bordered card.' }, { ja: '塗りカード', en: 'Filled card.' },
+  { ja: '浮き上がったカード', en: 'Raised card.' }, { ja: '塗り面のカード', en: 'Filled card.' }, { ja: '操作しないカード', en: 'Non-interactive card.' }, { ja: 'クリック操作', en: 'Click action.' }, { ja: '選択操作', en: 'Selection action.' },
+  { ja: '常に表示する', en: 'Stays visible.' }, { ja: '必要時に開く', en: 'Opens on demand.' }, { ja: 'パネルを折りたたむ', en: 'Collapse panel.' }, { ja: '全画面シートを使う', en: 'Use full screen sheet.' },
+  { ja: '検索条件、結果リスト、並び替え、ページング、行・一括操作の領域を持つ一般的な構造。', en: 'A conventional search conditions panel with a results list, sorting, paging, row and bulk action areas.' },
+  { ja: '検索、リセット、結果件数、並び替え可能な列、ページング、文脈に応じた行・一括操作を使う。', en: 'Use a visible search action, reset, result count, sortable columns, pagination, and contextual row/bulk action areas.' },
+  { ja: 'セマンティックカラープロファイル。', en: 'Semantic color profile.' }, { ja: 'このセマンティックロールに対する検証済み16進色。', en: 'A validated hex color for this semantic role.' }, { ja: '検証済みのアイデンティティ用カラー。', en: 'A validated color for this identity role.' },
+  { ja: '既定', en: 'Default' }, { ja: 'カスタム', en: 'Custom' }, { ja: '濃いスレートブルー', en: 'Deep Slate Blue' }, { ja: 'エンタープライズブルー', en: 'Enterprise Blue' }, { ja: '生産性インディゴ', en: 'Productivity Indigo' }, { ja: '信頼のグリーン', en: 'Trust Green' }, { ja: 'ティール運用', en: 'Teal Operations' }, { ja: 'ニュートラルグラファイト', en: 'Neutral Graphite' }, { ja: 'コーポレートレッド', en: 'Corporate Red' }, { ja: '運用オレンジ', en: 'Operations Orange' }, { ja: 'オフィスニュートラル', en: 'Office Neutral' }, { ja: 'ホライズンシアン', en: 'Horizon Cyan' }, { ja: '金融ネイビー', en: 'Financial Navy' }, { ja: '既定のカラー', en: 'Default color' },
   { ja: 'UI規約エディタ', en: 'UI Contract Editor' },
   { ja: '業務UIルール', en: 'Business UI rules' },
   { ja: '規約ワークスペース', en: 'Contract Workspace' },
@@ -84,6 +133,38 @@ const translationEntries: TranslationEntry[] = [
   { ja: '顧客を読み込めませんでした', en: 'Customers could not be loaded' },
   { ja: '接続を確認して、もう一度試してください。', en: 'Check the connection and try again.' },
   { ja: '再試行', en: 'Try again' },
+  { ja: '空状態', en: 'Empty state' },
+  { ja: 'エラーの案内', en: 'Error guidance' },
+  { ja: '横断的なインタラクションポリシーは、処理中であることを見て分かるようにする必要があります。Search/List は、どの結果領域を読み込むかと要求するデータを扱います。', en: 'Interaction Policy requires observable busy feedback. Search/List owns which result region loads and the data it requests.' },
+  { ja: '横断的なインタラクションポリシーは、平易な言葉での説明と利用可能な次の操作を必要とします。Search/List は、フィルター、結果条件、結果がないかどうかを扱います。', en: 'Interaction Policy requires plain-language explanation and an available next step. Search/List owns filters, result criteria, and whether no results exist.' },
+  { ja: '横断的なインタラクションポリシーは、平易な言葉での復旧案内を必要とします。画面パターンは、失敗原因、再試行操作、影響を受けるコンテンツを扱います。', en: 'Interaction Policy requires plain-language recovery guidance. The screen pattern owns the failure cause, retry action, and affected content.' },
+  { ja: '不変条件', en: 'Invariant' },
+  { ja: '処理中のフィードバックは必須です。スケルトンは構造化コンテンツにだけ使い、インラインインジケーターは単一アクションの処理に使います。', en: 'Busy feedback is required; skeletons are only for structured content and inline indicators are for a single processing action.' },
+  { ja: '空の状態と利用可能な次の操作を説明します。結果なしの条件は画面側が扱います。', en: 'Explain empty conditions and an available next step; no-result criteria remain screen-owned.' },
+  { ja: '問題と復旧経路を説明します。エラーの分類と再試行の振る舞いはアプリケーション側が扱います。', en: 'Explain the problem and recovery path; error classification and retry behavior remain application-owned.' },
+  { ja: 'Component ContractやInteraction Policyではなく、アプリシェルや画面全体の振る舞いとして扱う候補を整理します。Card、Side Panel、ConfirmationはContract Editor側へ移動しました。', en: 'This lists candidates that belong to application-shell or whole-screen behavior rather than Component Contract or Interaction Policy. Card, Side Panel, and Confirmation moved into Contract Editor.' },
+  { ja: 'SPAの戻る/進む', en: 'SPA back and forward' },
+  { ja: 'ブラウザの戻るボタンで、選択中ページ、プレビュータブ、開閉パネル、Inspector選択をどこまで復元するかを決めます。視覚デザインではなく、作業復帰のポリシーです。', en: 'Define how much browser back restores: the selected page, preview tab, open panels, and Inspector selection. This is a work-resumption policy, not visual design.' },
+  { ja: 'ページ遷移はpushする', en: 'Push page navigation.' },
+  { ja: '軽い開閉状態はreplaceまたはlocal stateにする', en: 'Use replace or local state for lightweight open and closed states.' },
+  { ja: '作業対象の選択は復帰できるようにする', en: 'Restore the selected work item.' },
+  { ja: 'モバイル/狭い画面', en: 'Mobile and narrow viewports' },
+  { ja: '業務アプリでも狭い画面の破綻は避ける必要があります。すべてをスマホ最適化するのではなく、主要操作が壊れない最低ラインを決めます。', en: 'Business applications must avoid failure on narrow screens. Define the minimum that preserves primary actions instead of optimizing every workflow for phones.' },
+  { ja: 'サイドバーとInspectorは折りたたむ', en: 'Collapse the sidebar and Inspector.' },
+  { ja: '設定とプレビューは縦積みにする', en: 'Stack settings and preview vertically.' },
+  { ja: '固定ヘッダーや操作ボタンが内容を隠さない', en: 'Keep fixed headers and actions from obscuring content.' },
+  { ja: '固定構造 — 検索条件', en: 'Fixed structure — search conditions' },
+  { ja: '検索', en: 'Search' },
+  { ja: 'リセット', en: 'Reset' },
+  { ja: '固定構造 — 結果: 24 · 並び順: Updated ↓ · 選択後に一括操作を表示', en: 'Fixed structure — results: 24 · Sort: Updated ↓ · bulk actions appear after selection' },
+  { ja: 'アカウント', en: 'Account' },
+  { ja: 'ステータス', en: 'Status' },
+  { ja: '行アクション', en: 'Row actions' },
+  { ja: '有効', en: 'Active' },
+  { ja: '表示 · 編集', en: 'View · Edit' },
+  { ja: '固定状態 — 読み込みスケルトン · 空状態の案内 · エラーメッセージ · ページング (前へ / 1 / 次へ)', en: 'Fixed states — loading skeleton · empty guidance · error message · paging (Previous / 1 / Next)' },
+  { ja: '狭い画面 — 条件を縦に積み、結果列を行の要約にしつつアクションは表示したままにします。', en: 'Narrow viewport — conditions stack; result columns become row summaries while actions remain visible.' },
+  { ja: '画面側の例外: フィルター、列、行アクション、一括操作、復旧アクションの有無。Interaction Policy は focus、availability、loading feedback、validation、empty/error guidance、destructive confirmation を扱います。', en: 'Screen-owned exceptions: which filters, columns, row actions, bulk actions, and recovery actions exist. Interaction Policy owns focus, availability, loading feedback, validation, empty/error guidance, and destructive confirmation.' },
 
   { ja: '塗りつぶし', en: 'Filled' },
   { ja: 'トーナルカラー', en: 'Filled tonal' },
@@ -246,6 +327,8 @@ const translationEntries: TranslationEntry[] = [
   { ja: '戻せる操作は中断ではなくUndoを使います。', en: 'Use undo instead of interruption when the action is reversible.' },
   { ja: '破壊的操作のみ', en: 'Destructive only' },
   { ja: '破壊的操作と一括操作', en: 'Destructive and bulk' },
+  { ja: '元に戻せない破壊的操作を確認します。', en: 'Confirm an irreversible destructive action.' },
+  { ja: '複数レコードに影響する破壊的操作も確認します。', en: 'Also confirm destructive actions affecting multiple records.' },
   { ja: 'データを削除または失う操作だけを確認します。', en: 'Confirm only actions that delete or lose data.' },
   { ja: '複数レコードに影響する破壊的操作も対象にします。', en: 'Also cover destructive actions affecting multiple records.' },
   { ja: '確認パターン', en: 'Confirmation pattern' },
@@ -532,6 +615,12 @@ const translationEntries: TranslationEntry[] = [
   { ja: 'ブランドマーク', en: 'Brand mark' },
   { ja: 'マーク背景', en: 'Mark background' },
   { ja: 'マーク境界', en: 'Mark border' },
+  { ja: 'ロゴマークの色です。両方のモードで共通です。', en: 'Logo mark color, shared across modes.' },
+  { ja: 'ロゴを見やすくするための安定した背景面です。', en: 'Stable backing plate for logo visibility.' },
+  { ja: 'マーク背景面の任意の境界線です。', en: 'Optional edge for mark backing plate.' },
+  { ja: '編集可能なセマンティックカラーのロールです。', en: 'Editable semantic color role.' },
+  { ja: '情報', en: 'Info' },
+  { ja: '選択可能な決定: standard-search-list', en: 'Selectable decision: standard-search-list' },
   { ja: 'ライト', en: 'Light' },
   { ja: 'ダーク', en: 'Dark' },
   { ja: 'ロール', en: 'Role' },
@@ -618,7 +707,8 @@ const translationEntries: TranslationEntry[] = [
 const englishToJapanese = new Map(translationEntries.map((entry) => [entry.en, entry.ja]))
 const japaneseToEnglish = new Map(translationEntries.map((entry) => [entry.ja, entry.en]))
 
-export function translateUiText(text: string, language: UiLanguage): string {
+export function translateUiText(text: string, language: UiLanguage, preserveEnglish = false): string {
+  if (preserveEnglish) return translateUiText(text, 'en')
   const trimmed = text.trim()
   const translated = language === 'ja' ? englishToJapanese.get(trimmed) : japaneseToEnglish.get(trimmed)
   if (translated) {
@@ -645,6 +735,10 @@ export function translateUiText(text: string, language: UiLanguage): string {
   return text
 }
 
+export function preservesEnglishUiLabel(element: Element): boolean {
+  return Boolean(element.closest('nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'))
+}
+
 export function translateUiDocument(language: UiLanguage): void {
   document.documentElement.lang = language
 
@@ -668,13 +762,13 @@ export function translateUiDocument(language: UiLanguage): void {
   }
 
   textNodes.forEach((node) => {
-    node.textContent = translateUiText(node.textContent ?? '', language)
+    node.textContent = translateUiText(node.textContent ?? '', language, node.parentElement ? preservesEnglishUiLabel(node.parentElement) : false)
   })
 
   root.querySelectorAll<HTMLElement>('[aria-label], [title], [placeholder]').forEach((element) => {
     ;(['aria-label', 'title', 'placeholder'] as const).forEach((attribute) => {
       const value = element.getAttribute(attribute)
-      if (value) element.setAttribute(attribute, translateUiText(value, language))
+      if (value) element.setAttribute(attribute, translateUiText(value, language, preservesEnglishUiLabel(element)))
     })
   })
 }
