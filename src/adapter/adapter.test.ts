@@ -35,6 +35,12 @@ describe('Phase 5 target-neutral Adapter validator', () => {
     expect(defaultContract).toEqual(contractBefore)
   })
 
+  it('accepts a non-empty opaque satisfied-by-target evidence reference', () => {
+    const manifest = createCompleteManifest()
+    mappingFor(manifest, 'button-primary-emphasis').resolution = { kind: 'satisfied-by-target', evidenceRef: 'opaque-evidence-1' }
+    expect(resultFor(manifest)).toMatchObject({ outcome: 'compatible', diagnostics: [] })
+  })
+
   it('rejects missing, duplicate, stale, and unknown rules as Adapter-invalid', () => {
     const missing = createCompleteManifest()
     missing.mappings.pop()
@@ -93,6 +99,76 @@ describe('Phase 5 target-neutral Adapter validator', () => {
     duplicate.exceptions.push(clone(duplicate.exceptions[0]))
     duplicate.exceptions[1].id = 'duplicated'
     expect(resultFor(duplicate).diagnostics.map((item) => item.code)).toContain('duplicate-exception')
+  })
+
+  it('rejects exceptions referenced by more than one mapping and catalog identity mismatches', () => {
+    const referencedTwice = createCompleteManifest()
+    referencedTwice.exceptions.push({ id: 'shared-gap', catalogId: 'button-primary-emphasis', kind: 'unsupported', rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review: { status: 'proposed' } })
+    mappingFor(referencedTwice, 'button-primary-emphasis').resolution = { kind: 'exception', exceptionId: 'shared-gap' }
+    mappingFor(referencedTwice, 'button-secondary-emphasis').resolution = { kind: 'exception', exceptionId: 'shared-gap' }
+    expect(resultFor(referencedTwice).diagnostics.map((item) => item.code)).toContain('duplicate-exception-reference')
+
+    const mismatchedCatalog = createCompleteManifest()
+    mismatchedCatalog.exceptions.push({ id: 'mismatched-gap', catalogId: 'button-secondary-emphasis', kind: 'unsupported', rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review: { status: 'proposed' } })
+    mappingFor(mismatchedCatalog, 'button-primary-emphasis').resolution = { kind: 'exception', exceptionId: 'mismatched-gap' }
+    expect(resultFor(mismatchedCatalog).diagnostics.map((item) => item.code)).toContain('exception-catalog-id-mismatch')
+
+    const unknownCatalog = createCompleteManifest()
+    unknownCatalog.exceptions.push({ id: 'unknown-catalog-gap', catalogId: 'not-in-catalog', kind: 'unsupported', rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review: { status: 'proposed' } })
+    mappingFor(unknownCatalog, 'button-primary-emphasis').resolution = { kind: 'exception', exceptionId: 'unknown-catalog-gap' }
+    expect(resultFor(unknownCatalog).diagnostics.map((item) => item.code)).toContain('exception-catalog-id-unknown')
+  })
+
+  it('rejects exceptions without each required ownership and impact field', () => {
+    for (const field of ['rationale', 'impact', 'owner'] as const) {
+      const manifest = createCompleteManifest()
+      const exception = { id: `missing-${field}`, catalogId: 'button-primary-emphasis', kind: 'unsupported' as const, rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review: { status: 'proposed' as const } }
+      exception[field] = ''
+      manifest.exceptions.push(exception)
+      mappingFor(manifest, 'button-primary-emphasis').resolution = { kind: 'exception', exceptionId: exception.id }
+      expect(resultFor(manifest).diagnostics.map((item) => item.code)).toContain('exception-shape-invalid')
+    }
+  })
+
+  it('rejects invalid exception review statuses and optional review metadata', () => {
+    const invalidStatus = createCompleteManifest()
+    invalidStatus.exceptions.push({ id: 'invalid-status', catalogId: 'button-primary-emphasis', kind: 'unsupported', rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review: { status: 'proposed' } })
+    ;(invalidStatus.exceptions[0].review as unknown as { status: string }).status = 'waiting-for-human'
+    mappingFor(invalidStatus, 'button-primary-emphasis').resolution = { kind: 'exception', exceptionId: 'invalid-status' }
+    const invalidStatusResult = resultFor(invalidStatus)
+    expect(invalidStatusResult.diagnostics.map((item) => item.code)).toContain('exception-review-status-invalid')
+
+    const invalidReviews: Array<{ status: 'proposed'; reviewer?: string; reviewedAt?: string }> = [{ status: 'proposed', reviewer: '' }, { status: 'proposed', reviewedAt: ' ' }]
+    for (const review of invalidReviews) {
+      const manifest = createCompleteManifest()
+      manifest.exceptions.push({ id: `invalid-${Object.keys(review)[1]}`, catalogId: 'button-primary-emphasis', kind: 'unsupported', rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review })
+      mappingFor(manifest, 'button-primary-emphasis').resolution = { kind: 'exception', exceptionId: manifest.exceptions[0].id }
+      expect(resultFor(manifest).diagnostics.map((item) => item.code)).toContain('exception-review-metadata-invalid')
+    }
+  })
+
+  it('rejects a stale Contract rule even when the mapping resolves through an exception', () => {
+    const manifest = createCompleteManifest()
+    manifest.exceptions.push({ id: 'stale-gap', catalogId: 'button-primary-emphasis', kind: 'intentional-deviation', rationale: 'Known gap.', impact: 'Action styling differs.', owner: 'design-owner', review: { status: 'proposed' } })
+    const mapping = mappingFor(manifest, 'button-primary-emphasis')
+    mapping.resolution = { kind: 'exception', exceptionId: 'stale-gap' }
+    if (mapping.rule.kind === 'decision') mapping.rule.selectedValue = 'outline'
+    expect(resultFor(manifest).diagnostics.map((item) => item.code)).toContain('stale-rule')
+  })
+
+  it('does not mutate malformed Contract or manifest path inputs', () => {
+    const malformedContract = clone(defaultContract) as unknown as { componentPolicy: { button: Record<string, unknown> } }
+    delete malformedContract.componentPolicy.button.primaryEmphasis
+    const contractBefore = clone(malformedContract)
+    expect(validateAdapter(malformedContract as unknown as UiContract, createCompleteManifest(), syntheticTarget)).toMatchObject({ outcome: 'adapter-invalid' })
+    expect(malformedContract).toEqual(contractBefore)
+
+    const malformedManifest = createCompleteManifest()
+    mappingFor(malformedManifest, 'button-primary-emphasis').rule.contractPath = 'componentPolicy.button.notAContractPath'
+    const manifestBefore = clone(malformedManifest)
+    const result = resultFor(malformedManifest)
+    expect(result.diagnostics.map((item) => item.code)).toContain('contract-path-mismatch')
+    expect(malformedManifest).toEqual(manifestBefore)
   })
 
   it('classifies proposed, rejected, and human-approved exceptions and requires approval metadata', () => {
