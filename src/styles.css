@@ -1247,45 +1247,6 @@ h3 {
   font-weight: 700;
 }
 
-.radio-group-contract-panel {
-  display: grid;
-  gap: 16px;
-}
-
-.radio-group-contract-section {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-
-.radio-group-contract-section h3,
-.radio-group-contract-section p {
-  margin: 0;
-}
-
-.radio-group-contract-section > p {
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.radio-group-fixed-decision {
-  display: grid;
-  gap: 6px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface-soft);
-}
-
-.radio-group-fixed-decision span,
-.radio-group-fixed-decision p {
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .radio-group-preview {
   display: grid;
   gap: 10px;
@@ -1300,6 +1261,12 @@ h3 {
   padding: 0 4px;
   color: var(--text);
   font-weight: 800;
+}
+
+.radio-group-preview > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .radio-group-row {

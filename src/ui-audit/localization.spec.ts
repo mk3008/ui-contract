@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Radio Group', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Screen Patterns']
+const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Radio Group', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
 const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, .json-preview, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
 const englishStructureSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'
 const immutableVocabulary = new Set(['Contract Editor', 'Main page', 'Editable', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
@@ -22,6 +23,10 @@ test('audits every active view in JP and EN while preserving only structural and
       if (view === 'Radio Group') {
         await expect(page.locator('.radio-group-fixed-decision .option-title')).toHaveText('Visible-label radio group')
         await expect(page.getByText(language === 'JP' ? '選択済みの例' : 'Selected example', { exact: true })).toBeVisible()
+      }
+      if (sectionedContractEditors.has(view)) {
+        await expect(page.locator('main .select-sectioned-panel')).toBeVisible()
+        expect(await page.locator('main .select-policy-section-grid').count()).toBeGreaterThan(0)
       }
       const untranslatedStructure = await page.locator(englishStructureSelector).allTextContents()
       expect(untranslatedStructure.filter((text) => /[ぁ-んァ-ン一-龯]/.test(text)), `${view} has a structural label that does not remain English`).toEqual([])
