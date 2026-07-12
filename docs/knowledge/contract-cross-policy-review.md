@@ -47,44 +47,43 @@ Extract a shared rule only when all of these are true:
    or application behavior.
 4. Official design-system guidance supports the same general rule across the
    affected control family.
-5. The extracted owner is clear: Foundation for cross-component visual/accessibility
-   primitives, a named component family for shared control anatomy, Interaction
-   Policy for cross-component behavior, or Screen Pattern for arrangement.
+5. The extracted owner is clear: Foundation-level Layout Policy for reusable
+   arrangement principles, Foundation for cross-component visual/accessibility
+   primitives, Component for control anatomy, Interaction Policy for
+   cross-component behavior, or Screen Pattern for repeated screen structure.
 
 Keep a rule component-local when its correct treatment depends on the control's
 selection semantics or a normal context distinction. Record the common visual
 idea in the review matrix, but do not create a misleading global switch merely
 to remove repetition.
 
-## Choice-Control Review Decision
+## Choice Group Layout Review Decision
 
-The current Radio Group, Checkbox, Toggle, and Form Section review reaches the
-following decisions:
+The current Radio Group, Checkbox, Toggle, and Form Section review identifies a
+missing Foundation-level Layout Policy. The relevant subject is not a control
+type; it is the arrangement of sibling visible choices in a choice group.
 
-- **Choice-group orientation is a shared constraint, not a shared selectable
-  switch.** Radio buttons represent one mutually exclusive choice; checkboxes
-  represent independent choices; toggles represent an immediate binary setting.
-  Carbon permits radio orientation to vary with use case while recommending
-  vertical groups when possible. GOV.UK allows inline radios only for two short
-  choices and still stacks them on small screens. Therefore the portable rule is
-  "stack choice groups by default; permit inline layout only for a short binary
-  choice in an appropriate screen context." A global `orientation` value would
-  hide those normal conditions, while a Checkbox-only `inline-compact` option
-  wrongly makes a context-owned exception look like a universal component rule.
-- **Required follow-up:** replace the current Checkbox `groupLayout` alternatives
-  with the shared choice-group constraint in a dedicated schema/migration slice.
-  Until that change is made, `inline-compact` is a known cross-policy review
-  finding, not a precedent for adding a Radio Group inline option.
-- **Visible group/option labels and a non-colour-only selected state are a
-  shared candidate, not a completed extraction.** They are common choice-group
-  accessibility/anatomy requirements, but neither the current Foundation nor a
-  named `choiceGroup` component family owns them. Do not silently treat the
-  Radio Group value as if it governed Checkbox. A future change may introduce a
-  non-selectable shared choice-group invariant only after it defines ownership,
-  migration, and the Checkbox relationship in one slice.
+- **Choice Group Layout must be extracted as a shared Layout Policy.** It owns
+  the readable arrangement of sibling visible choices, independently of whether
+  those choices are radio buttons, checkboxes, or another visible choice control.
+  The portable baseline is "stack choice groups by default; permit inline layout
+  only for a short binary choice in an appropriate screen context." This is a
+  layout principle, not a Radio or Checkbox behavior setting.
+- **The current paths are a known ownership defect.** Checkbox
+  `groupLayout` exposes the layout principle as a Checkbox-only option, while
+  Radio Group embeds vertical scanning in its component treatment. Both must be
+  replaced by one Foundation-level Layout Policy in a dedicated schema/migration
+  slice. The component policies then retain only their control-specific anatomy
+  and state rules.
+- **Visible group/option labels and a non-colour-only selected state are also
+  shared choice-group requirements.** Review them together with the extracted
+  Layout Policy. Keep the final owner explicit: label anatomy may be a shared
+  component-family rule; readable selected state is a Foundation accessibility
+  invariant. Do not silently treat the current Radio Group value as governing
+  Checkbox before the shared policy is implemented.
 - **Form Section composes rather than duplicates.** It arranges related fields
-  and an action area; it does not choose the internal layout of a radio or
-  checkbox group.
+  and an action area. A choice group is one field/control arrangement inside that
+  screen structure; the Form Section does not own its sibling-choice layout.
 
 Sources reviewed for this decision:
 
@@ -116,13 +115,11 @@ adding a second option or by making a preview silently choose one policy.
 
 - `componentPolicy.toggle` owns the presentation of an immediate binary control;
   it does not own radio-group orientation.
-- `componentPolicy.checkbox.groupLayout` owns the arrangement of independent
-  checkbox choices. Its current `inline-compact` alternative is under review:
-  inline layout is a conditional choice-group exception, not an independently
-  portable Checkbox policy.
-- `componentPolicy.radioGroup.treatment` owns the fixed presentation baseline
-  inside an exclusive radio group: visible group/option labels, vertical scan,
-  and a selected state that is not colour-only.
+- `componentPolicy.checkbox.groupLayout` is a legacy local representation of
+  Choice Group Layout and must be removed after extraction; Checkbox retains
+  choice surface and mixed-state rules.
+- `componentPolicy.radioGroup.treatment` currently embeds Choice Group Layout
+  and must be narrowed after extraction; Radio retains exclusive-choice anatomy.
 - `screenPatternPolicy.formSection` owns grouping related fields and separating
   an action area. It may contain a radio group, but it does not choose the radio
   group's internal option layout.
@@ -130,11 +127,12 @@ adding a second option or by making a preview silently choose one policy.
   and confirmation apply across components and must not be duplicated as
   component-local alternatives.
 
-The repeated word "vertical" in the radio-group and form-section examples is a
-layered composition, not a duplicate: one describes options inside a component;
-the other describes fields within a screen structure. A future selectable
-cross-component orientation policy requires Foundation-level governance rather
-than another component-local value.
+The repeated word "vertical" in the radio-group and form-section examples is
+not automatically a duplicate, but it must be classified before acceptance. In
+the current Radio/Checkbox case it expresses the same sibling-choice layout
+principle and therefore requires extraction. In Form Section it describes the
+scan of related fields within a screen structure, so it composes with Choice
+Group Layout rather than owning the same decision.
 
 ## Acceptance Evidence
 
