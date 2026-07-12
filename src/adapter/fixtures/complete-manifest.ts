@@ -11,7 +11,7 @@ export function createCompleteManifest(): AdapterManifest {
     adapterId: 'sample-adapter',
     adapterVersion: '1.0.0',
     target: { ...syntheticTarget },
-    acceptsContractSchemaVersions: ['0.3.0'],
+    acceptsContractSchemaVersions: ['0.4.0'],
     mappings: deriveRequiredRules(defaultContract).rules.map((rule, index) => ({ rule, resolution: { kind: 'binding', implementationRef: `opaque-binding-${index + 1}` } })),
     exceptions: [],
   }

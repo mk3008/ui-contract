@@ -31,6 +31,13 @@ function phaseThreeContract() {
   return prior
 }
 
+function phaseFourContract() {
+  const prior = JSON.parse(JSON.stringify(defaultContract)) as Record<string, any>
+  prior.schemaVersion = '0.3.0'
+  delete prior.componentPolicy.radioGroup
+  return prior
+}
+
 describe('catalog integrity', () => {
   it('has unique IDs, resolved preview and translation references, and valid defaults', () => {
     expect(new Set(contractCatalog.map((entry) => entry.id)).size).toBe(contractCatalog.length)
@@ -111,8 +118,8 @@ describe('Phase 3 localization', () => {
 
 describe('schema and import outcomes', () => {
   it('publishes a versioned schema and classifies all import outcomes', () => {
-    expect(schemaProperties.schemaVersion.const).toBe('0.3.0')
-    expect(uiContractJsonSchema.$id).toBe('https://ui-contract-editor.local/schema/ui-contract-0.3.0.json')
+    expect(schemaProperties.schemaVersion.const).toBe('0.4.0')
+    expect(uiContractJsonSchema.$id).toBe('https://ui-contract-editor.local/schema/ui-contract-0.4.0.json')
     expect((schemaProperties.screenPatternPolicy.properties as Record<string, Record<string, unknown>>).searchList.enum).toEqual(['standard-search-list'])
     for (const key of uiContractJsonSchema.required as string[]) expect(schemaProperties[key]).toBeDefined()
     expect(((schemaProperties.componentPolicy.properties as Record<string, Record<string, unknown>>).button.properties as Record<string, Record<string, unknown>>).primaryEmphasis.enum).toContain('filled')
@@ -121,11 +128,13 @@ describe('schema and import outcomes', () => {
     expect((interactionProperties.loading.properties as Record<string, Record<string, unknown>>).feedback.const).toBe('communicate-busy-state')
     expect((interactionProperties.stateFeedback.properties as Record<string, Record<string, unknown>>).guidance.const).toBe('explain-condition-and-next-step')
     expect((schemaProperties.screenPatternPolicy.properties as Record<string, Record<string, unknown>>).formSection.enum).toEqual(['grouped-form-section'])
+    expect(((schemaProperties.componentPolicy.properties as Record<string, Record<string, unknown>>).radioGroup.properties as Record<string, Record<string, unknown>>).treatment.enum).toEqual(['visible-label-radio-group'])
     expect(importContract(defaultContract).outcome).toBe('valid')
     expect(importContract({ ...defaultContract, meta: validFixture.meta }).outcome).toBe('valid')
     expect(importContract({ ...defaultContract, extra: true }).outcome).toBe('accepted-with-ignored-unknown-fields')
     expect(importContract(phaseTwoContract()).outcome).toBe('migrated')
     expect(importContract(phaseThreeContract()).outcome).toBe('migrated')
+    expect(importContract(phaseFourContract()).outcome).toBe('migrated')
     expect(importContract(invalidSelectedValueFixture).outcome).toBe('invalid')
     expect(importContract(unsupportedVersionFixture).outcome).toBe('unsupported-version')
   })
@@ -135,13 +144,13 @@ describe('schema and import outcomes', () => {
     legacy.schemaVersion = '0.0.0'
     delete legacy.screenPatternPolicy
     const result = importContract(legacy)
-    expect(result).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.3.0', screenPatternPolicy: { searchList: 'standard-search-list', formSection: 'grouped-form-section' }, interactionPolicy: { confirmation: { scope: 'destructive-and-bulk' }, loading: { feedback: 'communicate-busy-state' }, stateFeedback: { guidance: 'explain-condition-and-next-step' } } } })
+    expect(result).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.4.0', componentPolicy: { radioGroup: { treatment: 'visible-label-radio-group' } }, screenPatternPolicy: { searchList: 'standard-search-list', formSection: 'grouped-form-section' }, interactionPolicy: { confirmation: { scope: 'destructive-and-bulk' }, loading: { feedback: 'communicate-busy-state' }, stateFeedback: { guidance: 'explain-condition-and-next-step' } } } })
     expect(result.diagnostics.join(' ')).toContain('unsaved-change navigation is now screen/application-flow owned')
   })
 
   it('migrates valid 0.1.0 confirmation scope with an observable ownership diagnostic', () => {
     const result = importContract(phaseTwoContract())
-    expect(result).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.3.0', interactionPolicy: { confirmation: { scope: 'destructive-and-bulk' } } } })
+    expect(result).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.4.0', componentPolicy: { radioGroup: { treatment: 'visible-label-radio-group' } }, interactionPolicy: { confirmation: { scope: 'destructive-and-bulk' } } } })
     expect(result.diagnostics.join(' ')).toContain('Migrated schemaVersion 0.1.0 to 0.2.0.')
     expect(result.diagnostics.join(' ')).toContain('Added fixed Phase 3 invariant: interactionPolicy.loading.feedback')
     expect(result.diagnostics.join(' ')).toContain('unsaved-change navigation is now screen/application-flow owned')
@@ -164,10 +173,21 @@ describe('schema and import outcomes', () => {
   it('migrates a valid 0.2.0 Contract with an observable Phase 4 diagnostic, but rejects invalid current form-section values', () => {
     const migrated = importContract(phaseThreeContract())
     const invalidCurrent = importContract({ ...defaultContract, screenPatternPolicy: { ...defaultContract.screenPatternPolicy, formSection: 'two-column-form' } })
-    expect(migrated).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.3.0', screenPatternPolicy: { formSection: 'grouped-form-section' } } })
+    expect(migrated).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.4.0', screenPatternPolicy: { formSection: 'grouped-form-section' } } })
     expect(migrated.diagnostics.join(' ')).toContain('Added fixed Phase 4 Screen Pattern')
     expect(invalidCurrent).toMatchObject({ outcome: 'invalid' })
     expect(invalidCurrent.diagnostics.join(' ')).toContain('formSection: two-column-form')
+  })
+
+  it('migrates a valid 0.3.0 Contract with an observable Radio Group diagnostic, but rejects invalid current radio values', () => {
+    const migrated = importContract(phaseFourContract())
+    const priorUnknownRadio = importContract({ ...phaseFourContract(), componentPolicy: { ...phaseFourContract().componentPolicy, radioGroup: { treatment: 'unknown-prior-field' } } })
+    const invalidCurrent = importContract({ ...defaultContract, componentPolicy: { ...defaultContract.componentPolicy, radioGroup: { treatment: 'horizontal-icon-radio-group' } } })
+    expect(migrated).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.4.0', componentPolicy: { radioGroup: { treatment: 'visible-label-radio-group' } } } })
+    expect(priorUnknownRadio).toMatchObject({ outcome: 'migrated', contract: { componentPolicy: { radioGroup: { treatment: 'visible-label-radio-group' } } } })
+    expect(migrated.diagnostics.join(' ')).toContain('Added fixed Radio Group Component Contract')
+    expect(invalidCurrent).toMatchObject({ outcome: 'invalid' })
+    expect(invalidCurrent.diagnostics.join(' ')).toContain('radioGroup.treatment: horizontal-icon-radio-group')
   })
 
   it('rejects obsolete confirmation scope and altered fixed invariants in current-version input', () => {
@@ -186,9 +206,9 @@ describe('schema and import outcomes', () => {
   })
 
   it('keeps persisted Contract type ownership in the domain module', () => {
-    for (const relativePath of ['../main.tsx', '../control-contracts.tsx', '../select-contract.tsx']) {
+    for (const relativePath of ['../main.tsx', '../control-contracts.tsx', '../select-contract.tsx', '../radio-group-contract.tsx']) {
       const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8')
-      expect(source).not.toMatch(/(?:type|interface)\s+(?:UiContract|SelectPolicy|TabsPolicy|TogglePolicy|CheckboxPolicy|ColorPolicy|BrandIdentityPolicy)\s*=/)
+      expect(source).not.toMatch(/(?:type|interface)\s+(?:UiContract|SelectPolicy|TabsPolicy|TogglePolicy|CheckboxPolicy|RadioGroupPolicy|ColorPolicy|BrandIdentityPolicy)\s*=/)
     }
   })
 })
@@ -198,14 +218,17 @@ describe('output generators', () => {
     expect(importContract(JSON.parse(generateJson(defaultContract)))).toMatchObject({ outcome: 'valid', contract: defaultContract })
   })
 
-  it('exports the Search/List screen-pattern decision to JSON and Markdown', () => {
+  it('exports the fixed Radio Group and screen-pattern decisions to JSON and Markdown', () => {
     const json = generateJson(defaultContract)
     const markdown = generateMarkdown(defaultContract)
     expect(json).toContain('"searchList": "standard-search-list"')
     expect(json).toContain('"formSection": "grouped-form-section"')
+    expect(json).toContain('"radioGroup": {')
+    expect(json).toContain('"treatment": "visible-label-radio-group"')
     expect(markdown).toContain('### Screen patterns')
     expect(markdown).toContain('searchList: `standard-search-list`')
     expect(markdown).toContain('formSection: `grouped-form-section`')
+    expect(markdown).toContain('radioGroup.treatment: `visible-label-radio-group`')
   })
 
   it('exports the fixed loading and state-feedback interaction requirements', () => {

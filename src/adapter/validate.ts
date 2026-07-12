@@ -1,7 +1,7 @@
 import { contractCatalog } from '../contract/catalog'
 import type { ContractCatalogEntry } from '../contract/catalog'
 import type { UiContract } from '../contract/types'
-import { supportedAdapterSpecVersion } from './types'
+import { supportedAdapterContractSchemaVersion, supportedAdapterSpecVersion } from './types'
 import type {
   AdapterDiagnostic,
   AdapterException,
@@ -152,7 +152,7 @@ function parseManifest(value: unknown, diagnostics: AdapterDiagnostic[]): Adapte
   if (!target || diagnostics.length) return undefined
   return {
     adapterSpecVersion: value.adapterSpecVersion as AdapterManifest['adapterSpecVersion'], adapterId: value.adapterId, adapterVersion: value.adapterVersion, target,
-    acceptsContractSchemaVersions: [value.acceptsContractSchemaVersions[0] as UiContract['schemaVersion']], mappings, exceptions,
+    acceptsContractSchemaVersions: [value.acceptsContractSchemaVersions[0] as typeof supportedAdapterContractSchemaVersion], mappings, exceptions,
   }
 }
 
@@ -224,7 +224,7 @@ export function validateAdapter(contract: UiContract, manifestInput: unknown, su
   validateCoverage(derived.rules, manifest, diagnostics)
   if (diagnostics.length) return { outcome: 'adapter-invalid', diagnostics, requiredRules: derived.rules }
   if (manifest.adapterSpecVersion !== supportedAdapterSpecVersion) return { outcome: 'unsupported-adapter-spec-version', diagnostics: [diagnostic('unsupported-adapter-spec-version', `Adapter spec ${manifest.adapterSpecVersion} is not supported.`)], requiredRules: derived.rules }
-  if (manifest.acceptsContractSchemaVersions[0] !== '0.3.0') return { outcome: 'adapter-invalid', diagnostics: [diagnostic('accepted-contract-version-invalid', 'Adapter spec 0.1.0 accepts only Contract schema 0.3.0.')], requiredRules: derived.rules }
+  if (manifest.acceptsContractSchemaVersions[0] !== supportedAdapterContractSchemaVersion) return { outcome: 'adapter-invalid', diagnostics: [diagnostic('accepted-contract-version-invalid', `Adapter spec 0.1.0 accepts only Contract schema ${supportedAdapterContractSchemaVersion}.`)], requiredRules: derived.rules }
   if (manifest.acceptsContractSchemaVersions[0] !== contract.schemaVersion) return { outcome: 'unsupported-contract-version', diagnostics: [diagnostic('unsupported-contract-version', `Adapter does not accept Contract schema ${contract.schemaVersion}.`)], requiredRules: derived.rules }
   if (manifest.target.id !== supplied.id || manifest.target.version !== supplied.version) return { outcome: 'unsupported-target-version', diagnostics: [diagnostic('unsupported-target-version', 'Supplied target does not match the Adapter manifest target.', 'target')], requiredRules: derived.rules }
 

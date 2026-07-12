@@ -25,6 +25,7 @@ import {
   SelectPreviewStage,
   SelectSectionedContractPanel,
 } from './select-contract'
+import { RadioGroupContractPanel } from './radio-group-contract'
 import { translateUiDocument, type UiLanguage } from './i18n'
 import { defaultContract } from './contract/defaults'
 import { importContract } from './contract/import'
@@ -67,6 +68,7 @@ type MenuItem =
   | 'Contract Editor / Tabs'
   | 'Contract Editor / Toggle'
   | 'Contract Editor / Checkbox'
+  | 'Contract Editor / Radio Group'
   | 'Contract Editor / Card'
   | 'Contract Editor / Side Panel'
   | 'Contract Editor / Confirmation'
@@ -84,7 +86,7 @@ type MenuEntry = {
     status: MenuStatus
   }>
 }
-type ContractEditorComponent = 'button' | 'textField' | 'focus' | 'validation' | 'availability' | 'stateFeedback' | 'select' | 'tabs' | 'toggle' | 'checkbox' | 'card' | 'sidePanel' | 'confirmation'
+type ContractEditorComponent = 'button' | 'textField' | 'focus' | 'validation' | 'availability' | 'stateFeedback' | 'select' | 'tabs' | 'toggle' | 'checkbox' | 'radioGroup' | 'card' | 'sidePanel' | 'confirmation'
 type ButtonColoringOption<Value extends string> = {
   label: string
   note: string
@@ -341,6 +343,7 @@ const menuItems: MenuEntry[] = [
       { label: 'Tabs', page: 'Contract Editor / Tabs', status: 'active' },
       { label: 'Toggle', page: 'Contract Editor / Toggle', status: 'active' },
       { label: 'Checkbox', page: 'Contract Editor / Checkbox', status: 'active' },
+      { label: 'Radio Group', page: 'Contract Editor / Radio Group', status: 'active' },
       { label: 'Card', page: 'Contract Editor / Card', status: 'active' },
       { label: 'Side Panel', page: 'Contract Editor / Side Panel', status: 'active' },
       { label: 'Focus', page: 'Contract Editor / Focus', status: 'active' },
@@ -431,6 +434,7 @@ function App() {
   const tabsPolicy = contract.componentPolicy.tabs
   const togglePolicy = contract.componentPolicy.toggle
   const checkboxPolicy = contract.componentPolicy.checkbox
+  const radioGroupPolicy = contract.componentPolicy.radioGroup
   const cardPolicy = contract.componentPolicy.card
   const sidePanelPolicy = contract.componentPolicy.sidePanel
   const focusPolicy = contract.interactionPolicy.focus
@@ -752,6 +756,7 @@ function App() {
     selectedMenu === 'Contract Editor / Tabs' ||
     selectedMenu === 'Contract Editor / Toggle' ||
     selectedMenu === 'Contract Editor / Checkbox' ||
+    selectedMenu === 'Contract Editor / Radio Group' ||
     selectedMenu === 'Contract Editor / Card' ||
     selectedMenu === 'Contract Editor / Side Panel' ||
     selectedMenu === 'Contract Editor / Confirmation' ||
@@ -770,6 +775,8 @@ function App() {
               ? 'toggle'
               : selectedMenu === 'Contract Editor / Checkbox'
                 ? 'checkbox'
+                : selectedMenu === 'Contract Editor / Radio Group'
+                  ? 'radioGroup'
                 : selectedMenu === 'Contract Editor / Card'
                   ? 'card'
                   : selectedMenu === 'Contract Editor / Side Panel'
@@ -796,9 +803,11 @@ function App() {
             ? 'Tabs Contract'
             : selectedMenu === 'Contract Editor / Toggle'
               ? 'Toggle Contract'
-              : selectedMenu === 'Contract Editor / Checkbox'
-                ? 'Checkbox Contract'
-                : selectedMenu === 'Contract Editor / Card'
+            : selectedMenu === 'Contract Editor / Checkbox'
+              ? 'Checkbox Contract'
+              : selectedMenu === 'Contract Editor / Radio Group'
+                ? 'Radio Group Contract'
+              : selectedMenu === 'Contract Editor / Card'
                   ? 'Card Contract'
                   : selectedMenu === 'Contract Editor / Side Panel'
                     ? 'Side Panel Contract'
@@ -829,6 +838,7 @@ function App() {
           buttonPolicy={buttonPolicy}
           cardPolicy={cardPolicy}
           checkboxPolicy={checkboxPolicy}
+          radioGroupPolicy={radioGroupPolicy}
           colorPolicy={colorPolicy}
           confirmationPolicy={confirmationPolicy}
           focusPolicy={focusPolicy}
@@ -1067,6 +1077,7 @@ function ContractEditorPanel({
   buttonPolicy,
   cardPolicy,
   checkboxPolicy,
+  radioGroupPolicy,
   colorPolicy,
   confirmationPolicy,
   focusPolicy,
@@ -1096,6 +1107,7 @@ function ContractEditorPanel({
   buttonPolicy: UiContract['componentPolicy']['button']
   cardPolicy: UiContract['componentPolicy']['card']
   checkboxPolicy: UiContract['componentPolicy']['checkbox']
+  radioGroupPolicy: UiContract['componentPolicy']['radioGroup']
   colorPolicy: ColorPolicy
   confirmationPolicy: UiContract['interactionPolicy']['confirmation']
   focusPolicy: UiContract['interactionPolicy']['focus']
@@ -1190,6 +1202,10 @@ function ContractEditorPanel({
         onUpdate={onCheckboxUpdate}
       />
     )
+  }
+
+  if (selectedComponent === 'radioGroup') {
+    return <RadioGroupContractPanel radioGroupPolicy={radioGroupPolicy} />
   }
 
   if (selectedComponent === 'card') {

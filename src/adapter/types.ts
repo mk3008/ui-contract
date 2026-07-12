@@ -1,6 +1,6 @@
-import type { UiContract } from '../contract/types'
-
 export const supportedAdapterSpecVersion = '0.1.0' as const
+/** Adapter 0.1 validates the current Contract shape only; no version range is accepted. */
+export const supportedAdapterContractSchemaVersion = '0.4.0' as const
 
 export type AdapterTarget = { id: string; version: string }
 
@@ -48,7 +48,7 @@ export type AdapterManifest = {
   adapterId: string
   adapterVersion: string
   target: AdapterTarget
-  acceptsContractSchemaVersions: readonly [UiContract['schemaVersion']]
+  acceptsContractSchemaVersions: readonly [typeof supportedAdapterContractSchemaVersion]
   mappings: AdapterMapping[]
   exceptions: AdapterException[]
 }

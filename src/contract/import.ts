@@ -2,7 +2,8 @@ import { contractCatalog } from './catalog'
 import { defaultContract } from './defaults'
 import type { ImportResult, UiContract } from './types'
 
-const supportedVersion = '0.3.0'
+const supportedVersion = '0.4.0'
+const phaseFourVersion = '0.3.0'
 const phaseThreeVersion = '0.2.0'
 const phaseTwoVersion = '0.1.0'
 const legacyVersion = '0.0.0'
@@ -14,7 +15,7 @@ const allowedShape: Record<string, unknown> = {
   schemaVersion: true, meta: { name: true, description: true }, product: { systemType: true, informationDensity: true, visualTone: true }, screenPatternPolicy: { searchList: true, formSection: true },
   designPolicy: { colorProfileId: true, brandIdentity: { mark: true, markBackground: true, markBorder: true }, color: { light: '*', dark: '*' } },
   interactionPolicy: { focus: { visibility: true, indicatorStyle: true }, validation: { trigger: true, presentation: true }, availability: { treatment: true, layout: true }, confirmation: { surface: true, scope: true }, loading: { feedback: true }, stateFeedback: { guidance: true } },
-  componentPolicy: { button: { primaryEmphasis: true, secondaryEmphasis: true, dangerPlacement: true, dangerEmphasis: true, iconAdornment: true, iconOnlyPolicy: true }, textField: { fieldStyle: true, labelPlacement: true, requiredIndicator: true, messageAreaBehavior: true, placeholderUsage: true }, select: { emptyDisplay: true, multiSelectedItemDisplay: true, multiRemoveAffordance: true, searchFieldTreatment: true }, tabs: { treatment: true, adornment: true }, toggle: { treatment: true, labelPolicy: true }, checkbox: { groupLayout: true, choiceSurface: true, mixedState: true }, card: { treatment: true, interaction: true }, sidePanel: { relationship: true, responsive: true } },
+  componentPolicy: { button: { primaryEmphasis: true, secondaryEmphasis: true, dangerPlacement: true, dangerEmphasis: true, iconAdornment: true, iconOnlyPolicy: true }, textField: { fieldStyle: true, labelPlacement: true, requiredIndicator: true, messageAreaBehavior: true, placeholderUsage: true }, select: { emptyDisplay: true, multiSelectedItemDisplay: true, multiRemoveAffordance: true, searchFieldTreatment: true }, tabs: { treatment: true, adornment: true }, toggle: { treatment: true, labelPolicy: true }, checkbox: { groupLayout: true, choiceSurface: true, mixedState: true }, radioGroup: { treatment: true }, card: { treatment: true, interaction: true }, sidePanel: { relationship: true, responsive: true } },
 }
 
 function unknownFields(value: unknown, shape: unknown, path = ''): string[] {
@@ -72,14 +73,24 @@ function migratePhaseTwoToPhaseThree(value: Record<string, unknown>): { value: R
   return { value: migrated, diagnostics }
 }
 
-function migratePhaseThreeToCurrent(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+function migratePhaseThreeToPhaseFour(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
   const migrated = clone(value)
-  migrated.schemaVersion = supportedVersion
+  migrated.schemaVersion = phaseFourVersion
   const screenPatternPolicy = migrated.screenPatternPolicy as Record<string, unknown> | undefined
   if (screenPatternPolicy && typeof screenPatternPolicy === 'object' && !('formSection' in screenPatternPolicy)) {
     screenPatternPolicy.formSection = defaultContract.screenPatternPolicy.formSection
   }
   return { value: migrated, diagnostics: ['Added fixed Phase 4 Screen Pattern: screenPatternPolicy.formSection = grouped-form-section.'] }
+}
+
+function migratePhaseFourToCurrent(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  migrated.schemaVersion = supportedVersion
+  const componentPolicy = migrated.componentPolicy as Record<string, unknown> | undefined
+  if (componentPolicy && typeof componentPolicy === 'object') {
+    componentPolicy.radioGroup = clone(defaultContract.componentPolicy.radioGroup)
+  }
+  return { value: migrated, diagnostics: ['Added fixed Radio Group Component Contract: componentPolicy.radioGroup.treatment = visible-label-radio-group.'] }
 }
 
 function diagnosticsFor(value: Record<string, unknown>): string[] {
@@ -103,18 +114,20 @@ export function importContract(input: unknown): ImportResult {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return { outcome: 'invalid', diagnostics: ['Document must be an object.'] }
   const raw = input as Record<string, unknown>
   const version = raw.schemaVersion
-  if (version !== supportedVersion && version !== phaseThreeVersion && version !== phaseTwoVersion && version !== legacyVersion) return { outcome: 'unsupported-version', diagnostics: [`Unsupported schemaVersion: ${String(version)}`] }
+  if (version !== supportedVersion && version !== phaseFourVersion && version !== phaseThreeVersion && version !== phaseTwoVersion && version !== legacyVersion) return { outcome: 'unsupported-version', diagnostics: [`Unsupported schemaVersion: ${String(version)}`] }
   const phaseTwoInput = version === legacyVersion ? migrateLegacyToPhaseTwo(raw) : clone(raw)
   const phaseThreeMigration = version === legacyVersion || version === phaseTwoVersion ? migratePhaseTwoToPhaseThree(phaseTwoInput) : { value: phaseTwoInput, diagnostics: [] }
-  const migration = version === supportedVersion ? { value: phaseThreeMigration.value, diagnostics: [] } : migratePhaseThreeToCurrent(phaseThreeMigration.value)
+  const phaseFourMigration = version === legacyVersion || version === phaseTwoVersion || version === phaseThreeVersion ? migratePhaseThreeToPhaseFour(phaseThreeMigration.value) : { value: phaseThreeMigration.value, diagnostics: [] }
+  const migration = version === supportedVersion ? { value: phaseFourMigration.value, diagnostics: [] } : migratePhaseFourToCurrent(phaseFourMigration.value)
   const migrated = migration.value
   const diagnostics = diagnosticsFor(migrated)
   if (diagnostics.length) return { outcome: 'invalid', diagnostics }
   const ignored = unknownFields(migrated, allowedShape)
   const contract = removeUnknown(migrated, allowedShape) as UiContract
-  if (version === legacyVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.0.0 to 0.1.0.', 'Migrated schemaVersion 0.1.0 to 0.2.0.', ...phaseThreeMigration.diagnostics, 'Migrated schemaVersion 0.2.0 to 0.3.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
-  if (version === phaseTwoVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.1.0 to 0.2.0.', ...phaseThreeMigration.diagnostics, 'Migrated schemaVersion 0.2.0 to 0.3.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
-  if (version === phaseThreeVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.2.0 to 0.3.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === legacyVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.0.0 to 0.1.0.', 'Migrated schemaVersion 0.1.0 to 0.2.0.', ...phaseThreeMigration.diagnostics, 'Migrated schemaVersion 0.2.0 to 0.3.0.', ...phaseFourMigration.diagnostics, 'Migrated schemaVersion 0.3.0 to 0.4.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseTwoVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.1.0 to 0.2.0.', ...phaseThreeMigration.diagnostics, 'Migrated schemaVersion 0.2.0 to 0.3.0.', ...phaseFourMigration.diagnostics, 'Migrated schemaVersion 0.3.0 to 0.4.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseThreeVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.2.0 to 0.3.0.', ...phaseFourMigration.diagnostics, 'Migrated schemaVersion 0.3.0 to 0.4.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseFourVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.3.0 to 0.4.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
   if (ignored.length) return { outcome: 'accepted-with-ignored-unknown-fields', diagnostics: ignored.map((field) => `Ignored unknown field: ${field}`), contract }
   return { outcome: 'valid', diagnostics: [], contract }
 }
