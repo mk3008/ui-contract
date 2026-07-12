@@ -41,6 +41,7 @@ function phaseFourContract() {
 describe('catalog integrity', () => {
   it('has unique IDs, resolved preview and translation references, and valid defaults', () => {
     expect(new Set(contractCatalog.map((entry) => entry.id)).size).toBe(contractCatalog.length)
+    expect(new Set(contractCatalog.map((entry) => entry.path)).size).toBe(contractCatalog.length)
     expect(new Set(contractCatalog.map((entry) => entry.previewId)).size).toBe(contractCatalog.length)
     expect(new Set(contractCatalog.map((entry) => entry.translationKey)).size).toBe(contractCatalog.length)
     for (const entry of contractCatalog) {

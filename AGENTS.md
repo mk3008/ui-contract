@@ -11,6 +11,7 @@ user-facing reports in Japanese unless the user requests otherwise.
   - `docs/knowledge/design-system-foundations.md`
   - `docs/concepts/ui-contract-option-governance/concept.json`
   - `docs/knowledge/design-system-anti-patterns.md`
+  - `docs/knowledge/contract-cross-policy-review.md`
 - For an editor UX review, use `docs/reviews/nielsen-heuristic-review.md`.
 
 ## Non-negotiable product rules
