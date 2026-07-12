@@ -1,15 +1,19 @@
-# UI Contract Editor Agent Guidance
+# UI Contract Editor Guidance
 
-This file defines repository-local guidance for `ui-contract-editor`.
-It takes precedence over user-level guidance for work inside this project.
+This policy applies repository-wide. Keep repository artifacts in English and
+user-facing reports in Japanese unless the user requests otherwise.
 
-## Required Concept Reading
+## Routing
 
-Before adding, removing, renaming, or reclassifying UI Contract option values, read:
+- For delegated or multi-step work, read
+  `docs/operations/codex-orchestration.md` and use `$minimal-orchestration`.
+- Before changing UI Contract option values, read:
+  - `docs/knowledge/design-system-foundations.md`
+  - `docs/concepts/ui-contract-option-governance/concept.json`
+  - `docs/knowledge/design-system-anti-patterns.md`
+- For an editor UX review, use `docs/reviews/nielsen-heuristic-review.md`.
 
-- `docs/knowledge/design-system-foundations.md`
-- `docs/concepts/ui-contract-option-governance/concept.json`
-- `docs/knowledge/design-system-anti-patterns.md`
+## Non-negotiable product rules
 
 The design-system foundations knowledge is the durable source for what this product means by system design and how foundations, components, interaction policy, and screen patterns are separated.
 The option governance concept is the durable source for how this product decides whether a contract option belongs in the editor.
