@@ -211,6 +211,36 @@ arbitrary row surfaces toggle selection when a separate row action has a
 different intent; row activation remains deliberate. This is fixed
 standard-search-list behavior, not a Checkbox or Button Contract option.
 
+### Spatial Target Stability in Data Tables
+
+Do not dynamically insert controls that displace an active or likely-next
+pointer target. When a header or top-of-table region needs variable state, it
+reserves the same block size from the initial render: its unselected state
+presents useful table context, while its selected state replaces that content
+with scoped count and batch actions. This preserves the coordinates of the
+table header, checkboxes, and rows during selection instead of treating the
+shift as acceptable merely because it follows user input or does not affect a
+CLS score.
+
+This is a spatial-stability rule, not a forced location. A footer can be a
+valid case-by-case alternative, while a top-of-table placement remains
+appropriate when it improves discoverability or task context. In either case,
+the variable region must reserve equal space before the state transition.
+
+The invariant is exact: **a state transition initiated from a control must not
+change viewport coordinates of the initiating control, nor any existing
+interactive target above it, during the direct follow-up interaction window.**
+Treat this as render-output acceptance, independent of MVVM or other state
+implementation. Avoid dynamically inserting controls above a table; where no
+above target exists, retain the rule as a general requirement for future
+tables and forms.
+
+This is a fixed Screen Pattern/layout stability rule. The reserved block size
+is an implementation detail, not a Contract field or a Button/Checkbox option.
+Focused interaction tests should compare the triggering target, select-all or
+header controls, and visible rows above it across the state change and return
+transition, while retaining semantic checkbox and batch-action coverage.
+
 ## Review Rules
 
 Before adding or changing a Contract option, check:

@@ -49,6 +49,18 @@ async function captureArtifact(page: import('@playwright/test').Page, directory:
   await captureStyle.evaluate((element) => element.parentNode?.removeChild(element))
 }
 
+async function tableTargetYCoordinates(page: import('@playwright/test').Page) {
+  const targets = [page.getByLabel('Select all accounts'), page.getByLabel('Select Lumen Office'), page.locator('.business-table thead'), page.locator('.business-table tbody tr').first(), page.getByLabel('Select Aster Works'), page.getByRole('button', { name: 'View account' }).first()]
+  const boxes = await Promise.all(targets.map((target) => target.boundingBox()))
+  if (boxes.some((box) => box === null)) throw new Error('Expected stable table targets to be visible')
+  return boxes.map((box) => box!.y)
+}
+
+function expectStableTableTargetY(before: number[], after: number[]) {
+  expect(after).toHaveLength(before.length)
+  for (const [index, beforeY] of before.entries()) expect(Math.abs(after[index] - beforeY)).toBeLessThanOrEqual(0.1)
+}
+
 test('exports deterministic, complete business-page PNG and JPEG evidence without editor chrome', async ({ page }, testInfo) => {
   const directory = join('output', 'playwright', 'screen-pattern-evidence', testInfo.project.name || 'local', 'images')
   const root = join(directory, '..')
@@ -106,19 +118,30 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   await openArtifact(page, 'search-list')
   await expect(page.getByRole('form', { name: 'Search conditions' })).toBeVisible()
   await expect(page.getByRole('table')).toBeVisible()
+  await expect(page.locator('.table-context-summary')).toContainText('24 accounts')
+  const tableContextToolbar = page.locator('[data-table-context-toolbar]')
+  const initialToolbarHeight = (await tableContextToolbar.boundingBox())!.height
+  expect(initialToolbarHeight).toBe(62)
   await captureArtifact(page, directory, 'search-list-initial')
   await page.getByRole('button', { name: 'View account' }).first().click()
   await expect(page.getByLabel('Select Aster Works')).not.toBeChecked()
-  await page.getByLabel('Select Aster Works').check()
+  const unselectedTargetY = await tableTargetYCoordinates(page)
+  await page.getByLabel('Select Lumen Office').check()
   await expect(page.getByRole('status')).toContainText('1 account selected')
   await expect(page.locator('.batch-action-bar')).toBeVisible()
+  expect((await tableContextToolbar.boundingBox())!.height).toBe(initialToolbarHeight)
+  expectStableTableTargetY(unselectedTargetY, await tableTargetYCoordinates(page))
   await expect(page.locator('tr[data-selected="true"]')).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'View account' }).first()).toBeDisabled()
   await expect(page.getByLabel('Select all accounts')).toHaveJSProperty('indeterminate', true)
+  await page.getByRole('button', { name: 'Clear selection' }).click()
+  await expect(page.locator('.batch-action-bar')).toHaveCount(0)
+  await expect(page.locator('.table-context-summary')).toContainText('24 accounts')
+  expect((await tableContextToolbar.boundingBox())!.height).toBe(initialToolbarHeight)
+  expectStableTableTargetY(unselectedTargetY, await tableTargetYCoordinates(page))
   await page.getByLabel('Select all accounts').check()
   await expect(page.getByRole('status')).toContainText('4 accounts selected')
   await page.getByRole('button', { name: 'Clear selection' }).click()
-  await expect(page.locator('.batch-action-bar')).toHaveCount(0)
   await page.getByLabel('Select Aster Works').check()
   await page.getByRole('button', { name: 'Apply search' }).click()
   await expect(page.locator('.batch-action-bar')).toHaveCount(0)

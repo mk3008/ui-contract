@@ -1351,8 +1351,10 @@ h3 {
 .required-cue { color: var(--danger); font-size: 12px; font-weight: 700; }
 .results-region { overflow: hidden; }
 .results-toolbar { align-items: flex-start; }
-.batch-action-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid var(--primary); border-bottom: 0; color: var(--primary-strong); background: var(--primary-soft); font-size: 13px; font-weight: 700; }
-.batch-action-bar p { margin: 0; }
+.table-context-toolbar { box-sizing: border-box; block-size: 62px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid var(--line); border-bottom: 0; font-size: 13px; }
+.table-context-toolbar p { margin: 0; }
+.table-context-summary { color: var(--muted); background: var(--surface); }
+.batch-action-bar { border-color: var(--primary); color: var(--primary-strong); background: var(--primary-soft); font-weight: 700; }
 .business-table tr[data-selected="true"] { background: var(--primary-soft); }
 .business-table { width: 100%; border-collapse: collapse; color: var(--text); text-align: left; }
 .business-table th,
