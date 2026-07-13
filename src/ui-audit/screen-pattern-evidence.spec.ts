@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { defaultContract } from '../contract/defaults'
 import { importContract } from '../contract/import'
@@ -64,6 +64,7 @@ function expectStableTableTargetY(before: number[], after: number[]) {
 test('exports deterministic, complete business-page PNG and JPEG evidence without editor chrome', async ({ page }, testInfo) => {
   const directory = join('output', 'playwright', 'screen-pattern-evidence', testInfo.project.name || 'local', 'images')
   const root = join(directory, '..')
+  rmSync(directory, { recursive: true, force: true })
   mkdirSync(directory, { recursive: true })
 
   await page.goto('/')
@@ -117,12 +118,19 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
 
   await openArtifact(page, 'search-list')
   await expect(page.getByRole('form', { name: 'Search conditions' })).toBeVisible()
+  await expect(page.getByRole('table')).toHaveCount(0)
+  await expect(page.getByRole('status')).toContainText('Search for accounts')
+  await expect(page.getByText('Enter a name or choose a status to view matching accounts.')).toBeVisible()
+  await captureArtifact(page, directory, 'search-list-initial')
+  await page.getByRole('button', { name: 'Apply search' }).click()
+  await expect(page.locator('[data-screen="search-list"]')).toHaveAttribute('data-state', 'busy')
+  await expect(page.locator('[data-screen="search-list"]')).toHaveAttribute('data-state', 'results')
   await expect(page.getByRole('table')).toBeVisible()
   await expect(page.locator('.table-context-summary')).toContainText('24 accounts')
   const tableContextToolbar = page.locator('[data-table-context-toolbar]')
   const initialToolbarHeight = (await tableContextToolbar.boundingBox())!.height
   expect(initialToolbarHeight).toBe(62)
-  await captureArtifact(page, directory, 'search-list-initial')
+  await captureArtifact(page, directory, 'search-list-results')
   await page.getByRole('button', { name: 'View account' }).first().click()
   await expect(page.getByLabel('Select Aster Works')).not.toBeChecked()
   const unselectedTargetY = await tableTargetYCoordinates(page)
@@ -158,11 +166,19 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   await openArtifact(page, 'search-list', 'loading')
   await captureArtifact(page, directory, 'search-list-loading')
   await openArtifact(page, 'search-list')
-  await page.getByLabel('Account name').fill('none')
+  await page.getByLabel('Account name').fill('Meridian Logistics')
   await page.getByRole('button', { name: 'Apply search' }).click()
   await expect(page.getByText('No accounts match these conditions')).toBeVisible()
-  await openArtifact(page, 'search-list', 'empty')
-  await captureArtifact(page, directory, 'search-list-empty')
+  await expect(page.getByLabel('Account name')).toHaveValue('Meridian Logistics')
+  await page.getByRole('button', { name: 'Clear conditions' }).click()
+  await expect(page.getByRole('table')).toHaveCount(0)
+  await expect(page.getByRole('status')).toContainText('Search for accounts')
+  await page.getByRole('button', { name: 'Apply search' }).click()
+  await expect(page.getByRole('table')).toBeVisible()
+  await openArtifact(page, 'search-list', 'zero-results')
+  await expect(page.getByText('No accounts match these conditions')).toBeVisible()
+  await expect(page.getByLabel('Account name')).toHaveValue('Meridian Logistics')
+  await captureArtifact(page, directory, 'search-list-zero-results')
   await openArtifact(page, 'search-list')
   await page.getByLabel('Account name').fill('error')
   await page.getByRole('button', { name: 'Apply search' }).click()
@@ -254,6 +270,8 @@ test('keeps Search/List structured content, related actions, and paging bounded 
   const actions = page.locator('.search-condition-actions')
   const table = page.getByRole('table')
   const pagination = page.getByRole('navigation', { name: 'Account result pages' })
+  await page.getByRole('button', { name: /Apply search|検索を適用/ }).click()
+  await expect(table).toBeVisible()
   const [screenBox, fieldsBox, actionsBox, tableBox, paginationBox] = await Promise.all([screen.boundingBox(), fields.boundingBox(), actions.boundingBox(), table.boundingBox(), pagination.boundingBox()])
   expect(screenBox).not.toBeNull()
   expect(fieldsBox).not.toBeNull()

@@ -9,11 +9,12 @@ type Props = {
   policy: UiContract['screenPatternPolicy']
   button: UiContract['componentPolicy']['button']
 }
-type SearchState = 'results' | 'busy' | 'empty' | 'error'
+type SearchState = 'unsearched' | 'results' | 'busy' | 'empty' | 'error'
 
 const accounts = [
   ['Aster Works', 'Active', 'Today'], ['Harbor Supply', 'Review', 'Yesterday'], ['Lumen Office', 'Active', '12 Jul'], ['Pine Services', 'Paused', '10 Jul'],
 ] as const
+const noMatchAccount = 'Meridian Logistics'
 
 function DownloadIcon() {
   return <svg aria-hidden="true" className="download-icon" viewBox="0 0 16 16"><path d="M8 2v7m0 0 3-3m-3 3L5 6m-2 5h10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" /></svg>
@@ -60,7 +61,7 @@ export function ScreenPatternPageArtifact({ contract, example }: { contract: UiC
 }
 
 function ScreenPatternContent({ artifact = false, artifactState, availability, button, confirmation, example, policy }: { artifact?: boolean; artifactState?: string | null; availability: Props['availability']; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId; policy: Props['policy'] }) {
-  if (example === 'search-list') return <SearchListExample artifact={artifact} policy={policy} button={button} initialSelected={artifactState === 'selected'} initialState={artifactState === 'loading' ? 'busy' : artifactState === 'empty' || artifactState === 'error' ? artifactState : 'results'} />
+  if (example === 'search-list') return <SearchListExample artifact={artifact} policy={policy} button={button} initialSelected={artifactState === 'selected'} initialState={artifactState === 'results' || artifactState === 'selected' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} />
   if (example === 'edit-detail') return <EditDetailExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : 'initial'} />
   if (example === 'edit-list') return <EditListExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : artifactState === 'editing' ? 'editing' : 'initial'} />
   if (example === 'read-only-detail') return <ReadOnlyDetailExample artifact={artifact} availability={availability} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
@@ -73,17 +74,17 @@ function ScreenHeader({ title, context, policy }: { title: string; context: stri
 
 function screenButtonClasses(button: Props['button']) { return `button-primary-${button.primaryEmphasis} button-secondary-${button.secondaryEmphasis} button-danger-${button.dangerEmphasis} button-danger-placement-${button.dangerPlacement}` }
 
-function SearchListExample({ artifact = false, policy, button, initialSelected = false, initialState = 'results' }: { artifact?: boolean; policy: UiContract['screenPatternPolicy']; button: Props['button']; initialSelected?: boolean; initialState?: SearchState }) {
+function SearchListExample({ artifact = false, policy, button, initialSelected = false, initialState = 'unsearched' }: { artifact?: boolean; policy: UiContract['screenPatternPolicy']; button: Props['button']; initialSelected?: boolean; initialState?: SearchState }) {
   const [state, setState] = useState<SearchState>(initialState)
-  const [term, setTerm] = useState('')
-  const [submitted, setSubmitted] = useState('')
+  const [term, setTerm] = useState(initialState === 'empty' ? noMatchAccount : '')
+  const [submitted, setSubmitted] = useState(initialState === 'empty' ? noMatchAccount : '')
   const [selected, setSelected] = useState<string[]>(initialSelected ? [accounts[0][0]] : [])
   const selectAllRef = useRef<HTMLInputElement>(null)
   const allSelected = selected.length === accounts.length
   const selectionActive = selected.length > 0
   useEffect(() => { if (selectAllRef.current) selectAllRef.current.indeterminate = selectionActive && !allSelected }, [allSelected, selectionActive])
-  const apply = () => { setSelected([]); setSubmitted(term); setState('busy'); window.setTimeout(() => setState(term === 'none' ? 'empty' : term === 'error' ? 'error' : 'results'), 180) }
-  const reset = () => { setTerm(''); setSubmitted(''); setSelected([]); setState('results') }
+  const apply = () => { setSelected([]); setSubmitted(term); setState('busy'); window.setTimeout(() => setState(term.trim().toLowerCase() === noMatchAccount.toLowerCase() ? 'empty' : term === 'error' ? 'error' : 'results'), 180) }
+  const reset = () => { setTerm(''); setSubmitted(''); setSelected([]); setState('unsearched') }
   const toggleAccount = (name: string) => setSelected((current) => current.includes(name) ? current.filter((selectedName) => selectedName !== name) : [...current, name])
   const toggleAll = () => setSelected(allSelected ? [] : accounts.map(([name]) => name))
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="search-list" data-screen="search-list" data-state={selectionActive ? 'selected' : state} data-primary-emphasis={button.primaryEmphasis}>
@@ -95,6 +96,7 @@ function SearchListExample({ artifact = false, policy, button, initialSelected =
     </form>
     <section className="screen-section results-region" aria-label="Account results" aria-busy={state === 'busy'}>
       <div className="results-toolbar"><div><h5>Accounts</h5></div></div>
+      {state === 'unsearched' && <div className="screen-state" role="status"><strong>Search for accounts</strong><p>Enter a name or choose a status to view matching accounts.</p></div>}
       {state === 'busy' && <div className="screen-state" role="status"><strong>Loading accounts</strong><p>Searching accounts for the selected conditions.</p><div className="skeleton-row" /><div className="skeleton-row short" /></div>}
       {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts match these conditions</strong><p>Clear the condition or try a broader account name.</p><button className="contract-button secondary-outline" type="button" onClick={reset}>Clear conditions</button></div>}
       {state === 'error' && <div className="screen-state is-error" role="alert"><strong>Account results are unavailable</strong><p>We couldn't retrieve account results. Review your conditions and try again.</p><button className="contract-button primary-filled" type="button" onClick={apply}>Retry search</button></div>}

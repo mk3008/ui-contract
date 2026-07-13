@@ -31,6 +31,18 @@ describe('screen-pattern acceptance evidence', () => {
     expect(evidence.capture).toEqual(baseline.capture)
   })
 
+  it('distinguishes unsearched, returned, and zero-result Search/List evidence', () => {
+    const searchList = generateScreenPatternEvidence(defaultContract).examples.find((example) => example.id === 'search-list')
+    expect(searchList?.states.map((state) => [state.id, state.uiState, state.route])).toEqual([
+      ['initial', 'unsearched', '/?screen-artifact=search-list'],
+      ['results', 'results', '/?screen-artifact=search-list&state=results'],
+      ['selected', 'selection', '/?screen-artifact=search-list&state=selected'],
+      ['loading', 'busy', '/?screen-artifact=search-list&state=loading'],
+      ['zero-results', 'empty', '/?screen-artifact=search-list&state=zero-results'],
+      ['error', 'error', '/?screen-artifact=search-list&state=error'],
+    ])
+  })
+
   it('keeps evidence paths portable and Contract downloads independent', () => {
     const evidence = generateScreenPatternEvidence(defaultContract)
     for (const example of evidence.examples) {

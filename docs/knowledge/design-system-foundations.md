@@ -152,6 +152,14 @@ values merely because an acceptance screen needs them.
 | Read-only Detail | Scan-friendly record identity and grouped values, explicit availability/non-editability, legitimate next actions, and detail recovery. |
 | Destructive Action | Originating record context, named target and consequence, safe cancel focus, confirmation, result, and failure/retry; an undo appears only when existing policy permits it. |
 
+For Search/List state feedback, distinguish an unsearched initial state from a
+completed zero-result state. Before a request, do not present result records as
+if they had already been returned; provide the concise next task action. After
+a request returns no matching records, explain that condition and provide a
+recovery action while retaining the relevant search context. This composes the
+existing loading and state-feedback invariants; it does not add a Contract
+option or make result criteria Contract policy.
+
 Each named state requires full-page evidence at the documented desktop viewport.
 Its manifest records screen/state ID, UI state, fixture seed/version, viewport,
 browser, capture command, canonical Contract JSON digest, relevant Contract

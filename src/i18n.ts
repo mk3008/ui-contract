@@ -752,6 +752,7 @@ const translationEntries: TranslationEntry[] = [
   { ja: '検索条件', en: 'Search conditions' },
   { ja: 'アカウントの状態', en: 'Account status' }, { ja: 'すべての状態', en: 'All statuses' }, { ja: '確認中', en: 'Review' },
   { ja: '検索を適用', en: 'Apply search' }, { ja: '条件をリセット', en: 'Reset conditions' }, { ja: 'アカウント', en: 'Accounts' }, { ja: '24 アカウント', en: '24 accounts' }, { ja: '更新順、新しい順', en: 'Sorted by Updated, newest first' },
+  { ja: 'アカウントを検索', en: 'Search for accounts' }, { ja: '名前を入力するか、状態を選択して一致するアカウントを表示します。', en: 'Enter a name or choose a status to view matching accounts.' },
   { ja: 'アカウントを読み込み中', en: 'Loading accounts' }, { ja: '選択した条件でアカウントを検索しています。', en: 'Searching accounts for the selected conditions.' },
   { ja: 'この条件に一致するアカウントはありません', en: 'No accounts match these conditions' }, { ja: '条件を解除するか、より広いアカウント名を試してください。', en: 'Clear the condition or try a broader account name.' }, { ja: '条件を解除', en: 'Clear conditions' },
   { ja: 'アカウント結果を利用できません', en: 'Account results are unavailable' }, { ja: 'アカウント結果を取得できませんでした。条件を確認して再試行してください。', en: "We couldn't retrieve account results. Review your conditions and try again." }, { ja: '検索を再試行', en: 'Retry search' },
