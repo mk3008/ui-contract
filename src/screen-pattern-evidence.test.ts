@@ -35,7 +35,10 @@ describe('screen-pattern acceptance evidence', () => {
     const evidence = generateScreenPatternEvidence(defaultContract)
     for (const example of evidence.examples) {
       expect(example.composes.every((path) => /^(designPolicy|componentPolicy|interactionPolicy|screenPatternPolicy)\./.test(path))).toBe(true)
-      expect(example.states.every((state) => new RegExp(`^images/${example.id}-[a-z-]+\\.png$`).test(state.image))).toBe(true)
+      expect(example.states.every((state) => state.route.startsWith(`/?screen-artifact=${example.id}`) && new RegExp(`^images/${example.id}-[a-z-]+\\.png$`).test(state.png) && new RegExp(`^images/${example.id}-[a-z-]+\\.jpg$`).test(state.jpeg))).toBe(true)
+    }
+    for (const example of evidence.examples) {
+      expect(example.states.every((state) => state.route === `/?screen-artifact=${example.id}${state.id === 'initial' ? '' : `&state=${state.id}`}`)).toBe(true)
     }
     expect(generateScreenPatternEvidenceJson(defaultContract)).not.toMatch(/https?:|data:|\.\.[\\/]|[A-Za-z]:[\\/]/)
     expect(importContract(generateScreenPatternEvidence(defaultContract))).toMatchObject({ outcome: 'unsupported-version' })

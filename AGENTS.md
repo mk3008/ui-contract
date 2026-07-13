@@ -113,7 +113,7 @@ If ownership is unclear, document the ambiguity before implementation.
 
 ## Screen Pattern Acceptance Invariant
 
-A Screen Pattern acceptance surface must be a deterministic, integrated mock of a plausible business task with full-page desktop evidence. An isolated component or state demo is not a Screen Pattern.
+A Screen Pattern acceptance surface must be a deterministic, integrated mock of a plausible business task with full-page desktop evidence. Final review captures must show a complete screen-local application page and exclude Contract Editor and evidence/meta chrome; PNG and JPEG dimensions must exactly match the documented viewport. An isolated component or state demo is not a Screen Pattern.
 
 ## Reporting Rule
 

@@ -26,8 +26,8 @@ import {
   SelectSectionedContractPanel,
 } from './select-contract'
 import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
-import { InteractiveScreenPatterns } from './interactive-screen-patterns'
-import type { ScreenPatternExampleId } from './screen-pattern-evidence'
+import { InteractiveScreenPatterns, ScreenPatternPageArtifact } from './interactive-screen-patterns'
+import { screenPatternExampleIds, type ScreenPatternExampleId } from './screen-pattern-evidence'
 import { translateUiDocument, type UiLanguage } from './i18n'
 import { defaultContract } from './contract/defaults'
 import { importContract } from './contract/import'
@@ -911,6 +911,10 @@ function App() {
 
     return <OverviewPanel language={language} />
   }
+
+  const artifactCandidate = new URLSearchParams(window.location.search).get('screen-artifact')
+  const artifactExample = screenPatternExampleIds.find((example) => example === artifactCandidate)
+  if (artifactExample) return <ScreenPatternPageArtifact contract={contract} example={artifactExample} />
 
   return (
     <div className={`app-shell ${isSidebarOpen ? '' : 'is-sidebar-collapsed'}`}>

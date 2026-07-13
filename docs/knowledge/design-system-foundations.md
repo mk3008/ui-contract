@@ -160,9 +160,30 @@ and validation association, keyboard/focus/dialog paths, recovery actions, and
 Contract-derived hierarchy. Screenshots are visual evidence only; they do not
 prove assistive-technology behavior.
 
+The captured artifact root must have exactly the documented viewport dimensions
+in both PNG regression output and JPEG review output. Tests must parse each
+generated image and verify those observed dimensions against the manifest; a
+browser viewport setting or full-page capture alone is insufficient evidence.
+
 Before human acceptance, run the evidence twice from a clean state and confirm
 the manifest and captures are deterministic. A human reviewer must be able to
 recognize each page as a plausible business task without reading source code.
+
+The final review capture is a complete application page, not an editor region:
+it includes concise screen-local application header/context and may use a
+collapsed application navigation fixture, while excluding Contract Editor
+chrome, Contract download controls, evidence controls, fixture prose, and other
+design explanations. The shell is screen-local fixture composition using
+existing foundations, not a Contract option; promote it only when alternate
+shell selection is proven to be reusable product policy.
+
+Review the completed page for business realism first, then audit Contract
+composition. The composition-accountability matrix should explain about 80% of
+meaningful visible structural, control, state, interaction, and feedback
+decisions with existing Contract paths. It excludes fine layout mechanics.
+Necessary record data, workflow semantics, and screen-local shell fixtures may
+remain justified exceptions. The matrix audits a finished realistic page; it
+must never drive artificial UI, copy, or states solely to increase coverage.
 
 ## Review Rules
 
