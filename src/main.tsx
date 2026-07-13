@@ -2976,8 +2976,10 @@ function ScreenPatternsPanel({ contract, example }: { contract: UiContract; exam
         <p>Screen Patterns define reusable structures that compose existing Component Contracts. They do not choose fields, workflow behavior, or layout mechanics.</p>
       </section>
       <InteractiveScreenPatterns
+        contract={contract}
         example={example}
         policy={contract.screenPatternPolicy}
+        button={contract.componentPolicy.button}
         availability={contract.interactionPolicy.availability}
         confirmation={contract.interactionPolicy.confirmation}
       />

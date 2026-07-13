@@ -125,6 +125,45 @@ Examples:
 Screen patterns provide a standard shape.
 They should not freeze every layout dimension or all screen-specific business choices.
 
+### Screen Pattern Acceptance
+
+A Screen Pattern acceptance surface is a deterministic, integrated mock of a
+plausible business task. It composes an immutable Contract snapshot with
+screen-local fictional fixtures so a reviewer can judge whether foundations,
+components, and interaction policy form a coherent operational screen. It must
+show task identity and context, information hierarchy, action hierarchy, and
+the applicable recovery states. It is not a component gallery, a static mood
+board, an external-screen copy, a service implementation, or a new Contract
+option.
+
+The ownership boundary is deliberate: foundations own visual roles and focus;
+components own controls and visible control states; interaction policy owns
+shared loading, validation, availability, feedback, and confirmation behavior;
+Screen Patterns own the repeated page structure and composed Contract paths;
+screen-local fixtures own fictional records, columns, fields, query values, and
+deterministic outcomes. Fixture details must not be promoted into Contract
+values merely because an acceptance screen needs them.
+
+| Pattern | Required integrated composition |
+| --- | --- |
+| Search/List | Labelled conditions with apply/reset, result count, sortable table/list, selection and bulk context, row action, paging, plus loading, no-results, and error/retry states. |
+| Edit Detail | Record identity, grouped editable sections, label/help/error treatment, distinct Save/Cancel action area, and validation plus saved/cancelled outcome. |
+| Edit List | Preserved list context, a row action and editing surface, row validation, commit, and cancel. |
+| Read-only Detail | Scan-friendly record identity and grouped values, explicit availability/non-editability, legitimate next actions, and detail recovery. |
+| Destructive Action | Originating record context, named target and consequence, safe cancel focus, confirmation, result, and failure/retry; an undo appears only when existing policy permits it. |
+
+Each named state requires full-page evidence at the documented desktop viewport.
+Its manifest records screen/state ID, UI state, fixture seed/version, viewport,
+browser, capture command, canonical Contract JSON digest, relevant Contract
+paths, and image path. Tests must separately cover semantic structure, labels
+and validation association, keyboard/focus/dialog paths, recovery actions, and
+Contract-derived hierarchy. Screenshots are visual evidence only; they do not
+prove assistive-technology behavior.
+
+Before human acceptance, run the evidence twice from a clean state and confirm
+the manifest and captures are deterministic. A human reviewer must be able to
+recognize each page as a plausible business task without reading source code.
+
 ## Review Rules
 
 Before adding or changing a Contract option, check:

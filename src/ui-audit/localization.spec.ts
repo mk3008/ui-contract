@@ -38,14 +38,14 @@ test('audits every active view in JP and EN while preserving only structural and
     for (const view of activeViews) {
       await page.getByRole('button', { name: view, exact: true }).click()
       await expect(page.locator('main h2').first()).toBeVisible()
-      await expect(page.getByRole('navigation')).toContainText('Button')
-      await expect(page.getByRole('navigation')).toContainText('State Feedback')
+      await expect(page.locator('nav.menu-list')).toContainText('Button')
+      await expect(page.locator('nav.menu-list')).toContainText('State Feedback')
       if (view === 'Screen Patterns') {
         for (const screenPattern of screenPatternPages) {
           await page.getByRole('button', { name: screenPattern, exact: true }).click()
           await expect(page.locator('.main-panel > .section-heading h2')).toHaveText(screenPattern)
           await expect(page.getByRole('tablist')).toHaveCount(0)
-          await expect(page.getByText(language === 'JP' ? 'これらのローカル実行例は既存の Contract 構成を示します。選択可能な Contract ポリシー値ではありません。' : 'These local examples demonstrate existing Contract composition. They are not selectable Contract policy values.', { exact: true })).toBeVisible()
+          await expect(page.getByText(language === 'JP' ? '各画面は、現在の Contract を構成する決定的なローカル業務タスクモックです。フィクスチャのデータと結果は Contract ポリシーではありません。' : 'Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.', { exact: true })).toBeVisible()
           await expectLocalizedPage(page, language, screenPattern)
         }
       }

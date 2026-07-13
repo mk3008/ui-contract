@@ -111,6 +111,10 @@ Examples that usually belong elsewhere:
 
 If ownership is unclear, document the ambiguity before implementation.
 
+## Screen Pattern Acceptance Invariant
+
+A Screen Pattern acceptance surface must be a deterministic, integrated mock of a plausible business task with full-page desktop evidence. An isolated component or state demo is not a Screen Pattern.
+
 ## Reporting Rule
 
 When reporting option-set changes, include:
