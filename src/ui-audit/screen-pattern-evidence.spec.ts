@@ -6,6 +6,15 @@ import { importContract } from '../contract/import'
 import { generateJson, generateMarkdown } from '../contract/output'
 import { generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown } from '../screen-pattern-evidence'
 
+const screenPatternPages = ['Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action'] as const
+
+async function selectScreenPattern(page: import('@playwright/test').Page, label: typeof screenPatternPages[number]) {
+  await page.getByRole('button', { name: 'Screen Patterns', exact: true }).click()
+  await page.getByRole('button', { name: label, exact: true }).click()
+  await expect(page.locator('.main-panel > .section-heading h2')).toHaveText(label)
+  await expect(page.getByRole('tablist')).toHaveCount(0)
+}
+
 test('captures deterministic local screen-pattern evidence after semantic interaction assertions', async ({ page }, testInfo) => {
   const runDirectory = join('output', 'playwright', 'screen-pattern-evidence', testInfo.project.name || 'local')
   const imagesDirectory = join(runDirectory, 'images')
@@ -21,8 +30,8 @@ test('captures deterministic local screen-pattern evidence after semantic intera
   const contractBefore = await page.locator('.json-preview').innerText()
   const markdownBefore = generateMarkdown(defaultContract)
   expect(importContract(JSON.parse(contractBefore))).toMatchObject({ outcome: 'valid' })
-  await page.getByRole('button', { name: 'Screen Patterns', exact: true }).click()
-  await expect(page.getByRole('tabpanel', { name: 'Interactive example' })).toBeVisible()
+  await selectScreenPattern(page, 'Search/List')
+  await expect(page.locator('[data-example="search-list"]')).toBeVisible()
   const evidenceJsonDownload = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download evidence JSON', exact: true }).click()
   expect((await evidenceJsonDownload).suggestedFilename()).toBe('screen-pattern-evidence.json')
@@ -43,7 +52,7 @@ test('captures deterministic local screen-pattern evidence after semantic intera
   await expect(page.getByRole('alert')).toContainText('Results are unavailable')
   await page.locator('[data-example="search-list"]').screenshot({ path: join(imagesDirectory, 'search-list-error.png') })
 
-  await page.getByRole('tab', { name: 'edit-detail', exact: true }).click()
+  await selectScreenPattern(page, 'Edit Detail')
   await page.getByRole('button', { name: 'Save local change', exact: true }).click()
   await expect(page.getByText('Review the field message before saving.', { exact: true })).toBeVisible()
   await page.locator('[data-example="edit-detail"]').screenshot({ path: join(imagesDirectory, 'edit-detail-validation.png') })
@@ -53,7 +62,7 @@ test('captures deterministic local screen-pattern evidence after semantic intera
   await page.getByRole('button', { name: 'Cancel and reset', exact: true }).click()
   await expect(page.getByLabel('Detail value')).toHaveValue('')
 
-  await page.getByRole('tab', { name: 'edit-list', exact: true }).click()
+  await selectScreenPattern(page, 'Edit List')
   await page.getByRole('checkbox').check()
   await expect(page.getByText('Selected', { exact: true })).toBeVisible()
   await page.locator('[data-example="edit-list"]').screenshot({ path: join(imagesDirectory, 'edit-list-selection.png') })
@@ -69,11 +78,11 @@ test('captures deterministic local screen-pattern evidence after semantic intera
   await page.getByRole('button', { name: 'Cancel row edit', exact: true }).click()
   await expect(page.getByText('Corrected row value', { exact: true })).toBeVisible()
 
-  await page.getByRole('tab', { name: 'read-only-detail', exact: true }).click()
+  await selectScreenPattern(page, 'Read-only Detail')
   await expect(page.getByLabel('Reference value')).toHaveAttribute('readonly', '')
   await page.locator('[data-example="read-only-detail"]').screenshot({ path: join(imagesDirectory, 'read-only-detail.png') })
 
-  await page.getByRole('tab', { name: 'destructive-action', exact: true }).click()
+  await selectScreenPattern(page, 'Destructive Action')
   await page.getByRole('button', { name: 'Start local destructive action', exact: true }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.locator('[data-example="destructive-action"]').screenshot({ path: join(imagesDirectory, 'destructive-confirmation.png') })

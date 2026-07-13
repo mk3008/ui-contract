@@ -27,6 +27,7 @@ import {
 } from './select-contract'
 import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
 import { InteractiveScreenPatterns } from './interactive-screen-patterns'
+import type { ScreenPatternExampleId } from './screen-pattern-evidence'
 import { translateUiDocument, type UiLanguage } from './i18n'
 import { defaultContract } from './contract/defaults'
 import { importContract } from './contract/import'
@@ -74,7 +75,11 @@ type MenuItem =
   | 'Contract Editor / Side Panel'
   | 'Contract Editor / Confirmation'
   | 'Color Settings'
-  | 'Screen Patterns'
+  | 'Screen Patterns / Search/List'
+  | 'Screen Patterns / Edit Detail'
+  | 'Screen Patterns / Edit List'
+  | 'Screen Patterns / Read-only Detail'
+  | 'Screen Patterns / Destructive Action'
   | 'Settings'
 type MenuStatus = 'active' | 'placeholder'
 type MenuEntry = {
@@ -86,6 +91,13 @@ type MenuEntry = {
     page: MenuItem
     status: MenuStatus
   }>
+}
+type ScreenPatternPage = Extract<MenuItem, `Screen Patterns / ${string}`>
+type ScreenPatternMenuItem = {
+  label: string
+  page: ScreenPatternPage
+  status: 'active'
+  example: ScreenPatternExampleId
 }
 type ContractEditorComponent = 'button' | 'textField' | 'focus' | 'validation' | 'availability' | 'stateFeedback' | 'select' | 'tabs' | 'toggle' | 'checkbox' | 'card' | 'sidePanel' | 'confirmation'
 type ButtonColoringOption<Value extends string> = {
@@ -332,6 +344,14 @@ const colorProfiles: ColorProfile[] = [
 
 const sampleContract = defaultContract as unknown as UiContract
 
+const screenPatternMenuItems: ScreenPatternMenuItem[] = [
+  { label: 'Search/List', page: 'Screen Patterns / Search/List', status: 'active', example: 'search-list' },
+  { label: 'Edit Detail', page: 'Screen Patterns / Edit Detail', status: 'active', example: 'edit-detail' },
+  { label: 'Edit List', page: 'Screen Patterns / Edit List', status: 'active', example: 'edit-list' },
+  { label: 'Read-only Detail', page: 'Screen Patterns / Read-only Detail', status: 'active', example: 'read-only-detail' },
+  { label: 'Destructive Action', page: 'Screen Patterns / Destructive Action', status: 'active', example: 'destructive-action' },
+]
+
 const menuItems: MenuEntry[] = [
   { label: 'Overview', page: 'Overview', status: 'active' },
   {
@@ -355,7 +375,7 @@ const menuItems: MenuEntry[] = [
   },
   { label: 'Color Settings', page: 'Color Settings', status: 'active' },
   { label: 'Choice Group Layout', page: 'Choice Group Layout', status: 'active' },
-  { label: 'Screen Patterns', page: 'Screen Patterns', status: 'active' },
+  { label: 'Screen Patterns', status: 'active', children: screenPatternMenuItems },
   { label: 'Settings', page: 'Settings', status: 'placeholder' },
 ]
 
@@ -790,8 +810,9 @@ function App() {
                             : selectedMenu === 'Contract Editor / State Feedback'
                               ? 'stateFeedback'
         : 'button'
+  const selectedScreenPattern = screenPatternMenuItems.find((item) => item.page === selectedMenu)
   const pageTitle =
-    selectedMenu === 'Contract Editor / Button'
+    selectedScreenPattern?.label ?? (selectedMenu === 'Contract Editor / Button'
       ? 'Button Contract'
       : selectedMenu === 'Contract Editor / Text Field'
         ? 'Text Field Contract'
@@ -817,10 +838,12 @@ function App() {
                             ? 'Availability Policy'
                             : selectedMenu === 'Contract Editor / State Feedback'
                               ? 'State Feedback Policy'
-                : selectedMenu
-  const pageEyebrow = isContractEditorPage ? 'Contract Editor' : selectedMenu === 'Choice Group Layout' ? 'Foundation' : 'Main page'
+                : selectedMenu)
+  const pageEyebrow = isContractEditorPage ? 'Contract Editor' : selectedScreenPattern ? 'Screen Patterns' : selectedMenu === 'Choice Group Layout' ? 'Foundation' : 'Main page'
   const pageStatus =
-    isContractEditorPage || selectedMenu === 'Color Settings' || selectedMenu === 'Choice Group Layout' || selectedMenu === 'Screen Patterns'
+    selectedScreenPattern
+      ? 'Interactive'
+      : isContractEditorPage || selectedMenu === 'Color Settings' || selectedMenu === 'Choice Group Layout'
       ? 'Editable'
       : 'Placeholder'
   const isOverviewPage = selectedMenu === 'Overview'
@@ -878,8 +901,8 @@ function App() {
       )
     }
 
-    if (selectedMenu === 'Screen Patterns') {
-      return <ScreenPatternsPanel contract={contract} />
+    if (selectedScreenPattern) {
+      return <ScreenPatternsPanel contract={contract} example={selectedScreenPattern.example} />
     }
 
     if (selectedMenu === 'Settings') {
@@ -2942,7 +2965,7 @@ function StatusChip({
   )
 }
 
-function ScreenPatternsPanel({ contract }: { contract: UiContract }) {
+function ScreenPatternsPanel({ contract, example }: { contract: UiContract; example: ScreenPatternExampleId }) {
   return (
     <div className="screen-pattern-panel">
       <section className="screen-pattern-intro">
@@ -2953,6 +2976,7 @@ function ScreenPatternsPanel({ contract }: { contract: UiContract }) {
         <p>Screen Patterns define reusable structures that compose existing Component Contracts. They do not choose fields, workflow behavior, or layout mechanics.</p>
       </section>
       <InteractiveScreenPatterns
+        example={example}
         policy={contract.screenPatternPolicy}
         availability={contract.interactionPolicy.availability}
         confirmation={contract.interactionPolicy.confirmation}

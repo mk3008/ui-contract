@@ -740,6 +740,7 @@ const translationEntries: TranslationEntry[] = [
   { ja: '証跡 Markdown をダウンロード', en: 'Download evidence Markdown' },
   { ja: 'インタラクティブな画面パターンの実行例', en: 'Interactive screen pattern examples' },
   { ja: 'インタラクティブな実行例', en: 'Interactive example' },
+  { ja: '操作可能', en: 'Interactive' },
   { ja: 'ローカルの結果状態と選択コンテキストは、既存の Search/List パターンを構成します。', en: 'Local results states and selection context compose the existing Search/List pattern.' },
   { ja: 'Search/List 状態コントロール', en: 'Search list state controls' },
   { ja: '結果を表示', en: 'Show results' },

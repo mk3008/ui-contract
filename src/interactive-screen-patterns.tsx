@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AvailabilityLayout, AvailabilityTreatment, ConfirmationScope, ConfirmationSurface, UiContract } from './contract/types'
-import { generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown, screenPatternExampleIds, type ScreenPatternExampleId } from './screen-pattern-evidence'
+import { generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown, type ScreenPatternExampleId } from './screen-pattern-evidence'
 
 type Props = {
   availability: { treatment: AvailabilityTreatment; layout: AvailabilityLayout }
@@ -23,14 +23,12 @@ function download(content: string, filename: string, type: string) {
   URL.revokeObjectURL(url)
 }
 
-export function InteractiveScreenPatterns({ availability, confirmation, policy }: Props) {
-  const [active, setActive] = useState<ScreenPatternExampleId>('search-list')
+export function InteractiveScreenPatterns({ availability, confirmation, example, policy }: Props & { example: ScreenPatternExampleId }) {
   return (
     <section className="interactive-screen-patterns" aria-label="Interactive screen pattern examples">
       <div className="interactive-screen-patterns-heading">
         <div>
           <p className="eyebrow">Interactive examples</p>
-          <h3>Screen pattern workspace</h3>
           <p>These local examples demonstrate existing Contract composition. They are not selectable Contract policy values.</p>
         </div>
         <div className="evidence-downloads" aria-label="Evidence downloads">
@@ -38,19 +36,12 @@ export function InteractiveScreenPatterns({ availability, confirmation, policy }
           <button type="button" onClick={() => download(generateScreenPatternEvidenceMarkdown(), 'screen-pattern-evidence.md', 'text/markdown')}>Download evidence Markdown</button>
         </div>
       </div>
-      <div className="screen-example-tabs" role="tablist" aria-label="Interactive screen pattern examples">
-        {screenPatternExampleIds.map((id) => (
-          <button key={id} type="button" role="tab" data-i18n-skip aria-selected={active === id} className={active === id ? 'is-active' : ''} onClick={() => setActive(id)}>
-            {id}
-          </button>
-        ))}
-      </div>
-      <div className="interactive-example-stage" role="tabpanel" aria-label="Interactive example">
-        {active === 'search-list' && <SearchListExample policy={policy} />}
-        {active === 'edit-detail' && <EditDetailExample />}
-        {active === 'edit-list' && <EditListExample />}
-        {active === 'read-only-detail' && <ReadOnlyDetailExample availability={availability} />}
-        {active === 'destructive-action' && <DestructiveActionExample confirmation={confirmation} />}
+      <div className="interactive-example-stage" aria-label="Interactive example">
+        {example === 'search-list' && <SearchListExample policy={policy} />}
+        {example === 'edit-detail' && <EditDetailExample />}
+        {example === 'edit-list' && <EditListExample />}
+        {example === 'read-only-detail' && <ReadOnlyDetailExample availability={availability} />}
+        {example === 'destructive-action' && <DestructiveActionExample confirmation={confirmation} />}
       </div>
     </section>
   )

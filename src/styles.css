@@ -1098,7 +1098,6 @@ h3 {
 .interactive-example-heading,
 .example-actions,
 .evidence-downloads,
-.screen-example-tabs,
 .selection-context,
 .example-row {
   display: flex;
@@ -1126,13 +1125,11 @@ h3 {
 }
 
 .evidence-downloads,
-.screen-example-tabs,
 .example-actions {
   flex-wrap: wrap;
 }
 
 .evidence-downloads button,
-.screen-example-tabs button,
 .example-actions button,
 .bulk-action,
 .danger-action,
@@ -1144,12 +1141,6 @@ h3 {
   background: var(--surface-soft);
   font: inherit;
   font-weight: 700;
-}
-
-.screen-example-tabs button[aria-selected="true"] {
-  border-color: var(--primary);
-  color: var(--primary-text);
-  background: var(--primary);
 }
 
 .interactive-example-stage {
