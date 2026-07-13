@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { defaultContract } from '../contract/defaults'
 import { importContract } from '../contract/import'
 import { generateJson, generateMarkdown } from '../contract/output'
-import { documentedScreenPatternEvidenceCapture, generateScreenPatternEvidence, generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown, type ScreenPatternExampleId } from '../screen-pattern-evidence'
+import { generateScreenPatternEvidence, generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown, type ScreenPatternExampleId } from '../screen-pattern-evidence'
 
 test.use({ viewport: { width: 1440, height: 1000 } })
 
@@ -69,8 +69,11 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   await loadChooser
   const contractSaveDownload = page.waitForEvent('download')
   await saveControl.click()
-  expect((await contractSaveDownload).suggestedFilename()).toBe('ui-contract.json')
-  const contractBefore = await page.locator('.json-preview').innerText()
+  const savedContract = await contractSaveDownload
+  expect(savedContract.suggestedFilename()).toBe('ui-contract.json')
+  const savedContractPath = join(root, 'downloaded-ui-contract.json')
+  await savedContract.saveAs(savedContractPath)
+  const contractBefore = readFileSync(savedContractPath, 'utf8')
   expect(importContract(JSON.parse(contractBefore))).toMatchObject({ outcome: 'valid' })
   const currentContract = JSON.parse(contractBefore) as typeof defaultContract
   const captureConfig = {
@@ -87,23 +90,7 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
 
   await page.getByRole('button', { name: 'Screen Patterns', exact: true }).click()
   await page.getByRole('button', { name: 'Search/List', exact: true }).click()
-  const jsonEvidenceControl = page.getByRole('button', { name: 'Download Screen Pattern evidence JSON' })
-  const markdownEvidenceControl = page.getByRole('button', { name: 'Download Screen Pattern evidence Markdown' })
-  await expect(jsonEvidenceControl).toHaveText('JSON')
-  await expect(markdownEvidenceControl).toHaveText('Markdown')
-  const jsonDownload = page.waitForEvent('download')
-  await jsonEvidenceControl.click()
-  const jsonDownloadPath = join(root, 'downloaded-screen-pattern-evidence.json')
-  await (await jsonDownload).saveAs(jsonDownloadPath)
-  const downloadedEvidence = JSON.parse(readFileSync(jsonDownloadPath, 'utf8'))
-  expect(downloadedEvidence.contract.canonicalJson).toBe(contractBefore)
-  expect(downloadedEvidence.contract.canonicalJsonDigest).toBe(generateScreenPatternEvidence(currentContract).contract.canonicalJsonDigest)
-  expect(downloadedEvidence.capture).toEqual(documentedScreenPatternEvidenceCapture)
-  const markdownDownload = page.waitForEvent('download')
-  await markdownEvidenceControl.click()
-  const markdownDownloadPath = join(root, 'downloaded-screen-pattern-evidence.md')
-  await (await markdownDownload).saveAs(markdownDownloadPath)
-  expect(readFileSync(markdownDownloadPath, 'utf8')).toContain('# Screen pattern acceptance evidence')
+  await expect(page.getByRole('button', { name: /Screen Pattern evidence/i })).toHaveCount(0)
 
   await openArtifact(page, 'search-list')
   await expect(page.getByRole('form', { name: 'Search conditions' })).toBeVisible()

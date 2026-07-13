@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ConfirmationSurface, UiContract } from './contract/types'
-import { generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown, type ScreenPatternExampleId } from './screen-pattern-evidence'
+import { type ScreenPatternExampleId } from './screen-pattern-evidence'
 
 type Props = {
   contract: UiContract
@@ -15,29 +15,12 @@ const accounts = [
 const noMatchAccount = 'Meridian Logistics'
 const searchLoadingDelayMs = 3_000
 
-function DownloadIcon() {
-  return <svg aria-hidden="true" className="download-icon" viewBox="0 0 16 16"><path d="M8 2v7m0 0 3-3m-3 3L5 6m-2 5h10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" /></svg>
-}
-
-function download(content: string, filename: string, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }))
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
-}
-
 export function isLocalUndoEligible(surface: ConfirmationSurface): boolean { return surface === 'undo-when-reversible' }
 
-export function InteractiveScreenPatterns({ contract, confirmation, example, button }: Props & { example: ScreenPatternExampleId }) {
+export function InteractiveScreenPatterns({ confirmation, example, button }: Props & { example: ScreenPatternExampleId }) {
   return <section className="interactive-screen-patterns" aria-label="Screen pattern acceptance surface">
     <div className="interactive-screen-patterns-heading">
       <div><p className="eyebrow">Acceptance surface</p><p>Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.</p></div>
-      <div className="evidence-downloads" aria-label="Evidence downloads">
-        <button aria-label="Download Screen Pattern evidence JSON" type="button" onClick={() => download(generateScreenPatternEvidenceJson(contract), 'screen-pattern-evidence.json', 'application/json')}><DownloadIcon />JSON</button>
-        <button aria-label="Download Screen Pattern evidence Markdown" type="button" onClick={() => download(generateScreenPatternEvidenceMarkdown(contract), 'screen-pattern-evidence.md', 'text/markdown')}><DownloadIcon />Markdown</button>
-      </div>
     </div>
     <div className="interactive-example-stage"><ScreenPatternContent button={button} confirmation={confirmation} example={example} /></div>
   </section>

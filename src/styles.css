@@ -51,10 +51,17 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  min-height: 0;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  overflow: hidden;
 }
 
 button {
@@ -62,9 +69,11 @@ button {
 }
 
 .app-shell {
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
   background:
     linear-gradient(180deg, rgba(37, 99, 235, 0.05), transparent 220px),
     var(--page);
@@ -74,6 +83,7 @@ button {
   min-height: 0;
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .app-shell.is-sidebar-collapsed .app-body {
@@ -88,6 +98,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .brand {
@@ -102,14 +114,6 @@ button {
   font-size: 15px;
   font-weight: 700;
   color: var(--text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.brand-subtitle {
-  overflow: hidden;
-  font-size: 12px;
-  color: var(--muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -197,21 +201,6 @@ button {
   color: var(--subtle);
 }
 
-.sidebar-card {
-  margin-top: auto;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-}
-
-.sidebar-card p {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.card-kicker,
 .eyebrow {
   font-size: 11px;
   font-weight: 700;
@@ -222,7 +211,10 @@ button {
 
 .workspace {
   min-width: 0;
+  min-height: 0;
   padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .topbar {
@@ -304,7 +296,6 @@ h3 {
   color: var(--text);
 }
 
-.topbar-title p,
 .empty-state p {
   color: var(--muted);
 }
@@ -385,18 +376,12 @@ h3 {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   margin-top: 0;
 }
 
-.content-grid.is-inspector-collapsed {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.main-panel,
-.inspector {
+.main-panel {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -411,8 +396,7 @@ h3 {
   gap: 18px;
 }
 
-.section-heading,
-.inspector-header {
+.section-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -466,18 +450,6 @@ h3 {
   background:
     linear-gradient(90deg, rgba(37, 99, 235, 0.05), transparent),
     var(--surface-soft);
-}
-
-.overview-hero h3 {
-  margin-top: 6px;
-}
-
-.overview-tagline {
-  display: block;
-  margin-top: 5px;
-  color: var(--text);
-  font-size: 23px;
-  line-height: 1.25;
 }
 
 .overview-hero p:not(.eyebrow) {
@@ -1143,6 +1115,9 @@ h3 {
   font: inherit;
   font-weight: 700;
 }
+
+.load-feedback { padding: 12px; border: 1px solid var(--danger); border-radius: var(--radius); color: var(--text); background: var(--surface-soft); }
+.load-feedback p { margin: 0 0 8px; }
 
 .evidence-downloads button { display: inline-flex; align-items: center; gap: 5px; }
 .download-icon { width: 15px; height: 15px; }
@@ -3265,39 +3240,6 @@ h3 {
   gap: 16px;
 }
 
-.inspector {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.inspector-meta {
-  max-width: 320px;
-  margin-top: 4px;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.json-preview {
-  min-height: 320px;
-  max-height: 520px;
-  margin: 0;
-  padding: 14px;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  color: var(--text);
-  background: var(--surface-soft);
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
-
 .stretch {
   flex: 1 1 0;
 }
@@ -3315,10 +3257,15 @@ h3 {
 @media (max-width: 1080px) {
   .app-body {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+  }
+
+  .app-shell.is-sidebar-collapsed .app-body {
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .sidebar {
-    min-height: auto;
+    min-height: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -3363,6 +3310,7 @@ h3 {
   }
 
   .topbar-start {
+    flex: 0 0 auto;
     min-width: 0;
   }
 

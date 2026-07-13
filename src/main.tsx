@@ -1,8 +1,7 @@
-import { StrictMode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { StrictMode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
   ChevronRight,
-  FileJson,
   FolderOpen,
   LoaderCircle,
   Moon,
@@ -10,7 +9,6 @@ import {
   Plus,
   Save,
   Sun,
-  FileCode2,
 } from 'lucide-react'
 import overviewContentSource from './content/overview-content.json'
 import {
@@ -28,7 +26,7 @@ import {
 import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
 import { InteractiveScreenPatterns, ScreenPatternPageArtifact } from './interactive-screen-patterns'
 import { screenPatternExampleIds, type ScreenPatternExampleId } from './screen-pattern-evidence'
-import { translateUiDocument, type UiLanguage } from './i18n'
+import { translateUiDocument, translateUiText, type UiLanguage } from './i18n'
 import { defaultContract } from './contract/defaults'
 import { importContract } from './contract/import'
 import { generateJson } from './contract/output'
@@ -52,7 +50,6 @@ type OverviewSection = {
 type OverviewContent = {
   languageLabel: string
   translationNote: string
-  tagline: string
   title: string
   lead: string
   keywords: string[]
@@ -429,9 +426,8 @@ function App() {
   const [selectedMenu, setSelectedMenu] = useState<MenuItem>('Overview')
   const [contract, setContract] = useState<UiContract>(sampleContract)
   const [loadedFile, setLoadedFile] = useState<LoadedFile | null>(null)
-  const [loadMessage, setLoadMessage] = useState('Using built-in sample contract.')
+  const [loadError, setLoadError] = useState<'malformed' | 'invalid' | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-  const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -446,8 +442,6 @@ function App() {
   useLayoutEffect(() => {
     translateUiDocument(language)
   })
-
-  const contractText = useMemo(() => generateJson(contract as unknown as import('./contract/types').UiContract), [contract])
 
   const buttonPolicy = contract.componentPolicy.button
   const textFieldPolicy = contract.componentPolicy.textField
@@ -465,12 +459,6 @@ function App() {
   const brandIdentity = contract.designPolicy.brandIdentity
   const colorPolicy = contract.designPolicy.color
   const colorProfileId = contract.designPolicy.colorProfileId
-  const inspectorSourceText = loadedFile
-    ? `Loaded: ${loadedFile.name} · ${loadedFile.loadedAt}`
-    : loadMessage === 'Using built-in sample contract.'
-      ? 'Built-in sample contract'
-      : loadMessage
-
   const updateButtonPolicy = <Key extends keyof UiContract['componentPolicy']['button']>(
     key: Key,
     value: UiContract['componentPolicy']['button'][Key],
@@ -727,29 +715,26 @@ function App() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
+    setLoadError(null)
 
     try {
       const content = await file.text()
-      const result = importContract(JSON.parse(content))
-      if (!result.contract) {
-        setLoadMessage(`${result.outcome}: ${result.diagnostics.join(' ')}`)
-        return
-      }
+      let result
+      try { result = importContract(JSON.parse(content)) } catch { setLoadError('malformed'); return }
+      if (!result.contract) { setLoadError('invalid'); return }
       setContract(result.contract as unknown as UiContract)
+      setLoadError(null)
       setLoadedFile({
         name: file.name,
         loadedAt: new Date().toLocaleString(),
       })
-      setLoadMessage(`${result.outcome}: ${result.diagnostics.join(' ') || 'Loaded JSON into the editable contract state.'}`)
-    } catch {
-      setLoadMessage('Could not load this file as a UI Contract JSON.')
-    } finally {
+    } catch { setLoadError('invalid') } finally {
       event.target.value = ''
     }
   }
 
   const handleSave = () => {
-    const blob = new Blob([contractText], { type: 'application/json' })
+    const blob = new Blob([generateJson(contract as unknown as import('./contract/types').UiContract)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
@@ -933,15 +918,13 @@ function App() {
 
           <div className="brand">
             <div>
-              <div className="brand-name">UI Contract Editor</div>
-              <div className="brand-subtitle">Business UI rules</div>
+              <div className="brand-name" data-i18n-skip>UI Contract Editor</div>
             </div>
           </div>
         </div>
 
         <div className="topbar-title">
           <h1>Contract Workspace</h1>
-          <p>Component and color policy are the first editable slices.</p>
         </div>
 
         <div className="topbar-actions">
@@ -972,17 +955,6 @@ function App() {
           <button aria-label="Save UI Contract" className="toolbar-button" onClick={handleSave} type="button">
             <Save size={17} />
             <span data-i18n-skip>保存</span>
-          </button>
-          <button
-            className={`icon-button ${isInspectorOpen ? 'is-active' : ''}`}
-            onClick={() => setIsInspectorOpen((current) => !current)}
-            type="button"
-            aria-controls="contract-inspector"
-            aria-expanded={isInspectorOpen}
-            aria-label={isInspectorOpen ? 'Hide contract JSON' : 'Show contract JSON'}
-            title={isInspectorOpen ? 'Hide contract JSON' : 'Show contract JSON'}
-          >
-            <FileCode2 size={18} />
           </button>
           <button
             className="icon-button"
@@ -1043,16 +1015,11 @@ function App() {
                 )
               })}
             </nav>
-
-            <div className="sidebar-card">
-              <div className="card-kicker">Current focus</div>
-              <p>Component and color contract editing are wired to focused previews.</p>
-            </div>
           </aside>
         ) : null}
 
         <main className="workspace">
-          <section className={`content-grid ${isInspectorOpen ? '' : 'is-inspector-collapsed'}`}>
+          <section className="content-grid">
             <section className="main-panel">
               {!isOverviewPage ? (
                 <div className="section-heading">
@@ -1063,32 +1030,11 @@ function App() {
                   <span className="state-pill">{pageStatus}</span>
                 </div>
               ) : null}
+              {loadError ? <div className="load-feedback" role="alert"><p>{translateUiText(loadError === 'malformed' ? 'Could not read this file as JSON. Choose a JSON file and try again.' : 'This Contract cannot be loaded. Choose a supported UI Contract file and try again.', language)}</p><button className="contract-button secondary-outline" onClick={handleLoad} type="button">{translateUiText('Try another file', language)}</button></div> : null}
 
               {renderMainContent()}
 
             </section>
-
-            {isInspectorOpen ? (
-              <aside className="inspector" id="contract-inspector">
-                <div className="inspector-header">
-                  <div>
-                    <p className="eyebrow">Inspector</p>
-                    <h2>Contract JSON</h2>
-                    <p className="inspector-meta">{inspectorSourceText}</p>
-                  </div>
-                  <button
-                    className="icon-button"
-                    onClick={() => setIsInspectorOpen(false)}
-                    type="button"
-                    aria-label="Hide contract JSON"
-                  >
-                    <FileJson size={20} />
-                  </button>
-                </div>
-
-                <pre className="json-preview">{contractText}</pre>
-              </aside>
-            ) : null}
           </section>
         </main>
       </div>
@@ -3024,7 +2970,6 @@ function OverviewPanel({ language }: { language: OverviewLanguage }) {
     <div className="overview-panel">
       <div className="overview-hero">
         <div>
-          <strong className="overview-tagline">{content.tagline}</strong>
           <h3>{content.title}</h3>
           <p>{content.lead}</p>
           <div className="overview-keywords" aria-label="Overview keywords">
