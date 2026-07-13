@@ -73,6 +73,29 @@ When multiple design systems strongly favor a pattern, use that pattern as the s
 
 If design-system guidance conflicts, choose the option with the lowest accessibility, comprehension, and layout-instability risk, then preserve the uncertainty in review notes.
 
+## Reference Screen Governance
+
+Reference screens are research material for extracting reusable business-application
+design principles. They are not assets, specifications, or implementation targets.
+
+- Use references only when they represent contemporary, high-quality business or
+  operational software. Do not use marketing, teaser, campaign, or advertising
+  pages as evidence for business-application screen patterns.
+- Re-check contemporaneity and established design-system guidance when selecting
+  references; visual fashion alone is not sufficient evidence.
+- Keep external screenshots, URLs, capture metadata, and attribution outside the
+  repository and Git history. A private research record may retain sources.
+- Do not copy a reference screen's distinctive composition, branding, copy,
+  imagery, names, or identifiable visual expression into product code, Contract
+  vocabulary, generated JSON/Markdown, screenshots, or user-facing text.
+- Record only source-independent design conclusions in this repository, using
+  portable terms that a frontend implementer can apply without knowing a source
+  product. Validate each conclusion against official design-system guidance,
+  Nielsen review, accessibility, and the existing Contract boundaries.
+- Treat reference screenshots as supplementary visual evidence. Screen behavior,
+  keyboard and assistive-technology support, data semantics, permissions, and
+  recovery behavior require their own Contract or screen-pattern evidence.
+
 ## Boundary Rule
 
 Button Contract options may describe button-visible properties, such as emphasis, placement within an action group, loading display, disabled visual state, or icon usage.
