@@ -26,6 +26,7 @@ import {
   SelectSectionedContractPanel,
 } from './select-contract'
 import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
+import { InteractiveScreenPatterns } from './interactive-screen-patterns'
 import { translateUiDocument, type UiLanguage } from './i18n'
 import { defaultContract } from './contract/defaults'
 import { importContract } from './contract/import'
@@ -878,7 +879,7 @@ function App() {
     }
 
     if (selectedMenu === 'Screen Patterns') {
-      return <ScreenPatternsPanel policy={contract.screenPatternPolicy} />
+      return <ScreenPatternsPanel contract={contract} />
     }
 
     if (selectedMenu === 'Settings') {
@@ -2941,9 +2942,7 @@ function StatusChip({
   )
 }
 
-function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPolicy'] }) {
-  const searchListEntry = catalogDecision('search-list-pattern')
-  const formSectionEntry = catalogDecision('form-section-pattern')
+function ScreenPatternsPanel({ contract }: { contract: UiContract }) {
   return (
     <div className="screen-pattern-panel">
       <section className="screen-pattern-intro">
@@ -2953,109 +2952,12 @@ function ScreenPatternsPanel({ policy }: { policy: UiContract['screenPatternPoli
         </div>
         <p>Screen Patterns define reusable structures that compose existing Component Contracts. They do not choose fields, workflow behavior, or layout mechanics.</p>
       </section>
-
-      <section className="screen-pattern-card">
-        <span className="screen-pattern-scope">{`Selectable decision: ${policy.searchList}`}</span>
-        <p>{searchListEntry.note}</p>
-        <div className="search-list-preview">
-          <div className="search-list-label">Fixed structure — search conditions</div>
-          <div className="search-list-controls"><input value="Quarterly review" readOnly /><button type="button">Search</button><button type="button">Reset</button></div>
-          <div className="search-list-label">Fixed structure — results: 24 · Sort: Updated ↓ · bulk actions appear after selection</div>
-          <div className="search-list-table"><span>☐ Account</span><span>Status</span><span>Row actions</span><span>☐ Northwind</span><span>Active</span><span>View · Edit</span></div>
-          <div className="search-list-label">Fixed states — loading skeleton · empty guidance · error message · paging (Previous / 1 / Next)</div>
-          <div className="search-list-label">Narrow viewport — conditions stack; result columns become row summaries while actions remain visible.</div>
-          <div className="search-list-label">Screen-owned exceptions: which filters, columns, row actions, bulk actions, and recovery actions exist. Interaction Policy owns focus, availability, loading feedback, validation, empty/error guidance, and destructive confirmation.</div>
-        </div>
-      </section>
-
-      <section className="screen-pattern-card form-section-card">
-        <div className="screen-pattern-card-heading">
-          <div>
-            <span className="screen-pattern-scope">{`Selectable decision: ${policy.formSection}`}</span>
-            <h3>{formSectionEntry.label}</h3>
-            <span className="option-title">{formSectionEntry.options![0].label}</span>
-          </div>
-        </div>
-        <p>{formSectionEntry.note}</p>
-        <p>Use this fixed structure to show a related group of existing inputs. Field choice, requiredness, validation, availability, and action behavior remain owned elsewhere.</p>
-        <form className="form-section-preview" aria-label="Grouped form section preview">
-          <fieldset>
-            <legend className="option-title">Account details</legend>
-            <p className="form-section-helper">Related fields are scanned from top to bottom beneath this group heading.</p>
-            <label>
-              Account name
-              <input value="Northwind Traders" readOnly />
-            </label>
-            <label>
-              Account owner
-              <input value="Avery Morgan" readOnly />
-            </label>
-          </fieldset>
-          <div className="form-section-actions">
-            <span>Distinct action area</span>
-            <button type="button">Example action</button>
-          </div>
-        </form>
-      </section>
-
-      <div className="screen-pattern-grid">
-        <ScreenPatternCard
-          title="Navigation history"
-          scope="SPAの戻る/進む"
-          status="candidate"
-          body="ブラウザの戻るボタンで、選択中ページ、プレビュータブ、開閉パネル、Inspector選択をどこまで復元するかを決めます。視覚デザインではなく、作業復帰のポリシーです。"
-          points={[
-            'ページ遷移はpushする',
-            '軽い開閉状態はreplaceまたはlocal stateにする',
-            '作業対象の選択は復帰できるようにする',
-          ]}
-        />
-
-        <ScreenPatternCard
-          title="Small viewport"
-          scope="モバイル/狭い画面"
-          status="candidate"
-          body="業務アプリでも狭い画面の破綻は避ける必要があります。すべてをスマホ最適化するのではなく、主要操作が壊れない最低ラインを決めます。"
-          points={[
-            'サイドバーとInspectorは折りたたむ',
-            '設定とプレビューは縦積みにする',
-            '固定ヘッダーや操作ボタンが内容を隠さない',
-          ]}
-        />
-      </div>
+      <InteractiveScreenPatterns
+        policy={contract.screenPatternPolicy}
+        availability={contract.interactionPolicy.availability}
+        confirmation={contract.interactionPolicy.confirmation}
+      />
     </div>
-  )
-}
-
-function ScreenPatternCard({
-  body,
-  points,
-  scope,
-  status,
-  title,
-}: {
-  body: string
-  points: string[]
-  scope: string
-  status: 'candidate' | 'review'
-  title: string
-}) {
-  return (
-    <article className="screen-pattern-card">
-      <div className="screen-pattern-card-heading">
-        <div>
-          <span className="screen-pattern-scope">{scope}</span>
-          <h3>{title}</h3>
-        </div>
-        <span className={`screen-pattern-status ${status}`}>{status === 'review' ? 'Review' : 'Candidate'}</span>
-      </div>
-      <p>{body}</p>
-      <ul>
-        {points.map((point) => (
-          <li key={point}>{point}</li>
-        ))}
-      </ul>
-    </article>
   )
 }
 

@@ -16,9 +16,8 @@ test('audits every active view in JP and EN while preserving only structural and
       await expect(page.getByRole('navigation')).toContainText('Button')
       await expect(page.getByRole('navigation')).toContainText('State Feedback')
       if (view === 'Screen Patterns') {
-        await expect(page.getByText('Grouped form section', { exact: true })).toBeVisible()
-        await expect(page.getByText('Account details', { exact: true })).toBeVisible()
-        await expect(page.getByText(language === 'JP' ? '明確に分けたアクション領域' : 'Distinct action area', { exact: true })).toBeVisible()
+        await expect(page.getByText('Screen pattern workspace', { exact: true })).toBeVisible()
+        await expect(page.getByText(language === 'JP' ? 'これらのローカル実行例は既存の Contract 構成を示します。選択可能な Contract ポリシー値ではありません。' : 'These local examples demonstrate existing Contract composition. They are not selectable Contract policy values.', { exact: true })).toBeVisible()
       }
       if (view === 'Choice Group Layout') {
         await expect(page.locator('.choice-group-layout-fixed-decision .option-title')).toHaveText('Stacked by default')

@@ -1085,6 +1085,195 @@ h3 {
   line-height: 1.6;
 }
 
+.interactive-screen-patterns {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: var(--surface);
+}
+
+.interactive-screen-patterns-heading,
+.interactive-example-heading,
+.example-actions,
+.evidence-downloads,
+.screen-example-tabs,
+.selection-context,
+.example-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.interactive-screen-patterns-heading,
+.interactive-example-heading {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.interactive-screen-patterns h3,
+.interactive-example h4,
+.confirmation-dialog h5 {
+  margin: 0;
+}
+
+.interactive-screen-patterns p,
+.interactive-example p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.evidence-downloads,
+.screen-example-tabs,
+.example-actions {
+  flex-wrap: wrap;
+}
+
+.evidence-downloads button,
+.screen-example-tabs button,
+.example-actions button,
+.bulk-action,
+.danger-action,
+.interactive-example > button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font: inherit;
+  font-weight: 700;
+}
+
+.screen-example-tabs button[aria-selected="true"] {
+  border-color: var(--primary);
+  color: var(--primary-text);
+  background: var(--primary);
+}
+
+.interactive-example-stage {
+  min-height: 236px;
+}
+
+.interactive-example {
+  display: grid;
+  gap: 14px;
+}
+
+.interactive-example code {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: var(--primary-strong);
+  background: var(--surface-soft);
+}
+
+.example-state,
+.local-editor,
+.read-only-fields,
+.confirmation-dialog {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--surface-soft);
+}
+
+.example-state.is-error,
+.validation-summary {
+  border-color: var(--danger);
+}
+
+.example-row {
+  justify-content: flex-start;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--surface);
+}
+
+.example-row span:nth-of-type(1) {
+  min-width: 140px;
+  color: var(--text);
+}
+
+.example-row span:nth-of-type(2) {
+  color: var(--muted);
+}
+
+.example-row button {
+  margin-left: auto;
+}
+
+.selection-context,
+.validation-summary,
+.field-message,
+.success-message {
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.validation-summary,
+.field-message[role="alert"] {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.success-message {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.example-field {
+  display: grid;
+  gap: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.example-field input {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+}
+
+.example-field input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.example-field input:read-only {
+  background: var(--surface-soft);
+}
+
+.read-only-fields {
+  margin: 0;
+}
+
+.read-only-fields legend {
+  padding: 0 4px;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.danger-action {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+
+.confirmation-dialog {
+  outline: 3px solid color-mix(in srgb, var(--danger) 28%, transparent);
+}
+
 .screen-pattern-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
