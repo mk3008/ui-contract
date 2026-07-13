@@ -6,6 +6,7 @@ const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tab
 const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, .json-preview, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
 const englishStructureSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'
 const immutableVocabulary = new Set(['Contract Editor', 'Foundation', 'Main page', 'Editable', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
+const fixtureRecordValues = new Set(['Lumen Office', 'Pine Services', 'M. Suzuki', 'A. Tanaka'])
 
 async function expectLocalizedPage(page: import('@playwright/test').Page, language: 'JP' | 'EN', view: string) {
   const untranslatedStructure = await page.locator(englishStructureSelector).allTextContents()
@@ -24,7 +25,7 @@ async function expectLocalizedPage(page: import('@playwright/test').Page, langua
         return [text, ...attributes].filter(Boolean)
       })
   }, excludedRegionSelector)
-  const allowed = (text: string) => immutableVocabulary.has(text) || /^#?[0-9a-fA-F]{6}$/.test(text) || /^\d+$/.test(text)
+  const allowed = (text: string) => immutableVocabulary.has(text) || fixtureRecordValues.has(text) || /^#?[0-9a-fA-F]{6}$/.test(text) || /^\d+$/.test(text) || /^AC-\d+$/.test(text)
   const untranslated = language === 'JP'
     ? visibleCopy.filter((text) => /^[\x20-\x7E]+$/.test(text) && !allowed(text))
     : visibleCopy.filter((text) => /[ぁ-んァ-ン一-龯]/.test(text) && !allowed(text))
