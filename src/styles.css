@@ -1314,8 +1314,6 @@ h3 {
 .results-toolbar p,
 .screen-action-bar p,
 .detail-status p { color: var(--muted); line-height: 1.5; }
-.business-screen-header code { padding: 4px 7px; border: 1px solid var(--line); border-radius: 5px; color: var(--primary-strong); background: var(--surface); }
-
 .screen-section,
 .screen-state,
 .screen-action-bar {

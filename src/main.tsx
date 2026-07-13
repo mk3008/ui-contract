@@ -2982,9 +2982,7 @@ function ScreenPatternsPanel({ contract, example }: { contract: UiContract; exam
       <InteractiveScreenPatterns
         contract={contract}
         example={example}
-        policy={contract.screenPatternPolicy}
         button={contract.componentPolicy.button}
-        availability={contract.interactionPolicy.availability}
         confirmation={contract.interactionPolicy.confirmation}
       />
     </div>

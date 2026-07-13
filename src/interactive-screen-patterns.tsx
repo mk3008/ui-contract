@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { AvailabilityLayout, AvailabilityTreatment, ConfirmationSurface, UiContract } from './contract/types'
+import type { ConfirmationSurface, UiContract } from './contract/types'
 import { generateScreenPatternEvidenceJson, generateScreenPatternEvidenceMarkdown, type ScreenPatternExampleId } from './screen-pattern-evidence'
 
 type Props = {
   contract: UiContract
-  availability: { treatment: AvailabilityTreatment; layout: AvailabilityLayout }
   confirmation: { surface: ConfirmationSurface }
-  policy: UiContract['screenPatternPolicy']
   button: UiContract['componentPolicy']['button']
 }
 type SearchState = 'unsearched' | 'results' | 'busy' | 'empty' | 'error'
@@ -31,7 +29,7 @@ function download(content: string, filename: string, type: string) {
 
 export function isLocalUndoEligible(surface: ConfirmationSurface): boolean { return surface === 'undo-when-reversible' }
 
-export function InteractiveScreenPatterns({ contract, availability, confirmation, example, policy, button }: Props & { example: ScreenPatternExampleId }) {
+export function InteractiveScreenPatterns({ contract, confirmation, example, button }: Props & { example: ScreenPatternExampleId }) {
   return <section className="interactive-screen-patterns" aria-label="Screen pattern acceptance surface">
     <div className="interactive-screen-patterns-heading">
       <div><p className="eyebrow">Acceptance surface</p><p>Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.</p></div>
@@ -40,7 +38,7 @@ export function InteractiveScreenPatterns({ contract, availability, confirmation
         <button aria-label="Download Screen Pattern evidence Markdown" type="button" onClick={() => download(generateScreenPatternEvidenceMarkdown(contract), 'screen-pattern-evidence.md', 'text/markdown')}><DownloadIcon />Markdown</button>
       </div>
     </div>
-    <div className="interactive-example-stage"><ScreenPatternContent availability={availability} button={button} confirmation={confirmation} example={example} policy={policy} /></div>
+    <div className="interactive-example-stage"><ScreenPatternContent button={button} confirmation={confirmation} example={example} /></div>
   </section>
 }
 
@@ -56,25 +54,25 @@ export function ScreenPatternPageArtifact({ contract, example }: { contract: UiC
   } as React.CSSProperties
   return <main className="screen-page-artifact" data-page-artifact data-screen-pattern={example} style={pageStyle}>
     <header className="artifact-app-header"><div className="artifact-product"><strong>Northstar Operations</strong><span>Customer administration</span></div><p>Operations team</p></header>
-    <div className="artifact-app-body"><nav className="artifact-nav" aria-label="Application navigation"><button aria-label="Accounts" type="button">A</button><button aria-label="Assignments" type="button">R</button><button aria-label="Reports" type="button">S</button></nav><section className="artifact-workspace"><div className="artifact-context"><span>Accounts</span><span>Customer operations</span></div><ScreenPatternContent artifact artifactState={artifactState} availability={contract.interactionPolicy.availability} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} policy={contract.screenPatternPolicy} /></section></div>
+    <div className="artifact-app-body"><nav className="artifact-nav" aria-label="Application navigation"><button aria-label="Accounts" type="button">A</button><button aria-label="Assignments" type="button">R</button><button aria-label="Reports" type="button">S</button></nav><section className="artifact-workspace"><div className="artifact-context"><span>Accounts</span><span>Customer operations</span></div><ScreenPatternContent artifact artifactState={artifactState} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} /></section></div>
   </main>
 }
 
-function ScreenPatternContent({ artifact = false, artifactState, availability, button, confirmation, example, policy }: { artifact?: boolean; artifactState?: string | null; availability: Props['availability']; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId; policy: Props['policy'] }) {
-  if (example === 'search-list') return <SearchListExample artifact={artifact} policy={policy} button={button} initialSelected={artifactState === 'selected'} initialState={artifactState === 'results' || artifactState === 'selected' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} />
+function ScreenPatternContent({ artifact = false, artifactState, button, confirmation, example }: { artifact?: boolean; artifactState?: string | null; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId }) {
+  if (example === 'search-list') return <SearchListExample artifact={artifact} button={button} initialSelected={artifactState === 'selected'} initialState={artifactState === 'results' || artifactState === 'selected' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} />
   if (example === 'edit-detail') return <EditDetailExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : 'initial'} />
   if (example === 'edit-list') return <EditListExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : artifactState === 'editing' ? 'editing' : 'initial'} />
-  if (example === 'read-only-detail') return <ReadOnlyDetailExample artifact={artifact} availability={availability} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
+  if (example === 'read-only-detail') return <ReadOnlyDetailExample artifact={artifact} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
   return <DestructiveActionExample artifact={artifact} confirmation={confirmation} button={button} initialState={artifactState === 'confirmation' || artifactState === 'error' || artifactState === 'result' ? artifactState : 'initial'} />
 }
 
-function ScreenHeader({ title, context, policy }: { title: string; context: string; policy?: string }) {
-  return <header className="business-screen-header"><div><p className="eyebrow">Operations workspace</p><h4>{title}</h4><p>{context}</p></div>{policy && <code data-i18n-skip>{policy}</code>}</header>
+function ScreenHeader({ title, context }: { title: string; context: string }) {
+  return <header className="business-screen-header"><div><h4>{title}</h4><p>{context}</p></div></header>
 }
 
 function screenButtonClasses(button: Props['button']) { return `button-primary-${button.primaryEmphasis} button-secondary-${button.secondaryEmphasis} button-danger-${button.dangerEmphasis} button-danger-placement-${button.dangerPlacement}` }
 
-function SearchListExample({ artifact = false, policy, button, initialSelected = false, initialState = 'unsearched' }: { artifact?: boolean; policy: UiContract['screenPatternPolicy']; button: Props['button']; initialSelected?: boolean; initialState?: SearchState }) {
+function SearchListExample({ artifact = false, button, initialSelected = false, initialState = 'unsearched' }: { artifact?: boolean; button: Props['button']; initialSelected?: boolean; initialState?: SearchState }) {
   const [state, setState] = useState<SearchState>(initialState)
   const [term, setTerm] = useState(initialState === 'empty' ? noMatchAccount : '')
   const [submitted, setSubmitted] = useState(initialState === 'empty' ? noMatchAccount : '')
@@ -88,7 +86,7 @@ function SearchListExample({ artifact = false, policy, button, initialSelected =
   const toggleAccount = (name: string) => setSelected((current) => current.includes(name) ? current.filter((selectedName) => selectedName !== name) : [...current, name])
   const toggleAll = () => setSelected(allSelected ? [] : accounts.map(([name]) => name))
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="search-list" data-screen="search-list" data-state={selectionActive ? 'selected' : state} data-primary-emphasis={button.primaryEmphasis}>
-    <ScreenHeader title="Account directory" context="Find and maintain customer account records." policy={artifact ? undefined : policy.searchList} />
+    <ScreenHeader title="Account directory" context="Find and maintain customer account records." />
     <form className="screen-section search-conditions" onSubmit={(event) => { event.preventDefault(); apply() }} aria-label="Search conditions">
       <div className="section-title"><h5>Search conditions</h5></div>
       <div className="search-condition-fields"><label className="example-field">Account name<input value={term} onChange={(event) => setTerm(event.target.value)} /></label><label className="example-field">Account status<select defaultValue="All statuses"><option>All statuses</option><option>Active</option><option>Review</option></select></label></div>
@@ -134,10 +132,10 @@ function EditListExample({ artifact = false, button, initialState = 'initial' }:
   </article>
 }
 
-function ReadOnlyDetailExample({ artifact = false, availability, button, initialState = 'initial' }: { artifact?: boolean; availability: Props['availability']; button: Props['button']; initialState?: 'initial' | 'error' }) {
+function ReadOnlyDetailExample({ artifact = false, button, initialState = 'initial' }: { artifact?: boolean; button: Props['button']; initialState?: 'initial' | 'error' }) {
   const [state, setState] = useState<'initial' | 'error'>(initialState)
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="read-only-detail" data-screen="read-only-detail" data-state={state} data-primary-emphasis={button.primaryEmphasis}>
-    <ScreenHeader title="Account detail" context="Lumen Office · Account AC-2049" policy={artifact ? undefined : availability.treatment} />
+    <ScreenHeader title="Account detail" context="Lumen Office · Account AC-2049" />
     <section className="screen-section"><div className="detail-status"><span className="record-status success">Active</span><p>This record is read-only because it is managed by the regional operations team.</p></div><div className="read-only-detail-grid"><div><span>Account owner</span><strong>M. Suzuki</strong></div><div><span>Service tier</span><strong>Priority support</strong></div><div><span>Updated</span><strong>12 Jul, 14:20</strong></div><div><span>Source</span><strong>Regional operations</strong></div></div></section>
     {state === 'error' ? <section className="screen-state is-error" role="alert"><strong>Account detail is unavailable</strong><p>The record could not be refreshed. Review the account details, then try again.</p><button className="contract-button primary-filled" type="button" onClick={() => setState('initial')}>Retry detail</button></section> : <div className="screen-action-bar"><p>Editing is unavailable for this record.</p><div className="screen-actions"><button className="contract-button secondary-outline" type="button">View activity</button><button className="contract-button secondary-outline" type="button" onClick={() => setState('error')}>Refresh detail</button></div></div>}
   </article>
@@ -167,7 +165,7 @@ function DestructiveActionExample({ artifact = false, confirmation, button, init
   }, [open])
   const confirm = () => { setOpen(false); setTyped(''); setResult('error') }
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="destructive-action" data-screen="destructive-action" data-state={open ? 'confirmation' : result} data-primary-emphasis={button.primaryEmphasis}>
-    <ScreenHeader title="Close account" context="Pine Services · Account AC-2050" policy={artifact ? undefined : confirmation.surface} />
+    <ScreenHeader title="Close account" context="Pine Services · Account AC-2050" />
     <section className="screen-section"><h5>Account closure</h5><p>Closing this account removes it from active operations and prevents new assignments. Review the account context before continuing.</p><div className="read-only-detail-grid"><div><span>Current status</span><strong>Paused</strong></div><div><span>Open assignments</span><strong>0</strong></div></div></section><div className="screen-action-bar"><p>Use this action only after related work is complete.</p><button className="contract-button danger-emphasis-outline" type="button" onClick={() => setOpen(true)}>Close account</button></div>
     {result === 'error' && <section className="screen-state is-error" role="alert"><strong>Account closure did not complete</strong><p>No account data was changed. You can retry the closure request.</p><button className="contract-button primary-filled" type="button" onClick={() => setResult('done')}>Retry closure</button></section>}
     {result === 'done' && <p className="success-message" role="status">Account closure completed.</p>}

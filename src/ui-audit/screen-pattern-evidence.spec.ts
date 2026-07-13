@@ -254,6 +254,16 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   expect(readFileSync(join(root, 'screen-pattern-evidence.md'), 'utf8')).toContain('JPEG')
 })
 
+test('keeps internal metadata out of the Search/List business screen', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Screen Patterns', exact: true }).click()
+  await page.getByRole('button', { name: 'Search/List', exact: true }).click()
+
+  const preview = page.locator('.interactive-example-stage [data-screen="search-list"]')
+  await expect(preview).not.toContainText('Operations workspace')
+  await expect(preview).not.toContainText('standard-search-list')
+})
+
 test('keeps Search/List structured content, related actions, and paging bounded on wide desktop', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1000 })
   await page.goto('/')
