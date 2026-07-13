@@ -1,6 +1,6 @@
 export const supportedAdapterSpecVersion = '0.1.0' as const
 /** Adapter 0.1 validates the current Contract shape only; no version range is accepted. */
-export const supportedAdapterContractSchemaVersion = '0.4.0' as const
+export const supportedAdapterContractSchemaVersion = '0.5.0' as const
 
 export type AdapterTarget = { id: string; version: string }
 

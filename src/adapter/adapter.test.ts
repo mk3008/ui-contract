@@ -23,7 +23,7 @@ describe('Phase 5 target-neutral Adapter validator', () => {
     const derived = deriveRequiredRules(defaultContract)
     expect(derived.diagnostics).toEqual([])
     expect(derived.rules).toHaveLength(contractCatalog.length)
-    expect(derived.rules.find((rule) => rule.catalogId === 'radio-group-treatment')).toMatchObject({ kind: 'decision', contractPath: 'componentPolicy.radioGroup.treatment', selectedValue: 'visible-label-radio-group' })
+    expect(derived.rules.find((rule) => rule.catalogId === 'choice-group-layout')).toMatchObject({ kind: 'decision', contractPath: 'designPolicy.choiceGroupLayout', selectedValue: 'stacked-default-with-constrained-inline' })
     expect(derived.rules.find((rule) => rule.catalogId === 'visible-focus')).toMatchObject({ kind: 'invariant', contractPath: 'invariants.visibleFocus', statement: 'Keyboard focus must remain visible.', persistedValue: null })
     expect(derived.rules.find((rule) => rule.catalogId === 'loading-feedback')).toMatchObject({ kind: 'invariant', contractPath: 'interactionPolicy.loading.feedback', statement: 'Loading must visibly and programmatically communicate that the affected region is busy. Use skeletons only for structured content; use an inline indicator for a single processing action.', persistedValue: 'communicate-busy-state' })
   })
@@ -72,7 +72,7 @@ describe('Phase 5 target-neutral Adapter validator', () => {
   })
 
   it('classifies exact Contract, Adapter specification, and target version mismatches separately', () => {
-    const historicalContract = { ...defaultContract, schemaVersion: '0.3.0' } as unknown as UiContract
+    const historicalContract = { ...defaultContract, schemaVersion: '0.4.0' } as unknown as UiContract
     expect(validateAdapter(historicalContract, createCompleteManifest(), syntheticTarget)).toMatchObject({ outcome: 'unsupported-contract-version', diagnostics: [{ stage: 'adapter', code: 'unsupported-contract-version' }] })
 
     const unknownSpec = createCompleteManifest() as unknown as { adapterSpecVersion: string }
@@ -82,7 +82,7 @@ describe('Phase 5 target-neutral Adapter validator', () => {
     expect(resultFor(createCompleteManifest(), { id: 'sample-target', version: '2026.08' })).toMatchObject({ outcome: 'unsupported-target-version', diagnostics: [{ stage: 'target', code: 'unsupported-target-version' }] })
 
     const unsupportedAcceptList = createCompleteManifest() as unknown as { acceptsContractSchemaVersions: string[] }
-    unsupportedAcceptList.acceptsContractSchemaVersions = ['0.3.0']
+    unsupportedAcceptList.acceptsContractSchemaVersions = ['0.4.0']
     expect(resultFor(unsupportedAcceptList)).toMatchObject({ outcome: 'adapter-invalid', diagnostics: [{ stage: 'adapter', code: 'accepted-contract-version-invalid' }] })
     expect(createCompleteManifest().acceptsContractSchemaVersions).toEqual([supportedAdapterContractSchemaVersion])
   })

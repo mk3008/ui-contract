@@ -1247,45 +1247,38 @@ h3 {
   font-weight: 700;
 }
 
-.radio-group-preview {
+.choice-group-layout-preview {
   display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface-soft);
+  gap: 12px;
 }
 
-.radio-group-preview legend {
-  padding: 0 4px;
-  color: var(--text);
-  font-weight: 800;
+.choice-group-layout-preview h4,
+.choice-group-layout-preview p {
+  margin: 0;
 }
 
-.radio-group-preview > p {
-  margin: 0;
+.choice-group-layout-preview p {
   color: var(--muted);
   line-height: 1.5;
 }
 
-.radio-group-row {
+.choice-layout-example {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.choice-layout-example.is-inline {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.choice-layout-example label {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 32px;
-  color: var(--text);
-  cursor: default;
-}
-
-.radio-group-row.is-selected > span {
-  font-weight: 800;
-}
-
-.radio-group-state {
-  margin-left: auto;
-  color: var(--text);
-  font-size: 12px;
 }
 
 .classification-notes {
@@ -2009,12 +2002,6 @@ h3 {
   gap: 8px;
 }
 
-.control-checkbox-group.is-inline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .control-checkbox-row {
   display: inline-flex;
   align-items: center;
@@ -2054,8 +2041,8 @@ h3 {
   border-radius: 6px;
 }
 
-.control-checkbox-group:not(.is-inline) .control-checkbox-row.surface-row-surface,
-.control-checkbox-group:not(.is-inline) .control-checkbox-row.surface-bordered-choice-row {
+.control-checkbox-group .control-checkbox-row.surface-row-surface,
+.control-checkbox-group .control-checkbox-row.surface-bordered-choice-row {
   width: 100%;
 }
 

@@ -15,7 +15,6 @@ export type TabsTreatment = TabsPolicy['treatment']
 export type TabsAdornment = TabsPolicy['adornment']
 export type ToggleTreatment = TogglePolicy['treatment']
 export type ToggleLabelPolicy = TogglePolicy['labelPolicy']
-export type CheckboxGroupLayout = CheckboxPolicy['groupLayout']
 export type CheckboxChoiceSurface = CheckboxPolicy['choiceSurface']
 export type CheckboxMixedState = CheckboxPolicy['mixedState']
 
@@ -23,13 +22,12 @@ export const tabsTreatmentOptions: Array<Option<TabsTreatment>> = catalogOptions
 export const tabsAdornmentOptions: Array<Option<TabsAdornment>> = catalogOptions('tabs-adornment')
 export const toggleTreatmentOptions: Array<Option<ToggleTreatment>> = catalogOptions('toggle-treatment')
 export const toggleLabelPolicyOptions: Array<Option<ToggleLabelPolicy>> = catalogOptions('toggle-label-policy')
-export const checkboxGroupLayoutOptions: Array<Option<CheckboxGroupLayout>> = catalogOptions('checkbox-group-layout')
 export const checkboxChoiceSurfaceOptions: Array<Option<CheckboxChoiceSurface>> = catalogOptions('checkbox-choice-surface')
 export const checkboxMixedStateOptions: Array<Option<CheckboxMixedState>> = catalogOptions('checkbox-mixed-state')
 
 export const renderedControlDecisionIds = [
   'tabs-treatment', 'tabs-adornment', 'toggle-treatment', 'toggle-label-policy',
-  'checkbox-group-layout', 'checkbox-choice-surface', 'checkbox-mixed-state',
+  'checkbox-choice-surface', 'checkbox-mixed-state',
 ] as const
 
 export function TabsSectionedContractPanel({
@@ -114,12 +112,6 @@ export function CheckboxSectionedContractPanel({
         description="Checkboxes represent independent choices, often applied with a form, filter, or screen action."
         controls={
           <>
-            <OptionGroup
-              title="Group layout"
-              value={checkboxPolicy.groupLayout}
-              options={checkboxGroupLayoutOptions}
-              onChange={(value) => onUpdate('groupLayout', value)}
-            />
             <OptionGroup
               title="Choice surface"
               value={checkboxPolicy.choiceSurface}
@@ -293,14 +285,10 @@ function TogglePreview({ togglePolicy }: { togglePolicy: TogglePolicy }) {
 }
 
 function CheckboxPreview({ checkboxPolicy }: { checkboxPolicy: CheckboxPolicy }) {
-  const groupClass = checkboxPolicy.groupLayout === 'inline-compact'
-    ? 'control-checkbox-group is-inline'
-    : 'control-checkbox-group'
-
   return (
     <div className="control-stage">
       <ControlStateCard title="Choice group" caption="Independent choices can be selected together">
-        <div className={groupClass}>
+        <div className="control-checkbox-group">
           <CheckboxRow checked choiceSurface={checkboxPolicy.choiceSurface} label="Tables" />
           <CheckboxRow checked choiceSurface={checkboxPolicy.choiceSurface} label="CTEs" />
           <CheckboxRow choiceSurface={checkboxPolicy.choiceSurface} label="Derived" />

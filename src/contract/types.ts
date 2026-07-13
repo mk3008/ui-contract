@@ -32,17 +32,17 @@ export type ColorProfile = { brandIdentity: BrandIdentityPolicy; color: ColorPol
 export type SelectPolicy = { emptyDisplay: 'placeholder-text' | 'blank-field'; multiSelectedItemDisplay: 'chips' | 'inline-text' | 'chips-overflow-count' | 'count-summary'; multiRemoveAffordance: 'chip-remove-button' | 'list-toggle-only'; searchFieldTreatment: 'embedded-search-field' | 'separate-search-field' }
 export type TabsPolicy = { treatment: 'segmented-contained' | 'underline-tabs'; adornment: 'text-only' | 'icon-when-clarifying' | 'count-when-useful' }
 export type TogglePolicy = { treatment: 'switch-control' | 'segmented-binary'; labelPolicy: 'visible-label' | 'label-plus-state-text' }
-export type CheckboxPolicy = { groupLayout: 'stacked-list' | 'inline-compact'; choiceSurface: 'plain-label' | 'row-surface' | 'bordered-choice-row'; mixedState: 'show-indeterminate' | 'avoid-parent-checkbox' }
-export type RadioGroupPolicy = { treatment: 'visible-label-radio-group' }
+export type ChoiceGroupLayoutPolicy = 'stacked-default-with-constrained-inline'
+export type CheckboxPolicy = { choiceSurface: 'plain-label' | 'row-surface' | 'bordered-choice-row'; mixedState: 'show-indeterminate' | 'avoid-parent-checkbox' }
 export type SearchListPolicy = 'standard-search-list'
 export type FormSectionPolicy = 'grouped-form-section'
 export type UiContract = {
-  schemaVersion: '0.4.0'
+  schemaVersion: '0.5.0'
   meta: { name: string; description: string }
   product: { systemType: string; informationDensity: string; visualTone: string }
-  designPolicy: { brandIdentity: BrandIdentityPolicy; colorProfileId: ActiveColorProfileId; color: ColorPolicy }
+  designPolicy: { brandIdentity: BrandIdentityPolicy; colorProfileId: ActiveColorProfileId; color: ColorPolicy; choiceGroupLayout: ChoiceGroupLayoutPolicy }
   interactionPolicy: { focus: { visibility: FocusVisibility; indicatorStyle: FocusIndicatorStyle }; validation: { trigger: ValidationTrigger; presentation: ValidationPresentation }; availability: { treatment: AvailabilityTreatment; layout: AvailabilityLayout }; confirmation: { surface: ConfirmationSurface; scope: ConfirmationScope }; loading: { feedback: 'communicate-busy-state' }; stateFeedback: { guidance: 'explain-condition-and-next-step' } }
-  componentPolicy: { button: { primaryEmphasis: PrimaryEmphasis; secondaryEmphasis: SecondaryEmphasis; dangerPlacement: DangerPlacement; dangerEmphasis: DangerEmphasis; iconAdornment: IconAdornment; iconOnlyPolicy: IconOnlyPolicy }; textField: { fieldStyle: TextFieldStyle; labelPlacement: TextFieldLabelPlacement; requiredIndicator: TextFieldRequiredIndicator; messageAreaBehavior: TextFieldMessageAreaBehavior; placeholderUsage: TextFieldPlaceholderUsage }; select: SelectPolicy; tabs: TabsPolicy; toggle: TogglePolicy; checkbox: CheckboxPolicy; radioGroup: RadioGroupPolicy; card: { treatment: CardTreatment; interaction: CardInteraction }; sidePanel: { relationship: SidePanelRelationship; responsive: SidePanelResponsive } }
+  componentPolicy: { button: { primaryEmphasis: PrimaryEmphasis; secondaryEmphasis: SecondaryEmphasis; dangerPlacement: DangerPlacement; dangerEmphasis: DangerEmphasis; iconAdornment: IconAdornment; iconOnlyPolicy: IconOnlyPolicy }; textField: { fieldStyle: TextFieldStyle; labelPlacement: TextFieldLabelPlacement; requiredIndicator: TextFieldRequiredIndicator; messageAreaBehavior: TextFieldMessageAreaBehavior; placeholderUsage: TextFieldPlaceholderUsage }; select: SelectPolicy; tabs: TabsPolicy; toggle: TogglePolicy; checkbox: CheckboxPolicy; card: { treatment: CardTreatment; interaction: CardInteraction }; sidePanel: { relationship: SidePanelRelationship; responsive: SidePanelResponsive } }
   screenPatternPolicy: { searchList: SearchListPolicy; formSection: FormSectionPolicy }
 }
 export type ImportOutcome = 'valid' | 'migrated' | 'accepted-with-ignored-unknown-fields' | 'invalid' | 'unsupported-version'

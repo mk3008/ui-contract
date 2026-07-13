@@ -59,7 +59,7 @@ to remove repetition.
 
 ## Choice Group Layout Review Decision
 
-The current Radio Group, Checkbox, Toggle, and Form Section review identifies a
+The Radio, Checkbox, Toggle, and Form Section review identifies a
 missing Foundation-level Layout Policy. The relevant subject is not a control
 type; it is the arrangement of sibling visible choices in a choice group.
 
@@ -69,18 +69,13 @@ type; it is the arrangement of sibling visible choices in a choice group.
   The portable baseline is "stack choice groups by default; permit inline layout
   only for a short binary choice in an appropriate screen context." This is a
   layout principle, not a Radio or Checkbox behavior setting.
-- **The current paths are a known ownership defect.** Checkbox
-  `groupLayout` exposes the layout principle as a Checkbox-only option, while
-  Radio Group embeds vertical scanning in its component treatment. Both must be
-  replaced by one Foundation-level Layout Policy in a dedicated schema/migration
-  slice. The component policies then retain only their control-specific anatomy
-  and state rules.
-- **Visible group/option labels and a non-colour-only selected state are also
-  shared choice-group requirements.** Review them together with the extracted
-  Layout Policy. Keep the final owner explicit: label anatomy may be a shared
-  component-family rule; readable selected state is a Foundation accessibility
-  invariant. Do not silently treat the current Radio Group value as governing
-  Checkbox before the shared policy is implemented.
+- **Implemented shared owner.** `designPolicy.choiceGroupLayout` is the one
+  Foundation-level owner of sibling-choice arrangement. Checkbox has no local
+  layout path. Native Radio semantics are not a persisted Contract decision,
+  so there is no Radio Group component policy to compete with the Foundation.
+- **Visible group/option labels and a non-colour-only selected state are shared
+  implementation requirements, not persisted choices.** Review them together
+  with the extracted Layout Policy without inventing a Radio-specific setting.
 - **Form Section composes rather than duplicates.** It arranges related fields
   and an action area. A choice group is one field/control arrangement inside that
   screen structure; the Form Section does not own its sibling-choice layout.
@@ -114,12 +109,13 @@ adding a second option or by making a preview silently choose one policy.
 ## Current Boundary Examples
 
 - `componentPolicy.toggle` owns the presentation of an immediate binary control;
-  it does not own radio-group orientation.
-- `componentPolicy.checkbox.groupLayout` is a legacy local representation of
-  Choice Group Layout and must be removed after extraction; Checkbox retains
-  choice surface and mixed-state rules.
-- `componentPolicy.radioGroup.treatment` currently embeds Choice Group Layout
-  and must be narrowed after extraction; Radio retains exclusive-choice anatomy.
+  it does not own native-radio or Checkbox group arrangement.
+- `designPolicy.choiceGroupLayout` owns the stacked default and constrained
+  inline allowance for sibling visible choices.
+- `componentPolicy.checkbox` retains choice surface and mixed-state rules; it
+  has no layout path.
+- Native radio controls retain their standard exclusive-choice semantics without
+  a persisted Component Contract; Choice Group Layout governs only arrangement.
 - `screenPatternPolicy.formSection` owns grouping related fields and separating
   an action area. It may contain a radio group, but it does not choose the radio
   group's internal option layout.
@@ -127,10 +123,10 @@ adding a second option or by making a preview silently choose one policy.
   and confirmation apply across components and must not be duplicated as
   component-local alternatives.
 
-The repeated word "vertical" in the radio-group and form-section examples is
+The repeated word "vertical" in radio-control and form-section examples is
 not automatically a duplicate, but it must be classified before acceptance. In
-the current Radio/Checkbox case it expresses the same sibling-choice layout
-principle and therefore requires extraction. In Form Section it describes the
+the Radio/Checkbox case it is now expressed by the shared sibling-choice layout
+Foundation. In Form Section it describes the
 scan of related fields within a screen structure, so it composes with Choice
 Group Layout rather than owning the same decision.
 
