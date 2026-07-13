@@ -33,6 +33,24 @@ user-facing reports in Japanese unless the user requests otherwise.
   non-material clarification. Never stack independent user requests into a
   running packet.
 
+## Human Conversation and Worker Event Separation
+
+- Treat worker ACKs, reports, watchdog results, and delegation delivery as
+  control-plane events, not as human requests. The active orchestrator remains
+  the user's single conversation counterpart.
+- The durable ledger and report are authoritative. Keep a delivered protocol
+  message to the task ID, attempt, status, and report path; never paste worker
+  reasoning, logs, or a full report into a human-facing reply.
+- If an event arrives during a human request, record and acknowledge it with
+  the worker, then continue that request unchanged. Defer review and any
+  user-facing worker update until the current reply is complete, unless the
+  event blocks, invalidates, or makes the request unsafe.
+- Coalesce non-blocking worker events. Notify the user only for a review
+  decision, blocker, human decision, or completed visible outcome.
+- Do not create a separate inbox task merely to hide worker notifications; it
+  splits authority and adds polling. The UI may show a compact protocol event
+  in this thread without changing the active human conversation.
+
 ## Non-negotiable product rules
 
 The design-system foundations knowledge is the durable source for what this product means by system design and how foundations, components, interaction policy, and screen patterns are separated.
