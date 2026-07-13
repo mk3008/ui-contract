@@ -17,6 +17,22 @@ user-facing reports in Japanese unless the user requests otherwise.
   `docs/reviews/screen-pattern-realism-review.md` and the
   `$business-screen-review` skill.
 
+## Open Worker Scope Gate
+
+- A worker that has sent `WORKER_ACK` owns one frozen, independently reviewable
+  packet. Do not send it additional implementation work while it is running.
+- Record a new user request as a queued task with purpose, acceptance,
+  dependency, overlap risk, and dispatch condition. Tell the user whether it is
+  queued, parallelized, or a later correction.
+- Dispatch queued work only after the active task has a terminal report and the
+  orchestrator has recorded an accept, correction, stop, or failure decision.
+- Reuse the same worker only for a correction that closes an original acceptance
+  gap, and only after its terminal report. Use another worker for a parallel
+  task only when files, runtime state, and verification evidence do not overlap.
+- An active worker may receive only protocol repair, stop/safety, or a
+  non-material clarification. Never stack independent user requests into a
+  running packet.
+
 ## Non-negotiable product rules
 
 The design-system foundations knowledge is the durable source for what this product means by system design and how foundations, components, interaction policy, and screen patterns are separated.
