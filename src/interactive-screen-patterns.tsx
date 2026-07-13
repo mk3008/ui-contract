@@ -94,7 +94,7 @@ function SearchListExample({ artifact = false, button, initialState = 'unsearche
     <form className="screen-section search-conditions" onSubmit={(event) => { event.preventDefault(); apply() }} aria-label="Search conditions">
       <div className="section-title"><h5>Search conditions</h5></div>
       <div className="search-condition-fields"><label className="example-field">Account name<input disabled={state === 'busy'} value={term} onChange={(event) => setTerm(event.target.value)} /></label><label className="example-field">Account status<select defaultValue="All statuses" disabled={state === 'busy'}><option>All statuses</option><option>Active</option><option>Review</option></select></label></div>
-      <div className="screen-actions search-condition-actions"><button className="contract-button primary-filled" disabled={state === 'busy'} type="submit">Search</button><button className="contract-button secondary-outline" disabled={state === 'busy'} type="button" onClick={reset}>Clear</button></div>
+      <div className="screen-actions search-condition-actions"><button aria-busy={state === 'busy'} className={`contract-button primary-filled${state === 'busy' ? ' is-loading' : ''}`} disabled={state === 'busy'} type="submit">{state === 'busy' && <span aria-hidden="true" className="button-loading-indicator" />}Search</button><button className="contract-button secondary-outline" disabled={state === 'busy'} type="button" onClick={reset}>Clear</button></div>
     </form>
     <section className="screen-section results-region" aria-label="Account results" aria-busy={state === 'busy'}>
       <div className="results-toolbar"><div><h5>Accounts</h5></div></div>

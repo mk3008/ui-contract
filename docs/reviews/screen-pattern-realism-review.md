@@ -44,6 +44,28 @@ interaction window.** This applies independently of MVVM or other state
 implementation. If a screen has no target above the initiating control, retain
 the rule for future tables and forms instead of adding controls above it.
 
+## Contract Composition Blockers
+
+For a Screen Pattern acceptance surface, an applicable immutable Contract path
+is a composition requirement. A reviewer must treat a visible contradiction as
+a blocker, not as a stylistic preference. In particular, when
+`interactionPolicy.loading.feedback` is `communicate-busy-state`, every
+asynchronous action shown by the pattern must retain its visible action label,
+show a loading indicator on the initiating action, and programmatically expose
+its busy state. A structured result region may additionally show a skeleton;
+a disabled action without a loading state is insufficient.
+
+The acceptance evidence must exercise the initiating action and assert the
+loading state, label, busy semantics, and affected-region feedback. A Screen
+Pattern may diverge only when its durable review report names the exact
+Contract path, explains the screen-local reason, and records explicit human
+approval; otherwise the review verdict is `blocker`.
+
+This gate applies to Screen Pattern acceptance surfaces only. In a product
+implementation, the real application code is authoritative unless a task
+explicitly requires Contract conformance. A Contract does not replace
+screen-specific behavior, business logic, or cases it cannot express.
+
 ## Evidence and Result
 
 Capture each final artifact and inspect it. Record the copy inventory, action

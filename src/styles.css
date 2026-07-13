@@ -3209,6 +3209,16 @@ h3 {
   cursor: progress;
 }
 
+.button-loading-indicator {
+  width: 13px;
+  height: 13px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
 .contract-button.is-disabled-preview {
   border-color: var(--line);
   color: var(--subtle);
