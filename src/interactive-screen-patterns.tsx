@@ -108,16 +108,30 @@ function SearchListExample({ artifact = false, button, initialState = 'unsearche
 }
 
 function EditDetailExample({ artifact = false, button, initialState = 'initial' }: { artifact?: boolean; button: Props['button']; initialState?: 'initial' | 'validation' }) {
-  const [name, setName] = useState(initialState === 'validation' ? '' : 'Harbor Supply')
-  const [email, setEmail] = useState('ops@harbor.example')
-  const [invalid, setInvalid] = useState(initialState === 'validation')
+  const initialDetails = initialState === 'validation'
+    ? { name: '', dateOfBirth: '2030-01-01', email: 'alex.morgan', phone: '', streetAddress: '', city: '', postalCode: '' }
+    : { name: 'Alex Morgan', dateOfBirth: '1990-06-16', email: 'alex.morgan@example.com', phone: '+1 415 555 0135', streetAddress: '220 Market Street', city: 'San Francisco', postalCode: '94105' }
+  const [details, setDetails] = useState(initialDetails)
+  const [submitted, setSubmitted] = useState(initialState === 'validation')
   const [saved, setSaved] = useState(false)
-  const reset = () => { setName('Harbor Supply'); setEmail('ops@harbor.example'); setInvalid(false); setSaved(false) }
-  const save = (event: React.FormEvent) => { event.preventDefault(); const failed = !name.trim(); setInvalid(failed); setSaved(!failed) }
-  return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="edit-detail" data-screen="edit-detail" data-state={invalid ? 'validation' : saved ? 'saved' : 'initial'} data-primary-emphasis={button.primaryEmphasis}>
+  const errors = {
+    name: !details.name.trim() ? 'Enter an account name.' : null,
+    dateOfBirth: !details.dateOfBirth || details.dateOfBirth >= new Date().toISOString().slice(0, 10) ? 'Enter a date of birth in the past.' : null,
+    email: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email) ? 'Enter a valid email address.' : null,
+    phone: !details.phone.trim() ? 'Enter a phone number.' : null,
+    streetAddress: !details.streetAddress.trim() ? 'Enter a street address.' : null,
+    city: !details.city.trim() ? 'Enter a city.' : null,
+    postalCode: !details.postalCode.trim() ? 'Enter a postal code.' : null,
+  }
+  const hasErrors = Object.values(errors).some(Boolean)
+  const update = (field: keyof typeof details) => (event: React.ChangeEvent<HTMLInputElement>) => setDetails((current) => ({ ...current, [field]: event.target.value }))
+  const reset = () => { setDetails({ name: 'Alex Morgan', dateOfBirth: '1990-06-16', email: 'alex.morgan@example.com', phone: '+1 415 555 0135', streetAddress: '220 Market Street', city: 'San Francisco', postalCode: '94105' }); setSubmitted(false); setSaved(false) }
+  const save = (event: React.FormEvent) => { event.preventDefault(); setSubmitted(true); setSaved(!hasErrors) }
+  const field = (key: keyof typeof details, label: string, type = 'text', fullWidth = false) => <label className={`example-field${fullWidth ? ' screen-field-span-full' : ''}`}>{label} <span className="required-cue">Required</span><input type={type} required aria-invalid={submitted && Boolean(errors[key])} aria-describedby={`${key}-message`} value={details[key]} onChange={update(key)} /><span id={`${key}-message`} className="field-message" role={submitted && errors[key] ? 'alert' : undefined}>{submitted ? errors[key] : null}</span></label>
+  return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="edit-detail" data-screen="edit-detail" data-state={submitted && hasErrors ? 'validation' : saved ? 'saved' : 'initial'} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Edit account" />
-    {invalid && <div className="validation-summary" role="alert">Review the required account name before saving.</div>}
-    <form onSubmit={save} noValidate><section className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>AC-2048</strong></div></div><div className="screen-field-grid"><label className="example-field">Account name <span className="required-cue">Required</span><input aria-invalid={invalid} aria-describedby="account-name-message" value={name} onChange={(event) => setName(event.target.value)} /></label><label className="example-field">Operations email<input value={email} onChange={(event) => setEmail(event.target.value)} /></label></div><p id="account-name-message" className="field-message" role={invalid ? 'alert' : undefined}>{invalid ? 'Enter an account name.' : null}</p></section><div className="screen-action-bar"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
+    {submitted && hasErrors && <div className="validation-summary" role="alert">Correct the highlighted required and invalid fields before saving.</div>}
+    <form onSubmit={save} noValidate><section className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>AC-2048</strong></div></div><div className="section-title"><h5>Personal information</h5></div><div className="screen-field-grid">{field('name', 'Account name')}{field('dateOfBirth', 'Date of birth', 'date')}{field('email', 'Email', 'email')}{field('phone', 'Phone number', 'tel')}{field('streetAddress', 'Street address', 'text', true)}{field('city', 'City')}{field('postalCode', 'Postal code')}</div></section><div className="screen-action-bar"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
   </article>
 }
 
