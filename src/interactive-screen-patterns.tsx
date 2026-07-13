@@ -15,6 +15,10 @@ const accounts = [
   ['Aster Works', 'Active', 'Today'], ['Harbor Supply', 'Review', 'Yesterday'], ['Lumen Office', 'Active', '12 Jul'], ['Pine Services', 'Paused', '10 Jul'],
 ] as const
 
+function DownloadIcon() {
+  return <svg aria-hidden="true" className="download-icon" viewBox="0 0 16 16"><path d="M8 2v7m0 0 3-3m-3 3L5 6m-2 5h10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" /></svg>
+}
+
 function download(content: string, filename: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }))
   const anchor = document.createElement('a')
@@ -31,8 +35,8 @@ export function InteractiveScreenPatterns({ contract, availability, confirmation
     <div className="interactive-screen-patterns-heading">
       <div><p className="eyebrow">Acceptance surface</p><p>Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.</p></div>
       <div className="evidence-downloads" aria-label="Evidence downloads">
-        <button type="button" onClick={() => download(generateScreenPatternEvidenceJson(contract), 'screen-pattern-evidence.json', 'application/json')}>Download evidence JSON</button>
-        <button type="button" onClick={() => download(generateScreenPatternEvidenceMarkdown(contract), 'screen-pattern-evidence.md', 'text/markdown')}>Download evidence Markdown</button>
+        <button aria-label="Download Screen Pattern evidence JSON" type="button" onClick={() => download(generateScreenPatternEvidenceJson(contract), 'screen-pattern-evidence.json', 'application/json')}><DownloadIcon />JSON</button>
+        <button aria-label="Download Screen Pattern evidence Markdown" type="button" onClick={() => download(generateScreenPatternEvidenceMarkdown(contract), 'screen-pattern-evidence.md', 'text/markdown')}><DownloadIcon />Markdown</button>
       </div>
     </div>
     <div className="interactive-example-stage"><ScreenPatternContent availability={availability} button={button} confirmation={confirmation} example={example} policy={policy} /></div>
@@ -56,7 +60,7 @@ export function ScreenPatternPageArtifact({ contract, example }: { contract: UiC
 }
 
 function ScreenPatternContent({ artifact = false, artifactState, availability, button, confirmation, example, policy }: { artifact?: boolean; artifactState?: string | null; availability: Props['availability']; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId; policy: Props['policy'] }) {
-  if (example === 'search-list') return <SearchListExample artifact={artifact} policy={policy} button={button} initialState={artifactState === 'loading' ? 'busy' : artifactState === 'empty' || artifactState === 'error' ? artifactState : 'results'} />
+  if (example === 'search-list') return <SearchListExample artifact={artifact} policy={policy} button={button} initialSelected={artifactState === 'selected'} initialState={artifactState === 'loading' ? 'busy' : artifactState === 'empty' || artifactState === 'error' ? artifactState : 'results'} />
   if (example === 'edit-detail') return <EditDetailExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : 'initial'} />
   if (example === 'edit-list') return <EditListExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : artifactState === 'editing' ? 'editing' : 'initial'} />
   if (example === 'read-only-detail') return <ReadOnlyDetailExample artifact={artifact} availability={availability} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
@@ -69,27 +73,32 @@ function ScreenHeader({ title, context, policy }: { title: string; context: stri
 
 function screenButtonClasses(button: Props['button']) { return `button-primary-${button.primaryEmphasis} button-secondary-${button.secondaryEmphasis} button-danger-${button.dangerEmphasis} button-danger-placement-${button.dangerPlacement}` }
 
-function SearchListExample({ artifact = false, policy, button, initialState = 'results' }: { artifact?: boolean; policy: UiContract['screenPatternPolicy']; button: Props['button']; initialState?: SearchState }) {
+function SearchListExample({ artifact = false, policy, button, initialSelected = false, initialState = 'results' }: { artifact?: boolean; policy: UiContract['screenPatternPolicy']; button: Props['button']; initialSelected?: boolean; initialState?: SearchState }) {
   const [state, setState] = useState<SearchState>(initialState)
   const [term, setTerm] = useState('')
   const [submitted, setSubmitted] = useState('')
-  const [selected, setSelected] = useState(false)
-  const apply = () => { setSubmitted(term); setState('busy'); window.setTimeout(() => setState(term === 'none' ? 'empty' : term === 'error' ? 'error' : 'results'), 180) }
-  const reset = () => { setTerm(''); setSubmitted(''); setSelected(false); setState('results') }
-  return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="search-list" data-screen="search-list" data-state={state} data-primary-emphasis={button.primaryEmphasis}>
+  const [selected, setSelected] = useState<string[]>(initialSelected ? [accounts[0][0]] : [])
+  const selectAllRef = useRef<HTMLInputElement>(null)
+  const allSelected = selected.length === accounts.length
+  const selectionActive = selected.length > 0
+  useEffect(() => { if (selectAllRef.current) selectAllRef.current.indeterminate = selectionActive && !allSelected }, [allSelected, selectionActive])
+  const apply = () => { setSelected([]); setSubmitted(term); setState('busy'); window.setTimeout(() => setState(term === 'none' ? 'empty' : term === 'error' ? 'error' : 'results'), 180) }
+  const reset = () => { setTerm(''); setSubmitted(''); setSelected([]); setState('results') }
+  const toggleAccount = (name: string) => setSelected((current) => current.includes(name) ? current.filter((selectedName) => selectedName !== name) : [...current, name])
+  const toggleAll = () => setSelected(allSelected ? [] : accounts.map(([name]) => name))
+  return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="search-list" data-screen="search-list" data-state={selectionActive ? 'selected' : state} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Account directory" context="Find and maintain customer account records." policy={artifact ? undefined : policy.searchList} />
     <form className="screen-section search-conditions" onSubmit={(event) => { event.preventDefault(); apply() }} aria-label="Search conditions">
       <div className="section-title"><h5>Search conditions</h5></div>
-      <label className="example-field">Account name<input value={term} onChange={(event) => setTerm(event.target.value)} /></label>
-      <label className="example-field">Account status<select defaultValue="All statuses"><option>All statuses</option><option>Active</option><option>Review</option></select></label>
-      <div className="screen-actions"><button className="contract-button primary-filled" type="submit">Apply search</button><button className="contract-button secondary-outline" type="button" onClick={reset}>Reset conditions</button></div>
+      <div className="search-condition-fields"><label className="example-field">Account name<input value={term} onChange={(event) => setTerm(event.target.value)} /></label><label className="example-field">Account status<select defaultValue="All statuses"><option>All statuses</option><option>Active</option><option>Review</option></select></label></div>
+      <div className="screen-actions search-condition-actions"><button className="contract-button primary-filled" type="submit">Apply search</button><button className="contract-button secondary-outline" type="button" onClick={reset}>Reset conditions</button></div>
     </form>
     <section className="screen-section results-region" aria-label="Account results" aria-busy={state === 'busy'}>
-      <div className="results-toolbar"><div><h5>Accounts</h5><p>{submitted ? `Results for “${submitted}”` : '24 accounts'} · Sorted by Updated, newest first</p></div>{selected && <div className="bulk-context" role="status">1 account selected <button className="contract-button secondary-outline" type="button">Assign owner</button></div>}</div>
+      <div className="results-toolbar"><div><h5>Accounts</h5><p>{submitted ? `Results for “${submitted}”` : '24 accounts'} · Sorted by Updated, newest first</p></div></div>
       {state === 'busy' && <div className="screen-state" role="status"><strong>Loading accounts</strong><p>Searching accounts for the selected conditions.</p><div className="skeleton-row" /><div className="skeleton-row short" /></div>}
       {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts match these conditions</strong><p>Clear the condition or try a broader account name.</p><button className="contract-button secondary-outline" type="button" onClick={reset}>Clear conditions</button></div>}
       {state === 'error' && <div className="screen-state is-error" role="alert"><strong>Account results are unavailable</strong><p>We couldn't retrieve account results. Review your conditions and try again.</p><button className="contract-button primary-filled" type="button" onClick={apply}>Retry search</button></div>}
-      {state === 'results' && <><table className="business-table"><thead data-i18n-skip><tr><th><input aria-label="Select all accounts" type="checkbox" /></th><th>Account</th><th>Status</th><th>Updated ↓</th><th>Action</th></tr></thead><tbody data-i18n-skip>{accounts.map(([name, status, updated]) => <tr key={name}><td><input aria-label={`Select ${name}`} type="checkbox" checked={selected && name === accounts[0][0]} onChange={(event) => setSelected(event.target.checked)} /></td><td><strong>{name}</strong><small>Customer account</small></td><td><span className={`record-status ${status === 'Active' ? 'success' : 'warning'}`}>{status}</span></td><td>{updated}</td><td><button className="table-action" type="button">View account</button></td></tr>)}</tbody></table><nav className="paging" aria-label="Account result pages"><button type="button" disabled>Previous</button><strong aria-current="page">1</strong><button type="button">Next</button></nav></>}
+      {state === 'results' && <div className="table-with-pagination">{selectionActive && <div className="batch-action-bar" aria-label="Selected account actions"><p role="status">{selected.length} {selected.length === 1 ? 'account' : 'accounts'} selected</p><div className="screen-actions"><button className="contract-button secondary-outline" type="button">Assign owner</button><button className="contract-button secondary-outline" type="button" onClick={() => setSelected([])}>Clear selection</button></div></div>}<table className="business-table"><thead data-i18n-skip><tr><th><input ref={selectAllRef} aria-label="Select all accounts" type="checkbox" checked={allSelected} onChange={toggleAll} /></th><th>Account</th><th>Status</th><th>Updated ↓</th><th>Action</th></tr></thead><tbody data-i18n-skip>{accounts.map(([name, status, updated]) => <tr key={name} data-selected={selected.includes(name) || undefined}><td><input aria-label={`Select ${name}`} type="checkbox" checked={selected.includes(name)} onChange={() => toggleAccount(name)} /></td><td><strong>{name}</strong><small>Customer account</small></td><td><span className={`record-status ${status === 'Active' ? 'success' : 'warning'}`}>{status}</span></td><td>{updated}</td><td><button className="table-action" type="button" disabled={selectionActive}>View account</button></td></tr>)}</tbody></table><nav className="paging" aria-label="Account result pages"><button type="button" disabled>Previous</button><strong aria-current="page">1</strong><button type="button">Next</button></nav></div>}
     </section>
   </article>
 }
@@ -104,7 +113,7 @@ function EditDetailExample({ artifact = false, button, initialState = 'initial' 
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="edit-detail" data-screen="edit-detail" data-state={invalid ? 'validation' : saved ? 'saved' : 'initial'} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Edit account" context="Harbor Supply · Account AC-2048" />
     {invalid && <div className="validation-summary" role="alert">Review the required account name before saving.</div>}
-    <form onSubmit={save} noValidate><section className="screen-section"><div className="section-title"><h5>Account profile</h5><p>Core contact information used by account operations.</p></div><div className="screen-field-grid"><label className="example-field">Account name <span className="required-cue">Required</span><input aria-invalid={invalid} aria-describedby="account-name-message" value={name} onChange={(event) => setName(event.target.value)} /></label><label className="example-field">Operations email<input value={email} onChange={(event) => setEmail(event.target.value)} /></label></div><p id="account-name-message" className="field-message" role={invalid ? 'alert' : undefined}>{invalid ? 'Enter an account name.' : 'A name identifies this account in operations.'}</p></section><section className="screen-section"><div className="section-title"><h5>Service settings</h5><p>Service settings for this account.</p></div><div className="read-only-summary"><span>Service tier</span><strong>Standard operations</strong><span>Account owner</span><strong>A. Tanaka</strong></div></section><div className="screen-action-bar"><p>Review changes before saving.</p><div className="screen-actions"><button className="contract-button secondary-outline" type="button" onClick={reset}>Cancel changes</button><button className="contract-button primary-filled" type="submit">Save account</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
+    <form onSubmit={save} noValidate><section className="screen-section"><div className="section-title"><h5>Account profile</h5><p>Core contact information used by account operations.</p></div><div className="screen-field-grid"><label className="example-field">Account name <span className="required-cue">Required</span><input aria-invalid={invalid} aria-describedby="account-name-message" value={name} onChange={(event) => setName(event.target.value)} /></label><label className="example-field">Operations email<input value={email} onChange={(event) => setEmail(event.target.value)} /></label></div><p id="account-name-message" className="field-message" role={invalid ? 'alert' : undefined}>{invalid ? 'Enter an account name.' : 'A name identifies this account in operations.'}</p></section><section className="screen-section"><div className="section-title"><h5>Service settings</h5><p>Service settings for this account.</p></div><div className="read-only-summary"><span>Service tier</span><strong>Standard operations</strong><span>Account owner</span><strong>A. Tanaka</strong></div></section><div className="screen-action-bar"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
   </article>
 }
 

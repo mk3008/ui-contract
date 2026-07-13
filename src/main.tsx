@@ -965,13 +965,13 @@ function App() {
             ref={fileInputRef}
             type="file"
           />
-          <button className="toolbar-button" onClick={handleLoad} type="button">
+          <button aria-label="Load UI Contract" className="toolbar-button" onClick={handleLoad} type="button">
             <FolderOpen size={17} />
-            Load
+            <span data-i18n-skip>読込</span>
           </button>
-          <button className="toolbar-button" onClick={handleSave} type="button">
+          <button aria-label="Save UI Contract" className="toolbar-button" onClick={handleSave} type="button">
             <Save size={17} />
-            Save
+            <span data-i18n-skip>保存</span>
           </button>
           <button
             className={`icon-button ${isInspectorOpen ? 'is-active' : ''}`}

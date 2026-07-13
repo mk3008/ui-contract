@@ -185,6 +185,32 @@ Necessary record data, workflow semantics, and screen-local shell fixtures may
 remain justified exceptions. The matrix audits a finished realistic page; it
 must never drive artificial UI, copy, or states solely to increase coverage.
 
+### Structured Search/List Composition
+
+Directories, search results, and comparable structured operational content use a
+constrained content grid by default. This is a semantic Screen Pattern/layout
+principle: a fixed grid preserves the relationship between conditions, actions,
+the result table, and pagination on wide desktop views. Fluid layout is reserved
+for content with no natural horizontal maximum, such as a board or canvas.
+
+The numeric CSS maximum is an implementation detail, not a Contract field.
+Search Apply and Reset belong in the same local condition/action grouping; table
+pagination belongs directly below the related table in the same bounded region.
+Their precise alignment is Screen Pattern composition, not a Button or
+Pagination component option.
+
+This principle does not presently justify a selectable Contract field. Keep the
+recommended constrained composition as the default and hold any option proposal
+until product evidence establishes a durable, user-selectable alternative
+layout policy with clear ownership.
+
+For multi-select tables, explicit checkboxes remain the selection control.
+Selected rows receive visible feedback in addition to their checkbox state, and
+the scoped batch-action bar is immediately adjacent to the table. Do not make
+arbitrary row surfaces toggle selection when a separate row action has a
+different intent; row activation remains deliberate. This is fixed
+standard-search-list behavior, not a Checkbox or Button Contract option.
+
 ## Review Rules
 
 Before adding or changing a Contract option, check:
