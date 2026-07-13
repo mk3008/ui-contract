@@ -15,7 +15,7 @@ UI library, or target version requires validating a different or revised Adapter
 it does not justify changing the Contract unless the product's design intent itself
 changes.
 
-This document is the Phase 5 operational specification and implementation brief.
+This document is the Phase 5 operational specification and implementation record.
 The durable definitions of portable design-system vocabulary and option admission
 remain in `docs/knowledge/design-system-foundations.md`,
 `docs/knowledge/design-system-anti-patterns.md`, and
@@ -25,10 +25,11 @@ Adapter format in those files or in `AGENTS.md`.
 ## Issue and customer value
 
 UI Contract 0.6.0 has explicit import and migration outcomes and deterministic JSON
-and Markdown output, but the repository does not yet define how a product team proves
-that a particular implementation target realizes every Contract rule. Without a
-separate boundary, framework names and local mechanics can leak into Contract values,
-or missing mappings can be mistaken for an invalid Contract.
+and Markdown output. The repository implements the target-neutral Adapter manifest
+validator, but an adopting product has not yet supplied a target-specific manifest,
+target evidence, or human conformance review. Without those adoption artifacts,
+framework names and local mechanics can leak into Contract values, or missing mappings
+can be mistaken for an invalid Contract.
 
 This specification lets a team retain one portable design decision artifact while
 changing implementation stacks, and gives humans and AI a reviewable record of
@@ -48,8 +49,11 @@ mapping coverage, target compatibility, and approved deviations.
 - `src/contract/output.ts` owns portable JSON and Markdown generation. Adapter
   output must not be merged into either generated Contract artifact.
 - `src/contract/schema.ts` documents the current JSON shape, but the runtime importer
-  is the acceptance gate. A future Adapter validator must not attempt to reconcile
-  or replace those two Contract-validation mechanisms.
+  is the acceptance gate. The Adapter validator must not attempt to reconcile or
+  replace those two Contract-validation mechanisms.
+- `src/adapter/types.ts` and `src/adapter/validate.ts` implement the target-neutral
+  Adapter 0.1 validator. It accepts only the current Contract shape (`0.6.0`) and
+  does not parse raw Contract JSON or verify target bindings.
 
 The historical strategic adoption plan at commit `9c80d97` proposed this boundary,
 but it is not present in the current tree. This brief records the current Phase 5
@@ -240,11 +244,24 @@ Contract's visible/interaction meaning and explicitly accepts or rejects excepti
 Do not paste Contract rules or mappings into `AGENTS.md`; instructions should point to
 the generated artifacts so they cannot drift independently.
 
+## Current lifecycle status
+
+The target-neutral Adapter 0.1 validator and its focused fixtures/tests are complete.
+It derives required catalog coverage, validates the normative manifest and exception
+metadata, and classifies structural compatibility for Contract `0.6.0` only.
+
+The genuinely deferred work is adoption evidence: an adopting product must author an
+Adapter manifest for its named target, verify its opaque bindings and evidence
+references in that target, and obtain the required human exception/conformance review.
+Those activities are intentionally outside the generic validator and are not implied
+by a passing structural validation result.
+
 ## Scope in
 
 - Define the target-neutral manifest identity, mapping coverage, exception record,
   staged outcomes, version compatibility, ownership, and handoff gates.
-- Define a future pure validator and repository-verifiable fixtures/tests.
+- Implement and maintain the pure target-neutral validator and its
+  repository-verifiable fixtures/tests.
 - Preserve the current Contract 0.6.0 importer, catalog, schema, and outputs as inputs.
 
 ## Scope out
@@ -262,11 +279,11 @@ the generated artifacts so they cannot drift independently.
 
 | Acceptance criterion | Verification method |
 | --- | --- |
-| A worker can distinguish invalid raw Contract input from an invalid Adapter. | Inspect the sequential gates and outcome tables against `ImportResult`; fixtures in the next slice assert that Adapter validation is not called for Contract `invalid`/`unsupported-version`. |
+| A worker can distinguish invalid raw Contract input from an invalid Adapter. | Inspect the sequential gates and outcome tables against `ImportResult`; Adapter fixtures assert that validation accepts only a current `UiContract`, never raw Contract JSON. |
 | Framework switching changes Adapter identity/mappings, not Contract vocabulary. | Review ownership, migration policy, and scope against foundations, anti-pattern `BAN-VOCAB-001`, and option-governance invariants. |
-| Every catalog decision and invariant is accounted for without framework knowledge. | Next-slice tests derive the normative decision/invariant tuples and assert exactly one mapping for each, including catalog-only and persisted invariants. |
-| Exceptions cannot silently normalize or bypass a Contract rule. | Next-slice fixtures cover missing, orphaned, duplicate, stale, proposed, rejected, and approved exceptions. |
-| Version and compatibility outcomes are deterministic. | Next-slice table tests cover exact Contract/Adapter-spec/target versions and every Adapter outcome. |
+| Every catalog decision and invariant is accounted for without framework knowledge. | Adapter tests derive the normative decision/invariant tuples and assert exactly one mapping for each, including catalog-only and persisted invariants. |
+| Exceptions cannot silently normalize or bypass a Contract rule. | Adapter fixtures cover missing, orphaned, duplicate, stale, proposed, rejected, and approved exceptions. |
+| Version and compatibility outcomes are deterministic. | Adapter table tests cover exact Contract/Adapter-spec/target versions and every Adapter outcome. |
 | AI and human authority are explicit and reviewable. | Document inspection plus fixtures that require reviewer/time for approved exceptions; final target conformance remains human evidence. |
 | This phase changes no product/schema/UI behavior and adds no whitespace errors. | Inspect changed paths and run `git diff --check`. |
 
@@ -275,33 +292,23 @@ classification, and recorded review metadata. It cannot prove that an opaque bin
 produces the intended visual treatment; target tests and human review are required
 supplementary evidence for that claim.
 
-## Concrete next implementation slice
+## Completed validator implementation
 
-Implement only a target-neutral, pure Adapter manifest validator:
+The implemented target-neutral validator is
+`validateAdapter(contract: UiContract, manifest: unknown, target: { id: string; version: string })`
+in `src/adapter/validate.ts`, with normative types in `src/adapter/types.ts` and
+focused fixtures/tests in `src/adapter/adapter.test.ts`.
 
-1. Add `src/adapter/types.ts` for the normative manifest and outcome types and
-   `src/adapter/validate.ts` for
-   `validateAdapter(contract: UiContract, manifest: unknown, target: { id: string; version: string }): AdapterValidationResult`.
-2. Derive the exact rule identities above for every `contractCatalog` entry. Decisions
-   require their selected Contract string. Invariants use the exact catalog note and
-   use a persisted Contract string when present or `null` when absent. Do not accept
-   raw Contract input, mutate the Contract/manifest, resolve implementation
-   references, or import framework packages.
-3. Add focused fixtures and `src/adapter/adapter.test.ts` for one synthetic
-   target-neutral complete manifest plus each invalid, compatibility, and exception
-   case in the acceptance table. Assert that `visible-focus` derives an invariant
-   identity from its catalog note with `persistedValue: null`; assert separately that
-   `loading-feedback` derives its catalog note and persisted
-   `communicate-busy-state` value. Synthetic opaque references must not resemble a
-   real framework API.
-4. Run the focused Adapter tests, the existing Contract tests, `npm run build`, and
-   `git diff --check`. Confirm changed paths are limited to the Adapter module and its
-   tests/fixtures; UI wiring and target bindings remain a separate reviewed slice.
+It derives exact decision and invariant identities for every `contractCatalog` entry,
+including `visible-focus` with `persistedValue: null` and `loading-feedback` with
+`communicate-busy-state`. It validates manifest structure, complete coverage,
+exceptions, and exact Contract/Adapter-spec/target version outcomes without accepting
+raw Contract input, mutating inputs, resolving references, or importing framework
+packages.
 
-This slice is independently reviewable because it introduces only deterministic data
-validation around the existing `UiContract` and catalog. Adding an Adapter JSON Schema
-or schema-evaluator dependency is deferred until the runtime validator exists and a
-review can prevent schema/runtime divergence.
+An Adapter JSON Schema or schema-evaluator dependency remains deferred until an actual
+adoption need justifies it. Target manifests, binding execution, target evidence, and
+human conformance review remain separate adoption work.
 
 ## Risks, open questions, and stop conditions
 
@@ -324,12 +331,16 @@ review can prevent schema/runtime divergence.
 
 Stop and return to Contract governance if an Adapter gap can only be solved by adding
 framework/private vocabulary to the Contract, or if the Contract term does not predict
-one portable design meaning. Stop the validator slice if it requires a real framework,
+one portable design meaning. Do not extend the validator with a real framework,
 binding execution, UI changes, Contract validation changes, implicit fallback, or a
-new schema dependency. Stop adoption when any required target evidence or human review
-is absent.
+new schema dependency without a separate reviewed decision. Stop adoption when any
+required target evidence or human review is absent.
 
 ## Worker report v1
+
+The following captured report is historical evidence from the specification task. Its
+then-pending authorization language does not describe the current implementation
+status; see [Current lifecycle status](#current-lifecycle-status).
 
 ```yaml
 report_version: 1
