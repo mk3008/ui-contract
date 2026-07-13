@@ -13,6 +13,7 @@ const accounts = [
   ['Aster Works', 'Active', 'Today'], ['Harbor Supply', 'Review', 'Yesterday'], ['Lumen Office', 'Active', '12 Jul'], ['Pine Services', 'Paused', '10 Jul'],
 ] as const
 const noMatchAccount = 'Meridian Logistics'
+const searchLoadingDelayMs = 3_000
 
 function DownloadIcon() {
   return <svg aria-hidden="true" className="download-icon" viewBox="0 0 16 16"><path d="M8 2v7m0 0 3-3m-3 3L5 6m-2 5h10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" /></svg>
@@ -78,10 +79,22 @@ function SearchListExample({ artifact = false, button, initialSelected = false, 
   const [submitted, setSubmitted] = useState(initialState === 'empty' ? noMatchAccount : '')
   const [selected, setSelected] = useState<string[]>(initialSelected ? [accounts[0][0]] : [])
   const selectAllRef = useRef<HTMLInputElement>(null)
+  const loadingTimerRef = useRef<number | null>(null)
   const allSelected = selected.length === accounts.length
   const selectionActive = selected.length > 0
   useEffect(() => { if (selectAllRef.current) selectAllRef.current.indeterminate = selectionActive && !allSelected }, [allSelected, selectionActive])
-  const apply = () => { setSelected([]); setSubmitted(term); setState('busy'); window.setTimeout(() => setState(term.trim().toLowerCase() === noMatchAccount.toLowerCase() ? 'empty' : term === 'error' ? 'error' : 'results'), 180) }
+  useEffect(() => () => { if (loadingTimerRef.current !== null) window.clearTimeout(loadingTimerRef.current) }, [])
+  const apply = () => {
+    if (state === 'busy') return
+    const requestedTerm = term
+    setSelected([])
+    setSubmitted(requestedTerm)
+    setState('busy')
+    loadingTimerRef.current = window.setTimeout(() => {
+      setState(requestedTerm.trim().toLowerCase() === noMatchAccount.toLowerCase() ? 'empty' : requestedTerm === 'error' ? 'error' : 'results')
+      loadingTimerRef.current = null
+    }, searchLoadingDelayMs)
+  }
   const reset = () => { setTerm(''); setSubmitted(''); setSelected([]); setState('unsearched') }
   const toggleAccount = (name: string) => setSelected((current) => current.includes(name) ? current.filter((selectedName) => selectedName !== name) : [...current, name])
   const toggleAll = () => setSelected(allSelected ? [] : accounts.map(([name]) => name))
@@ -89,14 +102,14 @@ function SearchListExample({ artifact = false, button, initialSelected = false, 
     <ScreenHeader title="Account directory" context="Find and maintain customer account records." />
     <form className="screen-section search-conditions" onSubmit={(event) => { event.preventDefault(); apply() }} aria-label="Search conditions">
       <div className="section-title"><h5>Search conditions</h5></div>
-      <div className="search-condition-fields"><label className="example-field">Account name<input value={term} onChange={(event) => setTerm(event.target.value)} /></label><label className="example-field">Account status<select defaultValue="All statuses"><option>All statuses</option><option>Active</option><option>Review</option></select></label></div>
-      <div className="screen-actions search-condition-actions"><button className="contract-button primary-filled" type="submit">Apply search</button><button className="contract-button secondary-outline" type="button" onClick={reset}>Reset conditions</button></div>
+      <div className="search-condition-fields"><label className="example-field">Account name<input disabled={state === 'busy'} value={term} onChange={(event) => setTerm(event.target.value)} /></label><label className="example-field">Account status<select defaultValue="All statuses" disabled={state === 'busy'}><option>All statuses</option><option>Active</option><option>Review</option></select></label></div>
+      <div className="screen-actions search-condition-actions"><button className="contract-button primary-filled" disabled={state === 'busy'} type="submit">Search</button><button className="contract-button secondary-outline" disabled={state === 'busy'} type="button" onClick={reset}>Clear</button></div>
     </form>
     <section className="screen-section results-region" aria-label="Account results" aria-busy={state === 'busy'}>
       <div className="results-toolbar"><div><h5>Accounts</h5></div></div>
       {state === 'unsearched' && <div className="screen-state" role="status"><strong>Search for accounts</strong><p>Enter a name or choose a status to view matching accounts.</p></div>}
       {state === 'busy' && <div className="screen-state" role="status"><strong>Loading accounts</strong><p>Searching accounts for the selected conditions.</p><div className="skeleton-row" /><div className="skeleton-row short" /></div>}
-      {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts match these conditions</strong><p>Clear the condition or try a broader account name.</p><button className="contract-button secondary-outline" type="button" onClick={reset}>Clear conditions</button></div>}
+      {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts match these conditions</strong><p>Clear the condition or try a broader account name.</p></div>}
       {state === 'error' && <div className="screen-state is-error" role="alert"><strong>Account results are unavailable</strong><p>We couldn't retrieve account results. Review your conditions and try again.</p><button className="contract-button primary-filled" type="button" onClick={apply}>Retry search</button></div>}
       {state === 'results' && <div className="table-with-pagination"><div data-table-context-toolbar className={`table-context-toolbar ${selectionActive ? 'batch-action-bar' : 'table-context-summary'}`}>{selectionActive ? <><p role="status">{selected.length} {selected.length === 1 ? 'account' : 'accounts'} selected</p><div className="screen-actions"><button className="contract-button secondary-outline" type="button">Assign owner</button><button className="contract-button secondary-outline" type="button" onClick={() => setSelected([])}>Clear selection</button></div></> : <p>{submitted ? `Results for “${submitted}”` : '24 accounts'} · Sorted by Updated, newest first</p>}</div><table className="business-table"><thead data-i18n-skip><tr><th><input ref={selectAllRef} aria-label="Select all accounts" type="checkbox" checked={allSelected} onChange={toggleAll} /></th><th>Account</th><th>Status</th><th>Updated ↓</th><th>Action</th></tr></thead><tbody data-i18n-skip>{accounts.map(([name, status, updated]) => <tr key={name} data-selected={selected.includes(name) || undefined}><td><input aria-label={`Select ${name}`} type="checkbox" checked={selected.includes(name)} onChange={() => toggleAccount(name)} /></td><td><strong>{name}</strong><small>Customer account</small></td><td><span className={`record-status ${status === 'Active' ? 'success' : 'warning'}`}>{status}</span></td><td>{updated}</td><td><button className="table-action" type="button" disabled={selectionActive}>View account</button></td></tr>)}</tbody></table><nav className="paging" aria-label="Account result pages"><button type="button" disabled>Previous</button><strong aria-current="page">1</strong><button type="button">Next</button></nav></div>}
     </section>
