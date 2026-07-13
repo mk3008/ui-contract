@@ -54,8 +54,7 @@ export function ScreenPatternPageArtifact({ contract, example }: { contract: UiC
     '--danger': colors.danger, '--focus-outer': colors.focusOuter,
   } as React.CSSProperties
   return <main className="screen-page-artifact" data-page-artifact data-screen-pattern={example} style={pageStyle}>
-    <header className="artifact-app-header"><div className="artifact-product"><strong>Northstar Operations</strong><span>Customer administration</span></div><p>Operations team</p></header>
-    <div className="artifact-app-body"><nav className="artifact-nav" aria-label="Application navigation"><button aria-label="Accounts" type="button">A</button><button aria-label="Assignments" type="button">R</button><button aria-label="Reports" type="button">S</button></nav><section className="artifact-workspace"><div className="artifact-context"><span>Accounts</span><span>Customer operations</span></div><ScreenPatternContent artifact artifactState={artifactState} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} /></section></div>
+    <ScreenPatternContent artifact artifactState={artifactState} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} />
   </main>
 }
 

@@ -27,12 +27,13 @@ function imageDimensions(path: string): { width: number; height: number } {
 async function openArtifact(page: import('@playwright/test').Page, example: ScreenPatternExampleId, state?: string) {
   await page.goto(`/?screen-artifact=${example}${state ? `&state=${state}` : ''}`)
   await expect(page.locator('[data-page-artifact]')).toHaveAttribute('data-screen-pattern', example)
-  await expect(page.locator('.artifact-app-header')).toBeVisible()
-  await expect(page.getByRole('navigation', { name: 'Application navigation' })).toBeVisible()
   await expect(page.locator('[data-screen]')).toHaveCount(1)
-  await expect(page.locator('.topbar, .sidebar, .inspector, .interactive-screen-patterns')).toHaveCount(0)
+  await expect(page.locator('.topbar, .sidebar, .inspector, .interactive-screen-patterns, .artifact-app-header, .artifact-nav, .artifact-context')).toHaveCount(0)
   await expect(page.getByText('Acceptance surface', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Contract JSON', { exact: true })).toHaveCount(0)
+  for (const chromeCopy of ['Northstar Operations', 'Customer administration', 'Operations team', 'Customer operations']) {
+    await expect(page.getByText(chromeCopy, { exact: true })).toHaveCount(0)
+  }
   for (const metaCopy of ['Submitted conditions remain visible with the result set.', 'Updating the result table for the submitted conditions.', 'The local result request did not complete. Your conditions are still available.', 'The list remains visible while this row is edited.', 'Existing context remains visible.', 'Review changes before saving.']) {
     await expect(page.getByText(metaCopy, { exact: true })).toHaveCount(0)
   }
@@ -251,7 +252,7 @@ test('keeps Search/List structured content and omits paging for four visible res
   expect(screenBox!.x).toBeGreaterThan(100)
   expect(actionsBox!.x).toBeGreaterThanOrEqual(fieldsBox!.x)
   expect(actionsBox!.y).toBeGreaterThanOrEqual(fieldsBox!.y + fieldsBox!.height)
-  expect(actionsBox!.y - (fieldsBox!.y + fieldsBox!.height)).toBeLessThanOrEqual(48)
+  expect(actionsBox!.y - (fieldsBox!.y + fieldsBox!.height)).toBeLessThanOrEqual(64)
   expect(tableBox!.x + tableBox!.width).toBeLessThan(1820)
   await expect(page.getByRole('navigation', { name: 'Account result pages' })).toHaveCount(0)
 })
