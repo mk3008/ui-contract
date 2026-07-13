@@ -114,6 +114,7 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   const tableContextToolbar = page.locator('[data-table-context-toolbar]')
   const initialToolbarHeight = (await tableContextToolbar.boundingBox())!.height
   expect(initialToolbarHeight).toBeGreaterThan(40)
+  expect(initialToolbarHeight).toBeLessThanOrEqual(52)
   await captureArtifact(page, directory, 'search-list-results')
   await openArtifact(page, 'search-list')
   await page.getByRole('button', { name: 'Search' }).click()
@@ -261,9 +262,36 @@ test('keeps Search/List structured content and omits paging for four visible res
   expect(screenBox!.x).toBeGreaterThan(100)
   expect(actionsBox!.x).toBeGreaterThanOrEqual(fieldsBox!.x)
   expect(actionsBox!.y).toBeGreaterThanOrEqual(fieldsBox!.y + fieldsBox!.height)
-  expect(actionsBox!.y - (fieldsBox!.y + fieldsBox!.height)).toBeLessThanOrEqual(64)
+  expect(actionsBox!.y - (fieldsBox!.y + fieldsBox!.height)).toBeLessThanOrEqual(24)
   expect(tableBox!.x + tableBox!.width).toBeLessThan(1820)
   await expect(page.getByRole('navigation', { name: 'Account result pages' })).toHaveCount(0)
+})
+
+test('keeps all five artifact panels content-driven and business tables compact at desktop', async ({ page }) => {
+  const examples = ['search-list', 'edit-detail', 'edit-list', 'read-only-detail', 'destructive-action'] as const
+  for (const example of examples) {
+    await page.goto(`/?screen-artifact=${example}`)
+    const screen = page.locator('[data-screen]')
+    const box = await screen.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.height).toBeLessThan(820)
+  }
+
+  await page.goto('/?screen-artifact=search-list')
+  const fields = page.locator('.search-condition-fields')
+  const actions = page.locator('.search-condition-actions')
+  const [fieldsBox, actionsBox] = await Promise.all([fields.boundingBox(), actions.boundingBox()])
+  expect(fieldsBox).not.toBeNull()
+  expect(actionsBox).not.toBeNull()
+  expect(actionsBox!.y - (fieldsBox!.y + fieldsBox!.height)).toBeLessThanOrEqual(24)
+
+  await page.goto('/?screen-artifact=edit-list')
+  const rows = page.locator('tbody tr')
+  for (let index = 0; index < await rows.count(); index += 1) {
+    const rowBox = await rows.nth(index).boundingBox()
+    expect(rowBox).not.toBeNull()
+    expect(rowBox!.height).toBeLessThan(80)
+  }
 })
 
 test('keeps Japanese Edit Detail actions concise while preserving contextual accessible names', async ({ page }) => {

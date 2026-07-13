@@ -1112,7 +1112,7 @@ h3 {
 .download-icon { width: 15px; height: 15px; }
 
 .interactive-example-stage {
-  min-height: 236px;
+  min-height: 0;
 }
 
 .interactive-example {
@@ -1243,9 +1243,10 @@ h3 {
 /* Deterministic Screen Pattern acceptance surfaces: screen structure, not component galleries. */
 .business-screen {
   display: grid;
-  gap: 16px;
-  min-height: 680px;
-  padding: 20px;
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-soft);
@@ -1281,22 +1282,22 @@ h3 {
 .screen-section,
 .screen-state,
 .screen-action-bar {
-  padding: 16px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
 }
 
 .screen-section,
-.screen-state { display: grid; gap: 14px; }
+.screen-state { display: grid; gap: 10px; }
 .section-title { display: grid; gap: 4px; }
 .business-screen[data-example="search-list"] { inline-size: min(100%, 1180px); box-sizing: border-box; margin-inline: auto; }
 .search-conditions { align-items: end; }
-.search-condition-fields { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(180px, .7fr); gap: 14px; }
+.search-condition-fields { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(180px, .7fr); gap: 12px; }
 .search-condition-actions { justify-content: flex-start; }
 .screen-actions { flex-wrap: wrap; justify-content: flex-end; }
 .screen-actions .contract-button { width: auto; }
-.screen-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.screen-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .screen-field-span-full { grid-column: 1 / -1; }
 
 .example-field select {
@@ -1314,14 +1315,15 @@ h3 {
 .required-cue { color: var(--danger); font-size: 12px; font-weight: 700; }
 .results-region { overflow: hidden; }
 .results-toolbar { align-items: flex-start; }
-.table-context-toolbar { box-sizing: border-box; block-size: 62px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid var(--line); border-bottom: 0; font-size: 13px; }
+.table-context-toolbar,
+[data-table-context-toolbar] { box-sizing: border-box; block-size: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--line); border-bottom: 0; font-size: 13px; }
 .table-context-toolbar p { margin: 0; }
 .table-context-summary { color: var(--muted); background: var(--surface); }
 .batch-action-bar { border-color: var(--primary); color: var(--primary-strong); background: var(--primary-soft); font-weight: 700; }
 .business-table tr[data-selected="true"] { background: var(--primary-soft); }
 .business-table { width: 100%; border-collapse: collapse; color: var(--text); text-align: left; }
 .business-table th,
-.business-table td { padding: 11px 10px; border-top: 1px solid var(--line); vertical-align: middle; font-size: 13px; }
+.business-table td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: middle; font-size: 13px; }
 .business-table th { color: var(--muted); background: var(--surface-soft); font-size: 12px; }
 .business-table td strong,
 .business-table td small { display: block; }
@@ -1337,7 +1339,7 @@ h3 {
 .paging { justify-content: flex-end; color: var(--muted); font-size: 13px; }
 .paging button { border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; color: var(--primary-strong); background: var(--surface); font: inherit; cursor: pointer; }
 .paging button:disabled { color: var(--muted); cursor: not-allowed; }
-.screen-state { min-height: 130px; align-content: center; }
+.screen-state { min-height: 108px; align-content: center; }
 .screen-state.is-error { border-color: var(--danger); }
 .screen-state.is-error strong { color: var(--danger); }
 .skeleton-row { height: 12px; border-radius: 99px; background: linear-gradient(90deg, var(--surface-soft), var(--line), var(--surface-soft)); }
@@ -1370,7 +1372,7 @@ h3 {
 
 /* Exported artifacts contain only the business screen, without simulated application chrome. */
 .screen-page-artifact { min-height: 100vh; padding: 20px; overflow: hidden; color: var(--text); background: var(--page); }
-.screen-page-artifact .business-screen { min-height: calc(100vh - 40px); background: var(--surface-soft); }
+.screen-page-artifact .business-screen { min-height: 0; background: var(--surface-soft); }
 
 @media (max-width: 720px) {
   .business-screen { min-height: auto; padding: 14px; }
