@@ -98,9 +98,9 @@ function SearchListExample({ artifact = false, button, initialState = 'unsearche
     </form>
     <section className="screen-section results-region" aria-label="Account results" aria-busy={state === 'busy'}>
       <div className="results-toolbar"><div><h5>Accounts</h5></div></div>
-      {state === 'unsearched' && <div className="screen-state" role="status"><p>Set conditions and select Search.</p></div>}
+      {state === 'unsearched' && null}
       {state === 'busy' && <div className="screen-state" role="status"><strong>Loading accounts</strong><div className="skeleton-row" /><div className="skeleton-row short" /></div>}
-      {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts found.</strong><p>Clear conditions or use a broader account name.</p></div>}
+      {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts found.</strong></div>}
       {state === 'error' && <div className="screen-state is-error" role="alert"><strong>Account results are unavailable</strong><p>Could not load the results. Try again.</p><button className="contract-button primary-filled" type="button" onClick={apply}>Retry</button></div>}
       {state === 'results' && <div className="table-with-pagination"><div data-table-context-toolbar className="table-context-summary"><p>{submitted ? `Results for “${submitted}”` : '4 accounts'} · Sorted by Updated, newest first</p></div><table className="business-table"><thead data-i18n-skip><tr><th>Account</th><th>Status</th><th>Updated ↓</th></tr></thead><tbody data-i18n-skip>{accounts.map(([name, status, updated]) => <tr key={name}><td><strong>{name}</strong></td><td><span className={`record-status ${status === 'Active' ? 'success' : 'warning'}`}>{status}</span></td><td>{updated}</td></tr>)}</tbody></table></div>}
     </section>
