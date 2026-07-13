@@ -150,11 +150,27 @@ function EditListExample({ artifact = false, button, initialState = 'initial' }:
   </article>
 }
 
+type PersonalDetails = {
+  name: string
+  dateOfBirth: string
+  email: string
+  phone: string
+  streetAddress: string
+  city: string
+  postalCode: string
+}
+
+function ReadOnlyPersonalInformation({ accountId, details }: { accountId: string; details: PersonalDetails }) {
+  const field = (label: string, value: string, type = 'text', fullWidth = false) => <label className={`example-field${fullWidth ? ' screen-field-span-full' : ''}`}>{label}<input type={type} readOnly value={value} /></label>
+  return <section className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>{accountId}</strong></div></div><div className="section-title"><h5>Personal information</h5></div><div className="screen-field-grid">{field('Account name', details.name)}{field('Date of birth', details.dateOfBirth, 'date')}{field('Email', details.email, 'email')}{field('Phone number', details.phone, 'tel')}{field('Street address', details.streetAddress, 'text', true)}{field('City', details.city)}{field('Postal code', details.postalCode)}</div></section>
+}
+
 function ReadOnlyDetailExample({ artifact = false, button, initialState = 'initial' }: { artifact?: boolean; button: Props['button']; initialState?: 'initial' | 'error' }) {
   const [state, setState] = useState<'initial' | 'error'>(initialState)
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="read-only-detail" data-screen="read-only-detail" data-state={state} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Account detail" />
-    <section className="screen-section"><div className="detail-status"><span className="record-status success">Active</span><p>This record is read-only because it is managed by the regional operations team.</p></div><div className="read-only-detail-grid"><div><span>Account</span><strong>Lumen Office</strong></div><div><span>Account ID</span><strong>AC-2049</strong></div><div><span>Account owner</span><strong>M. Suzuki</strong></div><div><span>Service tier</span><strong>Priority support</strong></div><div><span>Updated</span><strong>12 Jul, 14:20</strong></div></div></section>
+    <div className="detail-status"><span className="record-status success">Active</span><p>This record is read-only because it is managed by the regional operations team.</p></div>
+    <ReadOnlyPersonalInformation accountId="AC-2049" details={{ name: 'Lumen Office', dateOfBirth: '1985-11-22', email: 'm.suzuki@lumen.example', phone: '+1 415 555 0172', streetAddress: '81 Howard Street', city: 'San Francisco', postalCode: '94105' }} />
     {state === 'error' ? <section className="screen-state is-error" role="alert"><strong>Account detail is unavailable</strong><p>Could not refresh the detail. Try again.</p><button className="contract-button primary-filled" type="button" onClick={() => setState('initial')}>Retry</button></section> : <div className="screen-action-bar"><div className="screen-actions"><button className="contract-button secondary-outline" type="button" onClick={() => setState('error')}>Refresh</button></div></div>}
   </article>
 }
@@ -184,7 +200,8 @@ function DestructiveActionExample({ artifact = false, confirmation, button, init
   const confirm = () => { setOpen(false); setTyped(''); setResult('error') }
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="destructive-action" data-screen="destructive-action" data-state={open ? 'confirmation' : result} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Close account" />
-    <section className="screen-section"><p>Closing this account removes it from active operations and prevents new assignments.</p><div className="read-only-detail-grid"><div><span>Account</span><strong>Pine Services</strong></div><div><span>Account ID</span><strong>AC-2050</strong></div><div><span>Current status</span><strong>Paused</strong></div><div><span>Open assignments (must be 0)</span><strong>0</strong></div></div></section><div className="screen-action-bar"><button className="contract-button danger-emphasis-outline" type="button" onClick={() => setOpen(true)}>Close Pine Services</button></div>
+    <ReadOnlyPersonalInformation accountId="AC-2050" details={{ name: 'Pine Services', dateOfBirth: '1988-04-08', email: 'support@pine.example', phone: '+1 415 555 0190', streetAddress: '100 Pine Street', city: 'San Francisco', postalCode: '94111' }} />
+    <section className="screen-section"><p>Closing this account removes it from active operations and prevents new assignments.</p><div className="read-only-detail-grid"><div><span>Current status</span><strong>Paused</strong></div><div><span>Open assignments (must be 0)</span><strong>0</strong></div></div></section><div className="screen-action-bar"><button className="contract-button danger-emphasis-outline" type="button" onClick={() => setOpen(true)}>Close Pine Services</button></div>
     {result === 'error' && <section className="screen-state is-error" role="alert"><strong>Account closure did not complete</strong><p>No account data was changed.</p><button className="contract-button primary-filled" type="button" onClick={() => setResult('done')}>Retry</button></section>}
     {result === 'done' && <p className="success-message" role="status">Pine Services was closed.</p>}
     {open && <div className="dialog-backdrop"><section ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description"><h5 id="confirmation-title">Close Pine Services?</h5><p id="confirmation-description">This will remove Pine Services from active operations and prevent new assignments.</p>{confirmation.surface === 'typed-confirmation' && <label className="example-field">Type DELETE to confirm<input value={typed} onChange={(event) => setTyped(event.target.value)} /></label>}<div className="screen-actions"><button ref={cancelRef} className="contract-button secondary-outline" type="button" onClick={() => setOpen(false)}>Cancel</button><button className="contract-button danger-emphasis-filled" type="button" disabled={!canConfirm} onClick={confirm}>Close Pine Services</button></div></section></div>}

@@ -185,6 +185,10 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   await captureArtifact(page, directory, 'edit-list-validation')
 
   await openArtifact(page, 'read-only-detail')
+  await expect(page.getByLabel('Account name')).toHaveValue('Lumen Office')
+  await expect(page.getByLabel('Account name')).toHaveAttribute('readonly', '')
+  await expect(page.getByLabel('Date of birth')).toHaveValue('1985-11-22')
+  await expect(page.getByLabel('Street address')).toHaveAttribute('readonly', '')
   await captureArtifact(page, directory, 'read-only-detail-initial')
   await page.getByRole('button', { name: 'Refresh' }).click()
   await expect(page.getByRole('alert')).toContainText('Account detail is unavailable')
@@ -192,6 +196,9 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   await captureArtifact(page, directory, 'read-only-detail-error')
 
   await openArtifact(page, 'destructive-action')
+  await expect(page.getByLabel('Account name')).toHaveValue('Pine Services')
+  await expect(page.getByLabel('Email')).toHaveValue('support@pine.example')
+  await expect(page.getByLabel('Postal code')).toHaveValue('94111')
   await captureArtifact(page, directory, 'destructive-action-initial')
   await page.getByRole('button', { name: 'Close Pine Services' }).first().click()
   const dialog = page.getByRole('dialog')
