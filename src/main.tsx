@@ -78,16 +78,13 @@ type MenuItem =
   | 'Screen Patterns / Read-only Detail'
   | 'Screen Patterns / Destructive Action'
   | 'Settings'
-type MenuStatus = 'active' | 'placeholder'
 type MenuEntry = {
   label: string
-  page?: MenuItem
-  status: MenuStatus
-  children?: Array<{
-    label: string
-    page: MenuItem
-    status: MenuStatus
-  }>
+  page: MenuItem
+}
+type NavigationGroup = {
+  label: string
+  children: MenuEntry[]
 }
 type ScreenPatternPage = Extract<MenuItem, `Screen Patterns / ${string}`>
 type ScreenPatternMenuItem = {
@@ -349,31 +346,38 @@ const screenPatternMenuItems: ScreenPatternMenuItem[] = [
   { label: 'Destructive Action', page: 'Screen Patterns / Destructive Action', status: 'active', example: 'destructive-action' },
 ]
 
-const menuItems: MenuEntry[] = [
-  { label: 'Overview', page: 'Overview', status: 'active' },
+const navigationGroups: NavigationGroup[] = [
   {
-    label: 'Contract Editor',
-    status: 'active',
+    label: 'Foundations',
     children: [
-      { label: 'Button', page: 'Contract Editor / Button', status: 'active' },
-      { label: 'Text Field', page: 'Contract Editor / Text Field', status: 'active' },
-      { label: 'Select', page: 'Contract Editor / Select', status: 'active' },
-      { label: 'Tabs', page: 'Contract Editor / Tabs', status: 'active' },
-      { label: 'Toggle', page: 'Contract Editor / Toggle', status: 'active' },
-      { label: 'Checkbox', page: 'Contract Editor / Checkbox', status: 'active' },
-      { label: 'Card', page: 'Contract Editor / Card', status: 'active' },
-      { label: 'Side Panel', page: 'Contract Editor / Side Panel', status: 'active' },
-      { label: 'Focus', page: 'Contract Editor / Focus', status: 'active' },
-      { label: 'Validation', page: 'Contract Editor / Validation', status: 'active' },
-      { label: 'Availability', page: 'Contract Editor / Availability', status: 'active' },
-      { label: 'State Feedback', page: 'Contract Editor / State Feedback', status: 'active' },
-      { label: 'Confirmation', page: 'Contract Editor / Confirmation', status: 'active' },
+      { label: 'Color Settings', page: 'Color Settings' },
+      { label: 'Choice Group Layout', page: 'Choice Group Layout' },
     ],
   },
-  { label: 'Color Settings', page: 'Color Settings', status: 'active' },
-  { label: 'Choice Group Layout', page: 'Choice Group Layout', status: 'active' },
-  { label: 'Screen Patterns', status: 'active', children: screenPatternMenuItems },
-  { label: 'Settings', page: 'Settings', status: 'placeholder' },
+  {
+    label: 'Components',
+    children: [
+      { label: 'Button', page: 'Contract Editor / Button' },
+      { label: 'Text Field', page: 'Contract Editor / Text Field' },
+      { label: 'Select', page: 'Contract Editor / Select' },
+      { label: 'Toggle', page: 'Contract Editor / Toggle' },
+      { label: 'Checkbox', page: 'Contract Editor / Checkbox' },
+      { label: 'Tabs', page: 'Contract Editor / Tabs' },
+      { label: 'Card', page: 'Contract Editor / Card' },
+      { label: 'Side Panel', page: 'Contract Editor / Side Panel' },
+    ],
+  },
+  {
+    label: 'Interaction Policies',
+    children: [
+      { label: 'Focus', page: 'Contract Editor / Focus' },
+      { label: 'Validation', page: 'Contract Editor / Validation' },
+      { label: 'Availability', page: 'Contract Editor / Availability' },
+      { label: 'State Feedback', page: 'Contract Editor / State Feedback' },
+      { label: 'Confirmation', page: 'Contract Editor / Confirmation' },
+    ],
+  },
+  { label: 'Screen Patterns', children: screenPatternMenuItems },
 ]
 
 const primaryEmphasisOptions: Array<ButtonColoringOption<PrimaryEmphasis>> = catalogOptions('button-primary-emphasis')
@@ -965,30 +969,17 @@ function App() {
       <div className="app-body">
         {isSidebarOpen ? (
           <aside className="sidebar" id="main-sidebar" aria-label="Main menu">
-            <nav className="menu-list">
-              {menuItems.map((item) => {
-                const isGroupActive =
-                  item.children?.some((child) => child.page === selectedMenu) ??
-                  item.page === selectedMenu
-                const fallbackPage = item.page ?? item.children?.[0]?.page
-
-                return (
-                  <div className="menu-group" key={item.label}>
-                    <button
-                      className={`menu-item ${item.children ? 'is-parent' : ''} ${
-                        isGroupActive && !item.children ? 'is-active' : ''
-                      } ${isGroupActive && item.children ? 'is-group-active' : ''}`}
-                      onClick={() => fallbackPage && setSelectedMenu(fallbackPage)}
-                      type="button"
-                    >
-                      <span>{item.label}</span>
-                      <span className="menu-meta" aria-hidden="true">
-                        <ChevronRight size={15} />
-                      </span>
-                    </button>
-                    {item.children ? (
-                      <div className="submenu-list" aria-label={`${item.label} sections`}>
-                        {item.children.map((child) => (
+            <nav className="menu-list" aria-label="Contract authoring navigation">
+              <button className={`menu-item ${selectedMenu === 'Overview' ? 'is-active' : ''}`} onClick={() => setSelectedMenu('Overview')} type="button">
+                <span>Overview</span>
+                <span className="menu-meta" aria-hidden="true"><ChevronRight size={15} /></span>
+              </button>
+              <div className="authored-menu-flow" data-authored-flow="true">
+                {navigationGroups.map((group) => (
+                  <section className="menu-group" aria-labelledby={`navigation-group-${group.label}`} key={group.label}>
+                    <h2 className="menu-group-label" id={`navigation-group-${group.label}`}>{group.label}</h2>
+                    <div className="submenu-list" aria-label={`${group.label} sections`}>
+                      {group.children.map((child) => (
                           <button
                             className={`submenu-item ${
                               selectedMenu === child.page ? 'is-active' : ''
@@ -1002,12 +993,18 @@ function App() {
                               <ChevronRight size={14} />
                             </span>
                           </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                )
-              })}
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+              <div className="menu-settings" data-authored-flow="false">
+                <div aria-label="Settings" className="menu-settings-divider" role="separator" />
+                <button className={`menu-item ${selectedMenu === 'Settings' ? 'is-active' : ''}`} onClick={() => setSelectedMenu('Settings')} type="button">
+                  <span>Settings</span>
+                  <span className="menu-meta" aria-hidden="true"><ChevronRight size={15} /></span>
+                </button>
+              </div>
             </nav>
           </aside>
         ) : null}

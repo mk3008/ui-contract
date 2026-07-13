@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 
-const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Choice Group Layout', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Screen Patterns']
+const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Choice Group Layout', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Settings']
 const screenPatternPages = ['Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action'] as const
 const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
 const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
@@ -42,15 +43,6 @@ test('audits every active view in JP and EN while preserving only structural and
       await expect(page.locator(view === 'Overview' ? 'main h3' : 'main h2').first()).toBeVisible()
       await expect(page.locator('nav.menu-list')).toContainText('Button')
       await expect(page.locator('nav.menu-list')).toContainText('State Feedback')
-      if (view === 'Screen Patterns') {
-        for (const screenPattern of screenPatternPages) {
-          await page.getByRole('button', { name: screenPattern, exact: true }).click()
-          await expect(page.locator('.main-panel > .section-heading h2')).toHaveText(screenPattern)
-          await expect(page.getByRole('tablist')).toHaveCount(0)
-          await expect(page.getByText(language === 'JP' ? '各画面は、現在の Contract を構成する決定的なローカル業務タスクモックです。フィクスチャのデータと結果は Contract ポリシーではありません。' : 'Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.', { exact: true })).toBeVisible()
-          await expectLocalizedPage(page, language, screenPattern)
-        }
-      }
       if (view === 'Choice Group Layout') {
         await expect(page.locator('.choice-group-layout-fixed-decision .option-title')).toHaveText('Stacked by default')
         await expect(page.locator('main .section-heading .eyebrow')).toHaveText('Foundation')
@@ -62,6 +54,47 @@ test('audits every active view in JP and EN while preserving only structural and
       }
       await expectLocalizedPage(page, language, view)
     }
+    for (const screenPattern of screenPatternPages) {
+      await page.getByRole('button', { name: screenPattern, exact: true }).click()
+      await expect(page.locator('.main-panel > .section-heading h2')).toHaveText(screenPattern)
+      await expect(page.getByRole('tablist')).toHaveCount(0)
+      await expect(page.getByText(language === 'JP' ? '各画面は、現在の Contract を構成する決定的なローカル業務タスクモックです。フィクスチャのデータと結果は Contract ポリシーではありません。' : 'Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.', { exact: true })).toBeVisible()
+      await expectLocalizedPage(page, language, screenPattern)
+    }
+  }
+})
+
+test('orders the navigation as a guided, non-blocking authoring sequence', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/')
+  const navigation = page.locator('nav.menu-list')
+  await expect(navigation).toHaveAttribute('aria-label', 'Contract authoring navigation')
+  await expect(navigation.locator('.menu-group-label')).toHaveText(['Foundations', 'Components', 'Interaction Policies', 'Screen Patterns'])
+  await expect(navigation.locator('[data-authored-flow="true"] .submenu-item')).toHaveText([
+    'Color Settings', 'Choice Group Layout',
+    'Button', 'Text Field', 'Select', 'Toggle', 'Checkbox', 'Tabs', 'Card', 'Side Panel',
+    'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation',
+    'Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action',
+  ])
+  await expect(navigation.locator('[data-authored-flow="true"] > .menu-item')).toHaveCount(0)
+  await expect(navigation.locator('[data-authored-flow="false"] [role="separator"]')).toHaveAttribute('aria-label', 'Settings')
+  await expect(navigation.locator('[data-authored-flow="false"]')).toHaveText('Settings')
+
+  const evidenceDirectory = join('output', 'playwright', 'wizard-navigation', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await page.screenshot({ path: join(evidenceDirectory, 'desktop-top.png'), animations: 'disabled' })
+  await page.locator('aside.sidebar').evaluate((element) => { element.scrollTop = element.scrollHeight })
+  await page.screenshot({ path: join(evidenceDirectory, 'desktop-bottom.png'), animations: 'disabled' })
+  await page.setViewportSize({ width: 700, height: 900 })
+  await page.goto('/')
+  await page.screenshot({ path: join(evidenceDirectory, 'narrow.png'), animations: 'disabled' })
+
+  for (const target of ['Color Settings', 'Button', 'Focus', 'Search/List', 'Settings']) {
+    const entry = navigation.getByRole('button', { name: target, exact: true })
+    await entry.focus()
+    await page.keyboard.press('Enter')
+    await expect(entry).toHaveClass(/is-active/)
   }
 })
 
