@@ -72,7 +72,7 @@ describe('Phase 5 target-neutral Adapter validator', () => {
   })
 
   it('classifies exact Contract, Adapter specification, and target version mismatches separately', () => {
-    const historicalContract = { ...defaultContract, schemaVersion: '0.4.0' } as unknown as UiContract
+    const historicalContract = { ...defaultContract, schemaVersion: '0.5.0' } as unknown as UiContract
     expect(validateAdapter(historicalContract, createCompleteManifest(), syntheticTarget)).toMatchObject({ outcome: 'unsupported-contract-version', diagnostics: [{ stage: 'adapter', code: 'unsupported-contract-version' }] })
 
     const unknownSpec = createCompleteManifest() as unknown as { adapterSpecVersion: string }
@@ -82,7 +82,7 @@ describe('Phase 5 target-neutral Adapter validator', () => {
     expect(resultFor(createCompleteManifest(), { id: 'sample-target', version: '2026.08' })).toMatchObject({ outcome: 'unsupported-target-version', diagnostics: [{ stage: 'target', code: 'unsupported-target-version' }] })
 
     const unsupportedAcceptList = createCompleteManifest() as unknown as { acceptsContractSchemaVersions: string[] }
-    unsupportedAcceptList.acceptsContractSchemaVersions = ['0.4.0']
+    unsupportedAcceptList.acceptsContractSchemaVersions = ['0.5.0']
     expect(resultFor(unsupportedAcceptList)).toMatchObject({ outcome: 'adapter-invalid', diagnostics: [{ stage: 'adapter', code: 'accepted-contract-version-invalid' }] })
     expect(createCompleteManifest().acceptsContractSchemaVersions).toEqual([supportedAdapterContractSchemaVersion])
   })

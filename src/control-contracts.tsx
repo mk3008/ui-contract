@@ -211,23 +211,24 @@ function OptionGroup<T extends string>({
 }
 
 function TabsPreview({ tabsPolicy }: { tabsPolicy: TabsPolicy }) {
-  const className = tabsPolicy.treatment === 'underline-tabs'
-    ? 'control-tabs control-tabs-underline'
-    : 'control-tabs control-tabs-segmented'
+  const isContained = tabsPolicy.treatment === 'contained-tabs'
+  const className = isContained
+    ? 'control-tabs control-tabs-contained'
+    : 'control-tabs control-tabs-line'
 
   return (
     <div className="control-stage">
-      <ControlStateCard title="Panel tabs" caption="Switch related views in one work area">
-        <div className={className} role="tablist" aria-label="Preview tabs">
+      <ControlStateCard title="Related tab and panel" caption="The selected tab stays visibly connected to its panel">
+        <div className={`control-tab-pattern ${isContained ? 'is-contained' : 'is-line'}`}>
+          <div className={className} role="tablist" aria-label="Preview tabs">
           <PreviewTab active adornment={tabsPolicy.adornment} icon={<PanelTop size={14} />} label="Open" count="12" />
           <PreviewTab adornment={tabsPolicy.adornment} icon={<Columns3 size={14} />} label="History" count="4" />
           <PreviewTab adornment={tabsPolicy.adornment} icon={<ToggleLeft size={14} />} label="Inspector" count="2" />
-        </div>
-      </ControlStateCard>
-      <ControlStateCard title="Selected panel" caption="Active tab has a visible panel relationship">
-        <div className="control-tab-panel">
-          <strong>Open SQL</strong>
-          <span>Panel content belongs to the selected tab.</span>
+          </div>
+          <div aria-labelledby="preview-tab-open" className="control-tab-panel" id="preview-tab-panel" role="tabpanel">
+            <strong>Open SQL</strong>
+            <span>Panel content belongs to the selected tab.</span>
+          </div>
         </div>
       </ControlStateCard>
     </div>
@@ -248,7 +249,7 @@ function PreviewTab({
   label: string
 }) {
   return (
-    <button aria-selected={active} className={active ? 'is-active' : ''} role="tab" type="button">
+    <button aria-controls={active ? 'preview-tab-panel' : undefined} aria-selected={active} className={active ? 'is-active' : ''} id={active ? 'preview-tab-open' : undefined} role="tab" type="button">
       {adornment === 'icon-when-clarifying' ? icon : null}
       <span>{label}</span>
       {adornment === 'count-when-useful' ? <small>{count}</small> : null}

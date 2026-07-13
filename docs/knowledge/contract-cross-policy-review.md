@@ -110,6 +110,13 @@ adding a second option or by making a preview silently choose one policy.
 
 - `componentPolicy.toggle` owns the presentation of an immediate binary control;
   it does not own native-radio or Checkbox group arrangement.
+- `componentPolicy.tabs` owns a tablist and its related content panel. Its
+  `line-tabs` and `contained-tabs` treatments are both tab patterns; contained
+  tabs visibly attach the selected tab to that panel.
+- `componentPolicy.toggle.treatment: segmented-binary` remains the only owner of
+  a binary segmented-control presentation. It is a shared baseline by visual
+  resemblance, not a duplicate: it changes one immediate setting rather than
+  navigating related content panels.
 - `designPolicy.choiceGroupLayout` owns the stacked default and constrained
   inline allowance for sibling visible choices.
 - `componentPolicy.checkbox` retains choice surface and mixed-state rules; it
@@ -129,6 +136,14 @@ the Radio/Checkbox case it is now expressed by the shared sibling-choice layout
 Foundation. In Form Section it describes the
 scan of related fields within a screen structure, so it composes with Choice
 Group Layout rather than owning the same decision.
+
+The tabs/toggle comparison is a **shared baseline**, not a duplicate or
+conflict: the tab and tabpanel remain one Component-owned relationship, while
+the Toggle remains an immediate binary setting. Carbon Tabs guidance was
+reviewed for the naming and preview boundary: it distinguishes line tabs from
+contained tabs, requires contained tabs to attach to their tab panel, and
+directs filtering or same-content switching to a content switcher instead.
+Source: https://carbondesignsystem.com/components/tabs/usage/
 
 ## Acceptance Evidence
 

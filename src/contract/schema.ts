@@ -10,12 +10,12 @@ const colorMode = strictObject(Object.fromEntries(['brandBackground', 'brandText
 /** Versioned JSON Schema for every persisted, portable Contract field. */
 export const uiContractJsonSchema: Schema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'https://ui-contract-editor.local/schema/ui-contract-0.5.0.json',
+  $id: 'https://ui-contract-editor.local/schema/ui-contract-0.6.0.json',
   title: 'UI Contract',
   type: 'object',
   required: ['schemaVersion', 'meta', 'product', 'designPolicy', 'interactionPolicy', 'componentPolicy', 'screenPatternPolicy'],
   properties: {
-    schemaVersion: { const: '0.5.0' },
+    schemaVersion: { const: '0.6.0' },
     meta: strictObject({ name: { type: 'string' }, description: { type: 'string' } }),
     product: strictObject({ systemType: { type: 'string' }, informationDensity: { type: 'string' }, visualTone: { type: 'string' } }),
     designPolicy: strictObject({ colorProfileId: decision('color-profile'), choiceGroupLayout: decision('choice-group-layout'), brandIdentity: strictObject({ mark: hex, markBackground: identitySurface, markBorder: identitySurface }), color: strictObject({ light: colorMode, dark: colorMode }) }),

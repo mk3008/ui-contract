@@ -24,7 +24,7 @@ Adapter format in those files or in `AGENTS.md`.
 
 ## Issue and customer value
 
-UI Contract 0.5.0 has explicit import and migration outcomes and deterministic JSON
+UI Contract 0.6.0 has explicit import and migration outcomes and deterministic JSON
 and Markdown output, but the repository does not yet define how a product team proves
 that a particular implementation target realizes every Contract rule. Without a
 separate boundary, framework names and local mechanics can leak into Contract values,
@@ -41,7 +41,7 @@ mapping coverage, target compatibility, and approved deviations.
   `accepted-with-ignored-unknown-fields`; `invalid` and `unsupported-version` do
   not provide an Adapter input.
 - `src/contract/types.ts` owns the current `UiContract` identity, including
-  `schemaVersion: "0.5.0"`.
+  `schemaVersion: "0.6.0"`.
 - `src/contract/catalog.ts` owns persisted design-decision and invariant paths.
   `CatalogOptionAdapter` in that file is an editor option-metadata helper and is not
   the Phase 5 Adapter.
@@ -78,7 +78,7 @@ type AdapterManifest = {
   adapterId: string
   adapterVersion: string
   target: { id: string; version: string }
-  acceptsContractSchemaVersions: readonly ['0.5.0']
+  acceptsContractSchemaVersions: readonly ['0.6.0']
   mappings: Array<{
     rule:
       | {
@@ -196,7 +196,7 @@ the generic manifest itself is sound.
 - Ignored unknown Contract fields require human acknowledgement because their removal
   may indicate misplaced implementation data. The Adapter must not recover those
   fields from raw input.
-- Adapter `0.1.0` accepts only Contract `0.5.0`. Contract `0.4.0` and future Contract versions are
+- Adapter `0.1.0` accepts only Contract `0.6.0`. Contract `0.5.0` and future Contract versions are
   unsupported until a reviewed Adapter-spec/validator change defines their coverage.
 - There is no implicit Adapter migration, version range, wildcard Contract path, or
   fallback mapping in the first format. A future Adapter format migration must emit
@@ -245,7 +245,7 @@ the generated artifacts so they cannot drift independently.
 - Define the target-neutral manifest identity, mapping coverage, exception record,
   staged outcomes, version compatibility, ownership, and handoff gates.
 - Define a future pure validator and repository-verifiable fixtures/tests.
-- Preserve the current Contract 0.5.0 importer, catalog, schema, and outputs as inputs.
+- Preserve the current Contract 0.6.0 importer, catalog, schema, and outputs as inputs.
 
 ## Scope out
 

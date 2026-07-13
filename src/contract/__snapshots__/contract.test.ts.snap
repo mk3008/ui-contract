@@ -5,7 +5,7 @@ exports[`output generators > generates deterministic Markdown from the same sour
 
 Button policy prototype for the UI Contract Editor.
 
-Schema version: \`0.5.0\`
+Schema version: \`0.6.0\`
 
 ## Product
 
@@ -85,7 +85,7 @@ Schema version: \`0.5.0\`
 - select.multiSelectedItemDisplay: \`chips\`
 - select.multiRemoveAffordance: \`chip-remove-button\`
 - select.searchFieldTreatment: \`embedded-search-field\`
-- tabs.treatment: \`segmented-contained\`
+- tabs.treatment: \`line-tabs\`
 - tabs.adornment: \`text-only\`
 - toggle.treatment: \`switch-control\`
 - toggle.labelPolicy: \`visible-label\`

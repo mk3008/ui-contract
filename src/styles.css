@@ -1853,59 +1853,63 @@ h3 {
   font-weight: 850;
 }
 
-.control-tabs-segmented {
-  width: fit-content;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 3px;
-  gap: 2px;
-  background: var(--surface-soft);
+.control-tab-pattern {
+  display: grid;
+  padding: 12px;
 }
 
-.control-tabs-segmented button {
-  min-height: 32px;
-  border-radius: 6px;
-  padding: 0 12px;
-}
-
-.control-tabs-segmented button + button {
-  border-left: 0;
-}
-
-.control-tabs-segmented .is-active {
-  color: var(--primary);
-  background: var(--surface);
-  box-shadow:
-    inset 0 -2px 0 var(--primary),
-    0 1px 2px rgb(15 23 42 / 8%);
-}
-
-.control-tabs-segmented .is-active small {
-  color: inherit;
-}
-
-.control-tabs-underline {
+.control-tabs-line {
   gap: 18px;
   border-bottom: 1px solid var(--line);
 }
 
-.control-tabs-underline button {
+.control-tabs-line button {
   min-height: 38px;
   padding: 0 2px;
   border-bottom: 3px solid transparent;
 }
 
-.control-tabs-underline .is-active {
+.control-tabs-line .is-active {
   border-bottom-color: var(--primary);
   color: var(--text);
+}
+
+.control-tab-pattern.is-line .control-tab-panel {
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+.control-tabs-contained {
+  gap: 2px;
+  padding: 0 8px;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+.control-tabs-contained button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+}
+
+.control-tabs-contained .is-active {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: inset 0 3px 0 var(--primary);
+}
+
+.control-tabs-contained .is-active small {
+  color: inherit;
 }
 
 .control-tab-panel {
   display: grid;
   gap: 5px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 0 0 8px 8px;
   padding: 12px;
   background: var(--surface);
 }
