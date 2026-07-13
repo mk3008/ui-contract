@@ -403,17 +403,6 @@ h3 {
   gap: 12px;
 }
 
-.state-pill {
-  min-height: 26px;
-  padding: 3px 9px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--muted);
-  background: var(--surface-soft);
-  font-size: 12px;
-  font-weight: 650;
-}
-
 .empty-state {
   min-height: 385px;
   border: 1px dashed var(--line-strong);

@@ -825,12 +825,6 @@ function App() {
                               ? 'State Feedback Policy'
                 : selectedMenu)
   const pageEyebrow = isContractEditorPage ? 'Contract Editor' : selectedScreenPattern ? 'Screen Patterns' : selectedMenu === 'Choice Group Layout' ? 'Foundation' : 'Main page'
-  const pageStatus =
-    selectedScreenPattern
-      ? 'Interactive'
-      : isContractEditorPage || selectedMenu === 'Color Settings' || selectedMenu === 'Choice Group Layout'
-      ? 'Editable'
-      : 'Placeholder'
   const isOverviewPage = selectedMenu === 'Overview'
 
   const renderMainContent = () => {
@@ -1027,7 +1021,6 @@ function App() {
                     <p className="eyebrow">{pageEyebrow}</p>
                     <h2>{pageTitle}</h2>
                   </div>
-                  <span className="state-pill">{pageStatus}</span>
                 </div>
               ) : null}
               {loadError ? <div className="load-feedback" role="alert"><p>{translateUiText(loadError === 'malformed' ? 'Could not read this file as JSON. Choose a JSON file and try again.' : 'This Contract cannot be loaded. Choose a supported UI Contract file and try again.', language)}</p><button className="contract-button secondary-outline" onClick={handleLoad} type="button">{translateUiText('Try another file', language)}</button></div> : null}

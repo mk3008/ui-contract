@@ -6,7 +6,7 @@ const screenPatternPages = ['Search/List', 'Edit Detail', 'Edit List', 'Read-onl
 const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
 const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
 const englishStructureSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'
-const immutableVocabulary = new Set(['Contract Editor', 'Foundation', 'Main page', 'Editable', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
+const immutableVocabulary = new Set(['Contract Editor', 'Foundation', 'Main page', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
 const fixtureRecordValues = new Set(['Lumen Office', 'Pine Services', 'M. Suzuki', 'A. Tanaka'])
 
 async function expectLocalizedPage(page: import('@playwright/test').Page, language: 'JP' | 'EN', view: string) {
