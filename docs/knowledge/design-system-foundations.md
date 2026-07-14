@@ -140,6 +140,13 @@ both its visibility mode and indicator style to ordinary task actions such as
 Search, Clear, Save, Cancel, paging, and row selection; it must not remove
 those actions from natural Tab order merely to simplify a preview.
 
+Focus treatment is a compact semantic boundary around the active control, not
+a selected, destructive, invalid, or dominant surface treatment. It preserves
+the control's shape and geometry without changing border width or moving
+content. Use Focus semantic colors, rather than primary, danger, or error
+colors, and review their visibility on light, dark, neutral, and coloured
+surfaces.
+
 ### Screen Patterns
 
 Screen patterns define repeated page or workflow structures.

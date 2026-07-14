@@ -98,36 +98,103 @@ test('orders the navigation as a guided, non-blocking authoring sequence', async
   }
 })
 
-test('makes Focus Policy differences visible in the preview', async ({ page }) => {
+test('renders compact, interactive Focus Policy indicators without changing focus geometry', async ({ page }, testInfo) => {
   await page.goto('/')
-  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.evaluate(() => {
+    localStorage.setItem('ui-contract-language', 'en')
+    localStorage.setItem('ui-contract-theme', 'light')
+  })
   await page.reload()
   await page.getByRole('button', { name: 'Focus', exact: true }).click()
 
   const preview = page.locator('.focus-stage')
-  const keyboardFocus = preview.locator('.focus-sample-primary')
-  const pointerFocus = preview.getByRole('button', { name: 'Preview', exact: true })
+  const staticSamples = preview.locator('.focus-state-samples')
+  const interactive = preview.locator('.focus-interactive-preview')
+  const staticPointerFocus = staticSamples.getByText('Preview', { exact: true })
+  const primary = interactive.getByRole('button', { name: 'Save changes', exact: true })
+  const secondary = interactive.getByRole('button', { name: 'Cancel', exact: true })
+  const input = interactive.getByRole('textbox', { name: 'Customer name', exact: true })
   await expect(preview.getByText('Keyboard focus', { exact: true })).toBeVisible()
   await expect(preview.getByText('Pointer focus', { exact: true })).toBeVisible()
   await expect(preview.getByText('Active text input', { exact: true })).toBeVisible()
-  await expect(keyboardFocus).toHaveClass(/is-focused/)
-  await expect(pointerFocus).toHaveClass(/is-pointer-quiet/)
-  const outerRing = await keyboardFocus.evaluate((element) => {
+  await expect(staticSamples.getByRole('heading', { name: 'Static samples', exact: true })).toBeVisible()
+  await expect(interactive.getByRole('heading', { name: 'Interactive preview', exact: true })).toBeVisible()
+  await expect(interactive.locator('.focus-demo-indicator')).toHaveCount(0)
+  await expect(staticPointerFocus).toHaveClass(/is-pointer-quiet/)
+
+  const [primaryBefore, secondaryBefore, inputBefore] = await Promise.all([
+    primary.boundingBox(),
+    secondary.boundingBox(),
+    input.boundingBox(),
+  ])
+  expect(primaryBefore).not.toBeNull()
+  expect(secondaryBefore).not.toBeNull()
+  expect(inputBefore).not.toBeNull()
+
+  await primary.focus()
+  await page.keyboard.press('Tab')
+  await expect(secondary).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(primary).toBeFocused()
+  const outerRing = await primary.evaluate((element) => {
     const style = window.getComputedStyle(element)
     return { outlineWidth: style.outlineWidth, boxShadow: style.boxShadow }
   })
-  expect(outerRing).toMatchObject({ outlineWidth: '3px' })
+  expect(outerRing).toMatchObject({ outlineWidth: '0px' })
   expect(outerRing.boxShadow).not.toBe('none')
+  const evidenceDirectory = join('output', 'playwright', 'focus-indicator', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await preview.screenshot({ path: join(evidenceDirectory, 'light-keyboard-outer-ring.png'), animations: 'disabled' })
+
+  await primary.click()
+  const pointerButton = await primary.evaluate((element) => window.getComputedStyle(element).boxShadow)
+  expect(pointerButton).toBe('none')
+  await input.click()
+  const pointerInput = await input.evaluate((element) => window.getComputedStyle(element).boxShadow)
+  expect(pointerInput).not.toBe('none')
+  await input.fill('Northwind Cooperative')
+  await expect(input).toHaveValue('Northwind Cooperative')
+  await expect(input).toBeFocused()
+  await expect(input).not.toHaveCSS('box-shadow', 'none')
 
   await page.getByText('All focused controls', { exact: true }).click()
-  await expect(pointerFocus).toHaveClass(/is-focused/)
+  await expect(staticPointerFocus).toHaveClass(/focus-demo-indicator/)
+  await primary.click()
+  const allFocusedPointer = await primary.evaluate((element) => window.getComputedStyle(element).boxShadow)
+  expect(allFocusedPointer).not.toBe('none')
   await page.getByText('High contrast highlight', { exact: true }).click()
-  const highContrast = await keyboardFocus.evaluate((element) => {
+  await primary.focus()
+  const highContrast = await primary.evaluate((element) => {
     const style = window.getComputedStyle(element)
     return { outlineWidth: style.outlineWidth, boxShadow: style.boxShadow }
   })
-  expect(highContrast).toMatchObject({ outlineWidth: '4px' })
+  expect(highContrast).toMatchObject({ outlineWidth: '0px' })
   expect(highContrast.boxShadow).not.toBe(outerRing.boxShadow)
+
+  const [primaryAfter, secondaryAfter, inputAfter] = await Promise.all([
+    primary.boundingBox(),
+    secondary.boundingBox(),
+    input.boundingBox(),
+  ])
+  expect(primaryAfter).toEqual(primaryBefore)
+  expect(secondaryAfter).toEqual(secondaryBefore)
+  expect(inputAfter).toEqual(inputBefore)
+
+  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
+  await expect(preview).toHaveCSS('--focus-outer', '#facc15')
+  await primary.focus()
+  const darkRing = await primary.evaluate((element) => window.getComputedStyle(element).boxShadow)
+  expect(darkRing).not.toBe('none')
+  await preview.screenshot({ path: join(evidenceDirectory, 'dark-keyboard-high-contrast.png'), animations: 'disabled' })
+
+  const styles = readFileSync(join(process.cwd(), 'src/styles.css'), 'utf8')
+  const main = readFileSync(join(process.cwd(), 'src/main.tsx'), 'utf8')
+  const focusPreviewStyles = styles.slice(styles.indexOf('.focus-stage'), styles.indexOf('.preview-button-wrap'))
+  expect(focusPreviewStyles).not.toMatch(/outline:\s*[34]px\s+solid/)
+  expect(focusPreviewStyles).not.toMatch(/border-width:\s*[^;]+/)
+  expect(main).not.toMatch(/tabIndex=\{?[1-9]/)
+  expect(focusPreviewStyles).not.toMatch(/focus-(?:outer|inner)[^\n]*(?:danger|error|primary)/)
 })
 
 test('keeps the shared editor header structural, English, and free of explanatory chrome in both locales', async ({ page }) => {

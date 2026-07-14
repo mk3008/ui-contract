@@ -2393,40 +2393,48 @@ function FocusPreviewStage({
 }) {
   const focusClass = `focus-style-${focusPolicy.indicatorStyle}`
   const showPointerFocus = focusPolicy.visibility === 'all-focused-controls'
+  const [inputModality, setInputModality] = useState<'keyboard' | 'pointer'>('keyboard')
+  const [customerName, setCustomerName] = useState('Northwind Co.')
 
   return (
-    <div className={`focus-stage ${focusClass}`} style={previewStyle}>
-      <div className="focus-sample-section">
-        <span>Keyboard focus</span>
-        <div className="focus-sample-row">
-          <button className="focus-sample-control focus-sample-primary is-focused" type="button">
-            Save changes
-          </button>
-          <button className="focus-sample-control" type="button">
-            Cancel
-          </button>
-        </div>
-      </div>
+    <div
+      className={`focus-stage ${focusClass} focus-visibility-${focusPolicy.visibility}`}
+      data-input-modality={inputModality}
+      onKeyDownCapture={() => setInputModality('keyboard')}
+      onPointerDownCapture={() => setInputModality('pointer')}
+      style={previewStyle}
+    >
+      <section className="focus-state-samples" aria-label="Focus state samples">
+        <h4>Static samples</h4>
+        <div className="focus-sample-grid">
+          <div className="focus-sample-section">
+            <span>Keyboard focus</span>
+            <div className="focus-static-control focus-sample-primary focus-demo-indicator">Save changes</div>
+          </div>
 
-      <div className="focus-sample-section">
-        <span>Pointer focus</span>
-        <div className="focus-sample-row">
-          <button
-            className={`focus-sample-control ${showPointerFocus ? 'is-focused' : 'is-pointer-quiet'}`}
-            type="button"
-          >
-            Preview
-          </button>
-        </div>
-      </div>
+          <div className="focus-sample-section">
+            <span>Pointer focus</span>
+            <div className={`focus-static-control ${showPointerFocus ? 'focus-demo-indicator' : 'is-pointer-quiet'}`}>Preview</div>
+          </div>
 
-      <div className="focus-sample-section">
-        <span>Active text input</span>
-        <label className="focus-sample-field">
-          <span>Customer name</span>
-          <input className="focus-sample-input is-focused" readOnly value="Northwind Co." />
-        </label>
-      </div>
+          <div className="focus-sample-section">
+            <span>Active text input</span>
+            <div className="focus-static-input focus-demo-indicator" data-i18n-skip>Northwind Co.</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="focus-interactive-preview" aria-label="Interactive focus preview">
+        <h4>Interactive preview</h4>
+        <div className="focus-sample-row">
+          <button className="focus-sample-control focus-sample-primary" type="button">Save changes</button>
+          <button className="focus-sample-control" type="button">Cancel</button>
+          <label className="focus-sample-field">
+            <span>Customer name</span>
+            <input className="focus-sample-input" value={customerName} onChange={(event) => setCustomerName(event.target.value)} />
+          </label>
+        </div>
+      </section>
     </div>
   )
 }

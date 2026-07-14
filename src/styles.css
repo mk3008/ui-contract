@@ -3007,7 +3007,7 @@ h3 {
 }
 
 .focus-stage {
-  min-height: 280px;
+  min-height: 360px;
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -3025,6 +3025,29 @@ h3 {
   gap: 8px;
 }
 
+.focus-state-samples,
+.focus-interactive-preview {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.focus-state-samples h4,
+.focus-interactive-preview h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.focus-sample-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .focus-sample-section > span {
   color: var(--muted);
   font-size: 12px;
@@ -3039,7 +3062,9 @@ h3 {
 }
 
 .focus-sample-control,
-.focus-sample-tab {
+.focus-sample-tab,
+.focus-static-control,
+.focus-static-input {
   position: relative;
   min-height: 40px;
   border: 1px solid var(--line-strong);
@@ -3055,11 +3080,23 @@ h3 {
   background: var(--primary);
 }
 
+.focus-static-control.focus-sample-primary {
+  border-color: var(--primary);
+  color: #ffffff;
+  background: var(--primary);
+}
+
 .focus-sample-control.is-pointer-quiet {
   border-color: var(--line);
   color: var(--muted);
   background: var(--surface-soft);
   box-shadow: none;
+}
+
+.focus-static-control.is-pointer-quiet {
+  border-color: var(--line);
+  color: var(--muted);
+  background: var(--surface-soft);
 }
 
 .focus-sample-field {
@@ -3081,6 +3118,18 @@ h3 {
   font: inherit;
 }
 
+.focus-static-input {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-radius: 6px;
+  padding: 0 11px;
+}
+
+.focus-interactive-preview .focus-sample-field {
+  min-width: min(100%, 220px);
+}
+
 .focus-sample-tab {
   border-color: transparent;
   background: transparent;
@@ -3091,20 +3140,32 @@ h3 {
   background: var(--surface);
 }
 
-.focus-style-outer-ring .is-focused {
-  outline: 3px solid var(--focus-outer);
-  outline-offset: 4px;
+.focus-style-outer-ring .focus-demo-indicator,
+.focus-style-outer-ring[data-input-modality='keyboard'] .focus-interactive-preview :focus-visible,
+.focus-style-outer-ring.focus-visibility-all-focused-controls .focus-interactive-preview :focus,
+.focus-style-outer-ring.focus-visibility-keyboard-and-active-inputs .focus-interactive-preview input:focus {
+  outline: 0 solid transparent !important;
+  outline-offset: 0;
   box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 5px var(--focus-outer);
+    0 0 0 1px var(--surface),
+    0 0 0 3px var(--focus-outer);
 }
 
-.focus-style-high-contrast-highlight .is-focused {
-  outline: 4px solid var(--focus-inner);
-  outline-offset: 4px;
+.focus-style-high-contrast-highlight .focus-demo-indicator,
+.focus-style-high-contrast-highlight[data-input-modality='keyboard'] .focus-interactive-preview :focus-visible,
+.focus-style-high-contrast-highlight.focus-visibility-all-focused-controls .focus-interactive-preview :focus,
+.focus-style-high-contrast-highlight.focus-visibility-keyboard-and-active-inputs .focus-interactive-preview input:focus {
+  outline: 0 solid transparent !important;
+  outline-offset: 0;
   box-shadow:
-    0 0 0 3px var(--surface),
-    0 0 0 7px var(--focus-outer);
+    0 0 0 1px var(--focus-inner),
+    0 0 0 3px var(--focus-outer);
+}
+
+@media (max-width: 720px) {
+  .focus-sample-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .preview-button-wrap {

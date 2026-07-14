@@ -591,6 +591,8 @@ const translationEntries: TranslationEntry[] = [
   { ja: 'キーボードフォーカス', en: 'Keyboard focus' },
   { ja: 'ポインターフォーカス', en: 'Pointer focus' },
   { ja: '入力中のテキスト入力', en: 'Active text input' },
+  { ja: 'フォーカス状態のサンプル', en: 'Focus state samples' },
+  { ja: 'インタラクティブなフォーカスプレビュー', en: 'Interactive focus preview' },
   { ja: '顧客名', en: 'Customer name' },
   { ja: '任意', en: '(optional)' },
   { ja: 'アカウントコード', en: 'Account code' },

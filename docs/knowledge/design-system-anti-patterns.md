@@ -308,6 +308,14 @@ Evidence level: `hard deny`
 Decision:
 Do not add Focus Policy options that remove, suppress, or make focus indicators subtle enough that keyboard users cannot reliably locate the active element.
 
+Local interpretation:
+Focus indicators must be clearly visible without reading as selected, destructive,
+invalid, or visually dominant over the focused control. Preserve the control's
+shape and box geometry: do not change border width or move adjacent content
+when focus appears. Use semantic Focus tokens rather than primary, danger, or
+error colors, and verify that the indicator remains perceivable on light, dark,
+neutral, and coloured surfaces.
+
 Evidence:
 - WCAG says each item receiving keyboard focus needs a visible indicator.
 - GOV.UK says focus states tell users which element is ready to be interacted with.
