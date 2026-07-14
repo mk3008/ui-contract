@@ -395,23 +395,121 @@ test('keeps all five artifact panels content-driven and business tables compact 
 
   await page.goto('/?screen-artifact=edit-detail')
   const formSection = page.getByRole('region', { name: 'Personal information' })
-  const formColumns = formSection.locator('.grouped-form-column')
+  const formFields = formSection.locator('.grouped-form-fields > label')
   const actionArea = page.getByRole('group', { name: /Account actions|アカウントの操作/ })
-  expect(await formColumns.count()).toBe(2)
-  for (let column = 0; column < await formColumns.count(); column += 1) {
-    const fields = formColumns.nth(column).locator(':scope > label')
-    let previousBottom = 0
-    for (let index = 0; index < await fields.count(); index += 1) {
-      const box = await fields.nth(index).boundingBox()
-      expect(box).not.toBeNull()
-      expect(box!.y).toBeGreaterThanOrEqual(previousBottom)
-      previousBottom = box!.y + box!.height
-    }
-  }
+  await expect(formFields).toHaveCount(7)
+  expect(await formFields.locator('input').evaluateAll((fields) => fields.map((field) => field.getAttribute('aria-describedby')))).toEqual(['name-message', 'dateOfBirth-message', 'email-message', 'phone-message', 'streetAddress-message', 'city-message', 'postalCode-message'])
   const [formSectionBox, actionAreaBox] = await Promise.all([formSection.boundingBox(), actionArea.boundingBox()])
   expect(formSectionBox).not.toBeNull()
   expect(actionAreaBox).not.toBeNull()
   expect(actionAreaBox!.y).toBeGreaterThanOrEqual(formSectionBox!.y + formSectionBox!.height)
+})
+
+test('keeps Screen Pattern keyboard traversal in reading order and routes focus through validation, dialogs, and selection mode', async ({ page }) => {
+  const detailFieldNames = ['Account name', 'Date of birth', 'Email', 'Phone number', 'Street address', 'City', 'Postal code']
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.goto('/?screen-artifact=edit-detail')
+  const detailFields = detailFieldNames.map((name) => page.getByLabel(name))
+  await detailFields[0].focus()
+  const expectedDetailTraversal = ['name-message', 'dateOfBirth-message', 'dateOfBirth-message', 'dateOfBirth-message', 'dateOfBirth-message', 'email-message', 'phone-message', 'streetAddress-message', 'city-message', 'postalCode-message']
+  const desktopFocusSequence: Array<string | null> = []
+  for (let index = 0; index < expectedDetailTraversal.length; index += 1) {
+    desktopFocusSequence.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-describedby') ?? null))
+    await page.keyboard.press('Tab')
+  }
+  expect(desktopFocusSequence).toEqual(expectedDetailTraversal)
+  await page.keyboard.press('Shift+Tab')
+  await expect(detailFields.at(-1)!).toBeFocused()
+
+  const fieldBoxes = await Promise.all(detailFields.map((field) => field.boundingBox()))
+  const fieldLabelBoxes = await Promise.all((await page.locator('.grouped-form-fields > label').all()).map((field) => field.boundingBox()))
+  for (const box of fieldBoxes) expect(box).not.toBeNull()
+  expect(Math.abs(fieldBoxes[0]!.y - fieldBoxes[1]!.y)).toBeLessThanOrEqual(0.5)
+  expect(Math.abs(fieldBoxes[2]!.y - fieldBoxes[3]!.y)).toBeLessThanOrEqual(0.5)
+  expect(fieldBoxes[4]!.y).toBeGreaterThan(fieldBoxes[2]!.y)
+  expect(fieldBoxes[4]!.width).toBeGreaterThan(fieldBoxes[0]!.width)
+  expect(fieldLabelBoxes[4]!.width).toBeGreaterThan(fieldLabelBoxes[0]!.width)
+  expect(Math.abs(fieldBoxes[5]!.y - fieldBoxes[6]!.y)).toBeLessThanOrEqual(0.5)
+
+  await detailFields[0].fill('')
+  await page.getByRole('button', { name: 'Save account changes' }).click()
+  const validationSummary = page.getByRole('alert').filter({ hasText: 'Correct the highlighted required and invalid fields before saving.' })
+  await expect(validationSummary).toBeFocused()
+  await expect(validationSummary).toHaveAttribute('tabindex', '-1')
+  await page.keyboard.press('Tab')
+  await expect(detailFields[0]).toBeFocused()
+  await detailFields[0].fill('Alex Morgan')
+  await page.getByRole('button', { name: 'Save account changes' }).click()
+  const savedMessage = page.getByText('Account changes saved.', { exact: true })
+  await expect(validationSummary).toHaveCount(0)
+  await expect(savedMessage).toBeFocused()
+
+  await page.setViewportSize({ width: 700, height: 1000 })
+  await page.goto('/?screen-artifact=edit-detail')
+  const narrowFields = detailFieldNames.map((name) => page.getByLabel(name))
+  const narrowBoxes = await Promise.all(narrowFields.map((field) => field.boundingBox()))
+  for (let index = 1; index < narrowBoxes.length; index += 1) {
+    expect(narrowBoxes[index]).not.toBeNull()
+    expect(narrowBoxes[index]!.y).toBeGreaterThan(narrowBoxes[index - 1]!.y)
+  }
+  await narrowFields[0].focus()
+  for (let index = 1; index < expectedDetailTraversal.length; index += 1) {
+    await page.keyboard.press('Tab')
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('aria-describedby') ?? null)).toBe(expectedDetailTraversal[index])
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/?screen-artifact=destructive-action')
+  const closeAccount = page.getByRole('button', { name: 'Close Pine Services' }).first()
+  await closeAccount.focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog')
+  const cancel = dialog.getByRole('button', { name: 'Cancel' })
+  const confirm = dialog.getByRole('button', { name: 'Close Pine Services' })
+  await expect(cancel).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(confirm).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(cancel).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(closeAccount).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(cancel).toBeFocused()
+  await cancel.click()
+  await expect(dialog).toHaveCount(0)
+  await expect(closeAccount).toBeFocused()
+  await page.keyboard.press('Enter')
+  await confirm.click()
+  const recovery = page.getByRole('alert').filter({ hasText: 'Account closure did not complete' })
+  await expect(recovery).toBeFocused()
+  await recovery.getByRole('button', { name: 'Retry' }).click()
+  await expect(page.getByText('Pine Services was closed.', { exact: true })).toBeFocused()
+
+  await page.goto('/?screen-artifact=search-list&state=results')
+  const selectAll = page.getByRole('checkbox', { name: 'Select all accounts on this page' })
+  const firstRowCheckbox = page.getByRole('checkbox', { name: 'Select account: Aster Works' })
+  const secondRowCheckbox = page.getByRole('checkbox', { name: 'Select account: Harbor Supply' })
+  const firstRowAction = page.getByRole('link', { name: 'View account' }).first()
+  await firstRowCheckbox.focus()
+  await page.keyboard.press('Space')
+  await expect(firstRowCheckbox).toBeFocused()
+  await expect(firstRowAction).toHaveAttribute('tabindex', '-1')
+  await page.keyboard.press('Tab')
+  await expect(secondRowCheckbox).toBeFocused()
+  await page.getByRole('button', { name: 'Clear selection' }).click()
+  await expect(firstRowAction).not.toHaveAttribute('tabindex', '-1')
+  await firstRowCheckbox.focus()
+  await page.keyboard.press('Tab')
+  await expect(firstRowAction).toBeFocused()
+  await selectAll.focus()
+  await page.keyboard.press('Space')
+  await expect(selectAll).toBeFocused()
+  await expect(firstRowAction).toHaveAttribute('tabindex', '-1')
+
+  const screenSource = readFileSync(join(process.cwd(), 'src', 'interactive-screen-patterns.tsx'), 'utf8')
+  expect(screenSource).not.toMatch(/(?:tabIndex|tabindex)\s*=\s*(?:["'][1-9]\d*["']|\{\s*[1-9]\d*\s*\})/)
 })
 
 test('keeps Japanese Edit Detail actions concise while preserving contextual accessible names', async ({ page }) => {

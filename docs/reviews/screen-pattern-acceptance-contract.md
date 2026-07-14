@@ -44,17 +44,21 @@ must not be promoted merely to raise Contract coverage.
    context-appropriate. In tables, checkbox selection remains explicit and is
    distinguishable from deliberate row navigation; selected-row feedback and
    batch context supplement, but never replace, that explicit control.
-7. **Evidence hierarchy.** DOM, semantic, keyboard/focus, dialog, action, and
+7. **Keyboard focus and navigation.** Apply the fixed natural-order,
+   validation, dialog-return, confirmation-result, and selection-focus rules in
+   `design-system-foundations.md`; these are acceptance rules, not exported
+   Contract choices.
+8. **Evidence hierarchy.** DOM, semantic, keyboard/focus, dialog, action, and
    recovery assertions are primary evidence. PNG and JPEG captures supplement
    them; screenshots never prove assistive-technology behavior on their own.
-8. **Deterministic full-page evidence.** Each required state has an exact
+9. **Deterministic full-page evidence.** Each required state has an exact
    documented-viewport complete application-page capture. It excludes editor,
    Contract, evidence, fixture, and process chrome. The manifest identifies the
    state, route, fixture version, viewport, browser, capture route/command,
    current canonical Contract JSON digest, relevant Contract paths, and both
    PNG and JPEG outputs. Image dimensions and two clean captures must be
    checked for determinism before review.
-9. **Human realism decision.** Automated checks cannot establish that a page
+10. **Human realism decision.** Automated checks cannot establish that a page
    reads as a coherent business workflow. A reviewer must inspect rendered
    evidence and apply the realism and copy gate before acceptance. An automated
    pass is not a substitute for this decision.
@@ -69,6 +73,7 @@ must not be promoted merely to raise Contract coverage.
 | Perceivable state and recovery | Component/Interaction Policy + Screen Pattern | Semantic state, label, recovery-action, and non-colour assertions | automated |
 | Spatial target stability | Screen Pattern layout | Before/after target-coordinate assertions for the triggering control and relevant targets | automated |
 | Explicit table selection versus navigation | Screen Pattern + Checkbox semantics | Checkbox, selected-row, batch-context, and navigation-guard assertions | automated |
+| Keyboard focus and navigation | Interaction Policy + Screen Pattern | Tab/Shift+Tab order, programmatic validation/result focus, dialog return, and temporary Tab exclusion assertions | automated |
 | Deterministic complete-page capture | This Acceptance Contract | Manifest, exact PNG/JPEG dimension checks, two-clean-run comparison, artifact-chrome exclusion checks | automated and reviewed |
 | Overall business realism | This Acceptance Contract | `screen-pattern-realism-review.md` completed against rendered evidence | human review |
 

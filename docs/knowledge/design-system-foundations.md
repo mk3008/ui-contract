@@ -108,6 +108,32 @@ Examples:
 
 Interaction policy should not be hidden inside one component merely because that component triggers the interaction.
 
+### Keyboard Focus and Navigation
+
+Keyboard traversal is a fixed interaction-policy and Screen Pattern acceptance
+rule, not a selectable Contract value. Natural Tab order follows visual and
+semantic reading order. Keep DOM and CSS visual order aligned and never use a
+positive `tabindex`; `tabindex="-1"` is limited to programmatic focus or
+temporary exclusion.
+
+In an LTR multi-column form, Tab proceeds left-to-right across each visual row,
+then continues with the next row. Column-first traversal is appropriate only
+when the columns are independently labelled semantic groups. The same DOM order
+must remain the one-column reading order at narrow widths.
+
+Do not steal focus during a state update unless it continues the current task.
+Removing the focused item moves focus to the semantic next target. A validation
+summary may receive programmatic focus, after which Tab continues to the first
+invalid field; it is not a permanent tab stop. Dialog Cancel and Escape return
+to the originating trigger. A confirmed destructive action instead moves focus
+to a visible result or recovery target, never to the document body or back to
+the trigger. Selection changes retain the checkbox or select-all focus and do
+not move focus to batch actions; temporarily unavailable row actions leave Tab
+order only while that state applies.
+
+These rules are render-output acceptance criteria. They do not add a Focus,
+Button, Checkbox, Confirmation, or Screen Pattern Contract option.
+
 ### Screen Patterns
 
 Screen patterns define repeated page or workflow structures.

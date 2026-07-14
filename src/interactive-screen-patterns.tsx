@@ -137,6 +137,8 @@ function EditDetailExample({ artifact = false, button, initialState = 'initial' 
   const [details, setDetails] = useState(initialDetails)
   const [submitted, setSubmitted] = useState(initialState === 'validation')
   const [saved, setSaved] = useState(false)
+  const validationSummaryRef = useRef<HTMLDivElement>(null)
+  const savedMessageRef = useRef<HTMLParagraphElement>(null)
   const errors = {
     name: !details.name.trim() ? 'Enter an account name.' : null,
     dateOfBirth: !details.dateOfBirth || details.dateOfBirth >= new Date().toISOString().slice(0, 10) ? 'Enter a date of birth in the past.' : null,
@@ -147,14 +149,18 @@ function EditDetailExample({ artifact = false, button, initialState = 'initial' 
     postalCode: !details.postalCode.trim() ? 'Enter a postal code.' : null,
   }
   const hasErrors = Object.values(errors).some(Boolean)
+  useEffect(() => {
+    if (submitted && hasErrors) validationSummaryRef.current?.focus()
+    if (saved) savedMessageRef.current?.focus()
+  }, [hasErrors, saved, submitted])
   const update = (field: keyof typeof details) => (event: React.ChangeEvent<HTMLInputElement>) => setDetails((current) => ({ ...current, [field]: event.target.value }))
   const reset = () => { setDetails({ name: 'Alex Morgan', dateOfBirth: '1990-06-16', email: 'alex.morgan@example.com', phone: '+1 415 555 0135', streetAddress: '220 Market Street', city: 'San Francisco', postalCode: '94105' }); setSubmitted(false); setSaved(false) }
   const save = (event: React.FormEvent) => { event.preventDefault(); setSubmitted(true); setSaved(!hasErrors) }
   const field = (key: keyof typeof details, label: string, type = 'text', fullWidth = false) => <label className={`example-field${fullWidth ? ' screen-field-span-full' : ''}`}>{label} <span className="required-cue">Required</span><input type={type} required aria-invalid={submitted && Boolean(errors[key])} aria-describedby={`${key}-message`} value={details[key]} onChange={update(key)} /><span id={`${key}-message`} className="field-message" role={submitted && errors[key] ? 'alert' : undefined}>{submitted ? errors[key] : null}</span></label>
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="edit-detail" data-screen="edit-detail" data-state={submitted && hasErrors ? 'validation' : saved ? 'saved' : 'initial'} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Edit account" />
-    {submitted && hasErrors && <div className="validation-summary" role="alert">Correct the highlighted required and invalid fields before saving.</div>}
-    <form onSubmit={save} noValidate><section aria-labelledby="edit-account-personal-information" className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>AC-2048</strong></div></div><div className="section-title"><h5 id="edit-account-personal-information">Personal information</h5></div><div className="screen-field-grid grouped-form-fields"><div className="grouped-form-column">{field('name', 'Account name')}{field('dateOfBirth', 'Date of birth', 'date')}{field('email', 'Email', 'email')}{field('phone', 'Phone number', 'tel')}</div><div className="grouped-form-column">{field('streetAddress', 'Street address', 'text', true)}{field('city', 'City')}{field('postalCode', 'Postal code')}</div></div></section><div aria-label="Account actions" className="screen-action-bar" role="group"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
+    {submitted && hasErrors && <div ref={validationSummaryRef} className="validation-summary" role="alert" tabIndex={-1}>Correct the highlighted required and invalid fields before saving.</div>}
+    <form onSubmit={save} noValidate><section aria-labelledby="edit-account-personal-information" className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>AC-2048</strong></div></div><div className="section-title"><h5 id="edit-account-personal-information">Personal information</h5></div><div className="screen-field-grid grouped-form-fields">{field('name', 'Account name')}{field('dateOfBirth', 'Date of birth', 'date')}{field('email', 'Email', 'email')}{field('phone', 'Phone number', 'tel')}{field('streetAddress', 'Street address', 'text', true)}{field('city', 'City')}{field('postalCode', 'Postal code')}</div></section><div aria-label="Account actions" className="screen-action-bar" role="group"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p ref={savedMessageRef} className="success-message" role="status" tabIndex={-1}>Account changes saved.</p>}</form>
   </article>
 }
 
@@ -202,13 +208,27 @@ function DestructiveActionExample({ artifact = false, confirmation, button, init
   const [open, setOpen] = useState(initialState === 'confirmation')
   const [result, setResult] = useState<'initial' | 'error' | 'done'>(initialState === 'error' ? 'error' : initialState === 'result' ? 'done' : 'initial')
   const [typed, setTyped] = useState('')
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLElement>(null)
+  const errorResultRef = useRef<HTMLElement>(null)
+  const successResultRef = useRef<HTMLParagraphElement>(null)
+  const restoreTriggerFocusRef = useRef(false)
   const canConfirm = confirmation.surface !== 'typed-confirmation' || typed === 'DELETE'
-  useEffect(() => { if (open) cancelRef.current?.focus() }, [open])
+  useEffect(() => {
+    if (open) cancelRef.current?.focus()
+    else if (restoreTriggerFocusRef.current) {
+      triggerRef.current?.focus()
+      restoreTriggerFocusRef.current = false
+    }
+  }, [open])
+  useEffect(() => {
+    if (result === 'error') errorResultRef.current?.focus()
+    if (result === 'done') successResultRef.current?.focus()
+  }, [result])
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { setOpen(false); return }
+      if (event.key === 'Escape') { restoreTriggerFocusRef.current = true; setOpen(false); return }
       if (event.key !== 'Tab') return
       const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])') ?? [])
       if (!focusable.length) return
@@ -220,13 +240,15 @@ function DestructiveActionExample({ artifact = false, confirmation, button, init
     if (open) window.addEventListener('keydown', handleKeydown)
     return () => window.removeEventListener('keydown', handleKeydown)
   }, [open])
-  const confirm = () => { setOpen(false); setTyped(''); setResult('error') }
+  const closeDialog = () => { restoreTriggerFocusRef.current = true; setOpen(false) }
+  const openDialog = () => { restoreTriggerFocusRef.current = false; setOpen(true) }
+  const confirm = () => { restoreTriggerFocusRef.current = false; setOpen(false); setTyped(''); setResult('error') }
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="destructive-action" data-screen="destructive-action" data-state={open ? 'confirmation' : result} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Close account" />
     <ReadOnlyPersonalInformation accountId="AC-2050" details={{ name: 'Pine Services', dateOfBirth: '1988-04-08', email: 'support@pine.example', phone: '+1 415 555 0190', streetAddress: '100 Pine Street', city: 'San Francisco', postalCode: '94111' }} />
-    <section className="screen-section"><p>Closing this account removes it from active operations and prevents new assignments.</p><div className="read-only-detail-grid"><div><span>Current status</span><strong>Paused</strong></div><div><span>Open assignments (must be 0)</span><strong>0</strong></div></div></section><div className="screen-action-bar"><button className="contract-button danger-emphasis-outline" type="button" onClick={() => setOpen(true)}>Close Pine Services</button></div>
-    {result === 'error' && <section className="screen-state is-error" role="alert"><strong>Account closure did not complete</strong><p>No account data was changed.</p><button className="contract-button primary-filled" type="button" onClick={() => setResult('done')}>Retry</button></section>}
-    {result === 'done' && <p className="success-message" role="status">Pine Services was closed.</p>}
-    {open && <div className="dialog-backdrop"><section ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description"><h5 id="confirmation-title">Close Pine Services?</h5><p id="confirmation-description">This will remove Pine Services from active operations and prevent new assignments.</p>{confirmation.surface === 'typed-confirmation' && <label className="example-field">Type DELETE to confirm<input value={typed} onChange={(event) => setTyped(event.target.value)} /></label>}<div className="screen-actions"><button ref={cancelRef} className="contract-button secondary-outline" type="button" onClick={() => setOpen(false)}>Cancel</button><button className="contract-button danger-emphasis-filled" type="button" disabled={!canConfirm} onClick={confirm}>Close Pine Services</button></div></section></div>}
+    <section className="screen-section"><p>Closing this account removes it from active operations and prevents new assignments.</p><div className="read-only-detail-grid"><div><span>Current status</span><strong>Paused</strong></div><div><span>Open assignments (must be 0)</span><strong>0</strong></div></div></section><div className="screen-action-bar"><button ref={triggerRef} className="contract-button danger-emphasis-outline" type="button" onClick={openDialog}>Close Pine Services</button></div>
+    {result === 'error' && <section ref={errorResultRef} className="screen-state is-error" role="alert" tabIndex={-1}><strong>Account closure did not complete</strong><p>No account data was changed.</p><button className="contract-button primary-filled" type="button" onClick={() => setResult('done')}>Retry</button></section>}
+    {result === 'done' && <p ref={successResultRef} className="success-message" role="status" tabIndex={-1}>Pine Services was closed.</p>}
+    {open && <div className="dialog-backdrop"><section ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description"><h5 id="confirmation-title">Close Pine Services?</h5><p id="confirmation-description">This will remove Pine Services from active operations and prevent new assignments.</p>{confirmation.surface === 'typed-confirmation' && <label className="example-field">Type DELETE to confirm<input value={typed} onChange={(event) => setTyped(event.target.value)} /></label>}<div className="screen-actions"><button ref={cancelRef} className="contract-button secondary-outline" type="button" onClick={closeDialog}>Cancel</button><button className="contract-button danger-emphasis-filled" type="button" disabled={!canConfirm} onClick={confirm}>Close Pine Services</button></div></section></div>}
   </article>
 }
