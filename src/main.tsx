@@ -1212,8 +1212,11 @@ function ContractEditorPanel({
   if (selectedComponent === 'focus') {
     return (
       <FocusSectionedContractPanel
+        brandIdentity={brandIdentity}
+        colorPolicy={colorPolicy}
         focusPolicy={focusPolicy}
         onUpdate={onFocusUpdate}
+        theme={theme}
       />
     )
   }
@@ -1810,14 +1813,20 @@ function TextFieldSectionedContractPanel({
 }
 
 function FocusSectionedContractPanel({
+  brandIdentity,
+  colorPolicy,
   focusPolicy,
   onUpdate,
+  theme,
 }: {
+  brandIdentity: BrandIdentityPolicy
+  colorPolicy: ColorPolicy
   focusPolicy: UiContract['interactionPolicy']['focus']
   onUpdate: <Key extends keyof UiContract['interactionPolicy']['focus']>(
     key: Key,
     value: UiContract['interactionPolicy']['focus'][Key],
   ) => void
+  theme: Theme
 }) {
   return (
     <div className="select-sectioned-panel">
@@ -1840,7 +1849,7 @@ function FocusSectionedContractPanel({
             />
           </>
         }
-        preview={<FocusPreviewStage focusPolicy={focusPolicy} />}
+        preview={<FocusPreviewStage focusPolicy={focusPolicy} previewStyle={toColorPreviewStyle(colorPolicy, brandIdentity, theme)} />}
       />
     </div>
   )
@@ -2377,15 +2386,18 @@ function AvailabilityPreviewStage({
 
 function FocusPreviewStage({
   focusPolicy,
+  previewStyle,
 }: {
   focusPolicy: UiContract['interactionPolicy']['focus']
+  previewStyle?: React.CSSProperties
 }) {
   const focusClass = `focus-style-${focusPolicy.indicatorStyle}`
   const showPointerFocus = focusPolicy.visibility === 'all-focused-controls'
 
   return (
-    <div className={`focus-stage ${focusClass}`}>
+    <div className={`focus-stage ${focusClass}`} style={previewStyle}>
       <div className="focus-sample-section">
+        <span>Keyboard focus</span>
         <div className="focus-sample-row">
           <button className="focus-sample-control focus-sample-primary is-focused" type="button">
             Save changes
@@ -2397,6 +2409,7 @@ function FocusPreviewStage({
       </div>
 
       <div className="focus-sample-section">
+        <span>Pointer focus</span>
         <div className="focus-sample-row">
           <button
             className={`focus-sample-control ${showPointerFocus ? 'is-focused' : 'is-pointer-quiet'}`}
@@ -2408,6 +2421,7 @@ function FocusPreviewStage({
       </div>
 
       <div className="focus-sample-section">
+        <span>Active text input</span>
         <label className="focus-sample-field">
           <span>Customer name</span>
           <input className="focus-sample-input is-focused" readOnly value="Northwind Co." />

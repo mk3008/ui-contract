@@ -98,6 +98,38 @@ test('orders the navigation as a guided, non-blocking authoring sequence', async
   }
 })
 
+test('makes Focus Policy differences visible in the preview', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+  await page.getByRole('button', { name: 'Focus', exact: true }).click()
+
+  const preview = page.locator('.focus-stage')
+  const keyboardFocus = preview.locator('.focus-sample-primary')
+  const pointerFocus = preview.getByRole('button', { name: 'Preview', exact: true })
+  await expect(preview.getByText('Keyboard focus', { exact: true })).toBeVisible()
+  await expect(preview.getByText('Pointer focus', { exact: true })).toBeVisible()
+  await expect(preview.getByText('Active text input', { exact: true })).toBeVisible()
+  await expect(keyboardFocus).toHaveClass(/is-focused/)
+  await expect(pointerFocus).toHaveClass(/is-pointer-quiet/)
+  const outerRing = await keyboardFocus.evaluate((element) => {
+    const style = window.getComputedStyle(element)
+    return { outlineWidth: style.outlineWidth, boxShadow: style.boxShadow }
+  })
+  expect(outerRing).toMatchObject({ outlineWidth: '3px' })
+  expect(outerRing.boxShadow).not.toBe('none')
+
+  await page.getByText('All focused controls', { exact: true }).click()
+  await expect(pointerFocus).toHaveClass(/is-focused/)
+  await page.getByText('High contrast highlight', { exact: true }).click()
+  const highContrast = await keyboardFocus.evaluate((element) => {
+    const style = window.getComputedStyle(element)
+    return { outlineWidth: style.outlineWidth, boxShadow: style.boxShadow }
+  })
+  expect(highContrast).toMatchObject({ outlineWidth: '4px' })
+  expect(highContrast.boxShadow).not.toBe(outerRing.boxShadow)
+})
+
 test('keeps the shared editor header structural, English, and free of explanatory chrome in both locales', async ({ page }) => {
   await page.goto('/')
   const header = page.locator('header.topbar')

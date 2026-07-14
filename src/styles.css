@@ -3079,16 +3079,18 @@ h3 {
 
 .focus-style-outer-ring .is-focused {
   outline: 3px solid var(--focus-outer);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 1px var(--surface);
+  outline-offset: 4px;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 5px var(--focus-outer);
 }
 
 .focus-style-high-contrast-highlight .is-focused {
-  outline: 3px solid var(--focus-inner);
-  outline-offset: 3px;
+  outline: 4px solid var(--focus-inner);
+  outline-offset: 4px;
   box-shadow:
-    0 0 0 6px var(--focus-outer),
-    0 0 0 8px var(--surface);
+    0 0 0 3px var(--surface),
+    0 0 0 7px var(--focus-outer);
 }
 
 .preview-button-wrap {
