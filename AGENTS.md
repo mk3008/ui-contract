@@ -1,13 +1,29 @@
 # UI Contract Editor Guidance
 
-This policy applies repository-wide. Keep repository artifacts in English and
-user-facing reports in Japanese unless the user requests otherwise.
+This policy applies repository-wide.
+
+## Language Policy
+
+- Contract JSON keys, schema fields, option IDs, Contract values, filenames,
+  and technical documentation use English as their stable vocabulary.
+- UI display copy is authored in Japanese; English copy is a translation of the
+  Japanese source. Do not let the technical-documentation rule override this
+  UI-copy rule.
+- User-facing work reports are in Japanese unless the user requests another
+  language.
 
 ## Routing
 
-- For delegated or multi-step work, read
-  `docs/operations/codex-orchestration.md` and use `$minimal-orchestration`.
-- Before changing UI Contract option values, read:
+- Use orchestration only when delegating to multiple agents, running independent
+  workstreams in parallel, recovering or handling stale work, or preserving
+  progress across a long or cross-session run. A normal single-agent
+  investigation → implementation → test task is not orchestration merely
+  because it has multiple steps.
+- When orchestration applies, read `docs/operations/codex-orchestration.md` and
+  `docs/operations/orchestration-protocol.md` before dispatch.
+- Before changing Contract semantics, including an option set, value, label,
+  note, default, preview, ownership, classification, or a move between
+  foundation, component, interaction policy, and Screen Pattern, read:
   - `docs/knowledge/design-system-foundations.md`
   - `docs/concepts/ui-contract-option-governance/concept.json`
   - `docs/knowledge/design-system-anti-patterns.md`
@@ -38,9 +54,10 @@ user-facing reports in Japanese unless the user requests otherwise.
 - Treat worker ACKs, reports, watchdog results, and delegation delivery as
   control-plane events, not as human requests. The active orchestrator remains
   the user's single conversation counterpart.
-- The durable ledger and report are authoritative. Keep a delivered protocol
-  message to the task ID, attempt, status, and report path; never paste worker
-  reasoning, logs, or a full report into a human-facing reply.
+- The durable ledger is the only execution-state authority. A worker report is
+  evidence linked from the ledger, not a second state store. Keep a delivered
+  protocol message to the task ID, attempt, status, and report path; never
+  paste worker reasoning, logs, or a full report into a human-facing reply.
 - If an event arrives during a human request, record and acknowledge it with
   the worker, then continue that request unchanged. Defer review and any
   user-facing worker update until the current reply is complete, unless the
@@ -66,13 +83,24 @@ UI Contract Editor is a translation tool for visual design intent.
 It should help users who do not know design-system, CSS, HTML, or frontend implementation terminology choose a desired visual treatment from previews and export Contract vocabulary that product designers, CSS/HTML authors, and frontend programmers can act on.
 
 Contract labels and JSON values are only useful when they predict the intended UI with reasonable confidence.
-If a competent frontend implementer would not know what visual result to produce, or would likely produce several materially different results, the term should be renamed, split, previewed more clearly, or sent through option governance instead of accepted as-is.
+If a competent frontend implementer would not know what visual or interaction
+result to produce, or would likely produce several materially different
+results, the term should be renamed, split, previewed more clearly, or sent
+through option governance instead of accepted as-is.
 The same visual or interaction meaning must keep the same base vocabulary across the editor.
 Using different words for the same design treatment, or reusing the same word for different treatments without a qualifier, is a translation defect and should be caught during review.
 
 ## Explanatory Copy Language Rule
 
-Page titles, section headings, navigation/menu labels, shared UI/Contract vocabulary, and selectable option labels must remain English in both language modes. Explanatory option notes, state, helper, recovery, and action copy must be available in both Japanese and English through the existing language switch. Add exact Japanese and English entries to `src/i18n.ts` for new explanatory UI copy so Japanese reviewers can evaluate the same behavior; do not bypass the established translation mechanism with hard-coded prose. See `docs/knowledge/localization-and-review-copy.md` for the durable policy and semantic-equivalence requirement.
+UI display copy, including page titles, headings, navigation/menu labels,
+selectable labels, notes, state, helper, recovery, and action copy, is authored
+in Japanese and translated to English through the existing language switch.
+Stable technical Contract vocabulary remains English in JSON keys, schema
+fields, option IDs, values, and filenames; do not confuse it with the Japanese
+source for displayed copy. Add Japanese and English entries to `src/i18n.ts`
+for new UI copy rather than bypassing the translation mechanism with hard-coded
+prose. See `docs/knowledge/localization-and-review-copy.md` for the durable
+policy and semantic-equivalence requirement.
 
 ## Option Governance Rule
 
@@ -133,12 +161,16 @@ design principles. They are not assets, specifications, or implementation target
   keyboard and assistive-technology support, data semantics, permissions, and
   recovery behavior require their own Contract or screen-pattern evidence.
 
-## Boundary Rule
+## Component Boundary Rule
 
-Button Contract options may describe button-visible properties, such as emphasis, placement within an action group, loading display, disabled visual state, or icon usage.
+Component Contracts own the component's visible treatment, states, and local
+affordance. For example, Button Contract may describe emphasis, placement in an
+action group, loading display, disabled visual state, or icon usage.
 
-Do not place broader workflow behavior in Button Contract merely because it is triggered by a button.
-Examples that usually belong elsewhere:
+Interaction Policies and Screen Patterns own behavior that crosses components:
+workflow, permission and availability, validation, confirmation, and screen
+state. Do not place that behavior in a Component Contract merely because a
+component triggers it. Examples that usually belong elsewhere:
 
 - destructive-action confirmation rules
 - dialog or modal behavior
@@ -157,11 +189,13 @@ acceptance; that review does not itself add schema fields or options.
 
 ## Reporting Rule
 
-When reporting option-set changes, include:
+When reporting a Contract semantics change, include:
 
-- which option was added, removed, renamed, or moved
+- which option set, value, label, note, default, preview, ownership, or
+  classification changed
 - why it belongs in the current foundation, component, interaction policy, or screen-pattern boundary, or why it was moved elsewhere
 - what external design-system evidence was checked
 - whether the option can be understood as a DESIGN.md rule without local project context
-- whether a frontend implementer would likely produce the previewed visual treatment from the label, note, and JSON value
+- whether a frontend implementer would likely produce the intended visual or
+  interaction result from the label, note, preview, and JSON value
 - any remaining uncertainty
