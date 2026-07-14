@@ -58,7 +58,7 @@ test('audits every active view in JP and EN while preserving only structural and
       await page.getByRole('button', { name: screenPattern, exact: true }).click()
       await expect(page.locator('.main-panel > .section-heading h2')).toHaveText(screenPattern)
       await expect(page.getByRole('tablist')).toHaveCount(0)
-      await expect(page.getByText(language === 'JP' ? '各画面は、現在の Contract を構成する決定的なローカル業務タスクモックです。フィクスチャのデータと結果は Contract ポリシーではありません。' : 'Each screen is a deterministic, local business-task mock that composes the current Contract. Fixture data and outcomes are not Contract policy.', { exact: true })).toBeVisible()
+      await expect(page.getByText(/Each screen is a deterministic, local business-task mock|各画面は、現在の Contract を構成する決定的なローカル業務タスクモック/, { exact: true })).toHaveCount(0)
       await expectLocalizedPage(page, language, screenPattern)
     }
   }

@@ -17,17 +17,17 @@ export const documentedScreenPatternEvidenceCapture: ScreenPatternEvidenceCaptur
 }
 
 function digest(value: string): string { let hash = 2166136261; for (let index = 0; index < value.length; index += 1) { hash ^= value.charCodeAt(index); hash = Math.imul(hash, 16777619) } return `fnv1a-32:${(hash >>> 0).toString(16).padStart(8, '0')}` }
-const shared = ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus', 'interactionPolicy.loading.feedback', 'interactionPolicy.stateFeedback.guidance']
+const shared = ['designPolicy.color', 'componentPolicy.button']
 
 export function generateScreenPatternEvidence(contract: UiContract, capture: ScreenPatternEvidenceCapture = documentedScreenPatternEvidenceCapture): ScreenPatternEvidence {
   const canonicalJson = generateJson(contract)
   const images = (id: ScreenPatternExampleId, states: Array<[string, string]>) => states.map(([state, uiState]) => ({ id: state, uiState, route: `/?screen-artifact=${id}${state !== 'initial' ? `&state=${state}` : ''}`, png: `images/${id}-${state}.png`, jpeg: `images/${id}-${state}.jpg` }))
   return { artifactVersion: '2.0.0', artifactKind: 'screen-pattern-acceptance-evidence', viewport: { width: 1440, height: 1000 }, browser: 'chromium', capture, contract: { canonicalJson, canonicalJsonDigest: digest(canonicalJson), schemaVersion: contract.schemaVersion }, examples: [
-    { id: 'search-list', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'screenPatternPolicy.searchList', 'componentPolicy.textField', 'componentPolicy.checkbox'], states: images('search-list', [['initial', 'unsearched'], ['results', 'results'], ['selected', 'selected'], ['loading', 'busy'], ['zero-results', 'empty'], ['error', 'error']]) },
-    { id: 'edit-detail', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'screenPatternPolicy.formSection', 'interactionPolicy.validation'], states: images('edit-detail', [['initial', 'initial'], ['validation', 'validation']]) },
-    { id: 'edit-list', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'screenPatternPolicy.searchList', 'screenPatternPolicy.formSection', 'interactionPolicy.validation'], states: images('edit-list', [['initial', 'initial'], ['editing', 'editing'], ['validation', 'validation']]) },
-    { id: 'read-only-detail', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'screenPatternPolicy.formSection', 'interactionPolicy.availability'], states: images('read-only-detail', [['initial', 'initial'], ['error', 'error']]) },
-    { id: 'destructive-action', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'interactionPolicy.confirmation', 'componentPolicy.button'], states: images('destructive-action', [['initial', 'initial'], ['confirmation', 'confirmation'], ['error', 'error'], ['result', 'done']]) },
+    { id: 'search-list', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'screenPatternPolicy.searchList'], states: images('search-list', [['initial', 'unsearched'], ['results', 'results'], ['selected', 'selected'], ['loading', 'busy'], ['zero-results', 'empty'], ['error', 'error']]) },
+    { id: 'edit-detail', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'screenPatternPolicy.formSection'], states: images('edit-detail', [['initial', 'initial'], ['validation', 'validation']]) },
+    { id: 'edit-list', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: shared, states: images('edit-list', [['initial', 'initial'], ['editing', 'editing'], ['validation', 'validation']]) },
+    { id: 'read-only-detail', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: shared, states: images('read-only-detail', [['initial', 'initial'], ['error', 'error']]) },
+    { id: 'destructive-action', fixture: { seed: 'screen-pattern-fixtures-v1', clock: '2026-07-13T09:00:00Z' }, composes: [...shared, 'interactionPolicy.confirmation'], states: images('destructive-action', [['initial', 'initial'], ['confirmation', 'confirmation'], ['error', 'error'], ['result', 'done']]) },
   ] }
 }
 export function generateScreenPatternEvidenceJson(contract: UiContract, capture?: ScreenPatternEvidenceCapture): string { return `${JSON.stringify(generateScreenPatternEvidence(contract, capture), null, 2)}\n` }
