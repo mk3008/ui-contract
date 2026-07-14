@@ -1391,7 +1391,21 @@ h3 {
 .dialog-backdrop .confirmation-dialog { width: min(100%, 520px); padding: 22px; background: var(--surface); box-shadow: 0 18px 48px rgb(15 23 42 / 28%); }
 .business-screen .danger-emphasis-outline { border-color: var(--danger); color: var(--danger); background: var(--surface); }
 .business-screen .danger-emphasis-filled { border-color: var(--danger); color: #fff; background: var(--danger); }
-.business-screen :focus-visible { outline: 3px solid var(--focus-outer); outline-offset: 3px; }
+.screen-pattern-focus.focus-indicator-outer-ring .business-screen :focus-visible,
+.screen-pattern-focus.focus-visibility-keyboard-and-active-inputs.focus-indicator-outer-ring .business-screen :is(input, select, textarea):focus,
+.screen-pattern-focus.focus-visibility-all-focused-controls.focus-indicator-outer-ring .business-screen :focus {
+  outline: 3px solid var(--focus-outer);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus-outer);
+}
+
+.screen-pattern-focus.focus-indicator-high-contrast-highlight .business-screen :focus-visible,
+.screen-pattern-focus.focus-visibility-keyboard-and-active-inputs.focus-indicator-high-contrast-highlight .business-screen :is(input, select, textarea):focus,
+.screen-pattern-focus.focus-visibility-all-focused-controls.focus-indicator-high-contrast-highlight .business-screen :focus {
+  outline: 4px solid var(--focus-inner);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 6px var(--focus-outer);
+}
 
 /* The screen action hierarchy follows the existing Button Contract values. */
 .business-screen.button-primary-outline .primary-filled { border-color: var(--primary); color: var(--primary-strong); background: transparent; }

@@ -134,6 +134,12 @@ order only while that state applies.
 These rules are render-output acceptance criteria. They do not add a Focus,
 Button, Checkbox, Confirmation, or Screen Pattern Contract option.
 
+The persisted Focus Policy still controls the visible treatment of every
+focusable control that a Screen Pattern renders. A Screen Pattern must apply
+both its visibility mode and indicator style to ordinary task actions such as
+Search, Clear, Save, Cancel, paging, and row selection; it must not remove
+those actions from natural Tab order merely to simplify a preview.
+
 ### Screen Patterns
 
 Screen patterns define repeated page or workflow structures.

@@ -17,7 +17,7 @@ export const documentedScreenPatternEvidenceCapture: ScreenPatternEvidenceCaptur
 }
 
 function digest(value: string): string { let hash = 2166136261; for (let index = 0; index < value.length; index += 1) { hash ^= value.charCodeAt(index); hash = Math.imul(hash, 16777619) } return `fnv1a-32:${(hash >>> 0).toString(16).padStart(8, '0')}` }
-const shared = ['designPolicy.color', 'componentPolicy.button']
+const shared = ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus']
 
 export function generateScreenPatternEvidence(contract: UiContract, capture: ScreenPatternEvidenceCapture = documentedScreenPatternEvidenceCapture): ScreenPatternEvidence {
   const canonicalJson = generateJson(contract)

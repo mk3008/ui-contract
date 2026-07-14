@@ -512,6 +512,47 @@ test('keeps Screen Pattern keyboard traversal in reading order and routes focus 
   expect(screenSource).not.toMatch(/(?:tabIndex|tabindex)\s*=\s*(?:["'][1-9]\d*["']|\{\s*[1-9]\d*\s*\})/)
 })
 
+test('applies Focus Policy to natural Screen Pattern task controls', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+  await page.goto('/?screen-artifact=search-list')
+
+  const accountName = page.getByLabel('Account name')
+  const status = page.getByLabel('Account status')
+  const search = page.getByRole('button', { name: 'Search', exact: true })
+  const clear = page.getByRole('button', { name: 'Clear', exact: true })
+  await accountName.focus()
+  await page.keyboard.press('Tab')
+  await expect(status).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(search).toBeFocused()
+  const outerRing = await search.evaluate((element) => {
+    const style = window.getComputedStyle(element)
+    return { outlineWidth: style.outlineWidth, outlineColor: style.outlineColor, boxShadow: style.boxShadow }
+  })
+  expect(outerRing.outlineWidth).toBe('3px')
+  expect(outerRing.outlineColor).not.toBe('rgba(0, 0, 0, 0)')
+  expect(outerRing.boxShadow).not.toBe('none')
+  await page.keyboard.press('Tab')
+  await expect(clear).toBeFocused()
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Focus', exact: true }).click()
+  await page.getByText('All focused controls', { exact: true }).click()
+  await page.getByText('High contrast highlight', { exact: true }).click()
+  await page.getByRole('button', { name: 'Search/List', exact: true }).click()
+  const interactiveClear = page.locator('.interactive-example-stage').getByRole('button', { name: 'Clear', exact: true })
+  await interactiveClear.click()
+  const highContrast = await interactiveClear.evaluate((element) => {
+    const style = window.getComputedStyle(element)
+    return { outlineWidth: style.outlineWidth, outlineColor: style.outlineColor, boxShadow: style.boxShadow }
+  })
+  expect(highContrast.outlineWidth).toBe('4px')
+  expect(highContrast.outlineColor).not.toBe(outerRing.outlineColor)
+  expect(highContrast.boxShadow).not.toBe(outerRing.boxShadow)
+})
+
 test('keeps Japanese Edit Detail actions concise while preserving contextual accessible names', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'JP', exact: true }).click()

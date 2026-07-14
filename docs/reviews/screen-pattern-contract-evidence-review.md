@@ -17,8 +17,9 @@ data, filter values, page size, sort order, row destination, or bulk-operation
 business outcome. `grouped-form-section` owns the related-field grouping and
 separate action area in Edit Detail, not the individual field definitions or
 validation rules. Every current evidence artifact declares
-`designPolicy.color` and `componentPolicy.button`, which it receives and
-renders. Destructive Action also declares the passed confirmation surface.
+`designPolicy.color`, `componentPolicy.button`, and `interactionPolicy.focus`,
+which it receives and renders. Destructive Action also declares the passed
+confirmation surface.
 
 The current fixed screen implementations do not read selected Text Field,
 Checkbox, Validation, Availability, Loading, or State Feedback values. Their
@@ -36,5 +37,10 @@ Keyboard/focus proof is likewise repository evidence: Edit Detail exercises
 desktop and narrow natural Tab order plus validation summary recovery,
 Destructive Action exercises dialog trapping, trigger return, and result focus,
 and Search/List exercises checkbox focus retention with row-action Tab
-exclusion/restoration. These fixed rules belong to Interaction Policy and
-Screen Pattern acceptance, not to a selectable exported path.
+exclusion/restoration. Every current Screen Pattern also renders
+`interactionPolicy.focus.visibility` and
+`interactionPolicy.focus.indicatorStyle` on native task controls, using the
+persisted focus color roles. Natural task actions remain in Tab order; the
+temporary row-action exclusion during batch selection is the sole documented
+state-specific exception. These traversal rules belong to Interaction Policy
+and Screen Pattern acceptance, not to a new Screen Pattern option.

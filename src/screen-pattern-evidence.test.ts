@@ -48,11 +48,11 @@ describe('screen-pattern acceptance evidence', () => {
   it('declares only the Contract paths currently rendered by each acceptance screen', () => {
     const examples = generateScreenPatternEvidence(defaultContract).examples
     expect(examples.map(({ id, composes }) => [id, composes])).toEqual([
-      ['search-list', ['designPolicy.color', 'componentPolicy.button', 'screenPatternPolicy.searchList']],
-      ['edit-detail', ['designPolicy.color', 'componentPolicy.button', 'screenPatternPolicy.formSection']],
-      ['edit-list', ['designPolicy.color', 'componentPolicy.button']],
-      ['read-only-detail', ['designPolicy.color', 'componentPolicy.button']],
-      ['destructive-action', ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.confirmation']],
+      ['search-list', ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus', 'screenPatternPolicy.searchList']],
+      ['edit-detail', ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus', 'screenPatternPolicy.formSection']],
+      ['edit-list', ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus']],
+      ['read-only-detail', ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus']],
+      ['destructive-action', ['designPolicy.color', 'componentPolicy.button', 'interactionPolicy.focus', 'interactionPolicy.confirmation']],
     ])
   })
 

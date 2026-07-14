@@ -18,33 +18,43 @@ const searchLoadingDelayMs = 3_000
 
 export function isLocalUndoEligible(surface: ConfirmationSurface): boolean { return surface === 'undo-when-reversible' }
 
-export function InteractiveScreenPatterns({ confirmation, example, button }: Props & { example: ScreenPatternExampleId }) {
-  return <section className="interactive-screen-patterns" aria-label="Screen pattern acceptance surface">
-    <div className="interactive-example-stage"><ScreenPatternContent button={button} confirmation={confirmation} example={example} /></div>
+export function InteractiveScreenPatterns({ contract, confirmation, example, button }: Props & { example: ScreenPatternExampleId }) {
+  return <section className="interactive-screen-patterns" aria-label="Screen pattern acceptance surface" style={screenPatternStyle(contract)}>
+    <div className="interactive-example-stage"><ScreenPatternContent button={button} confirmation={confirmation} example={example} focusPolicy={contract.interactionPolicy.focus} /></div>
   </section>
 }
 
 export function ScreenPatternPageArtifact({ contract, example }: { contract: UiContract; example: ScreenPatternExampleId }) {
   const artifactState = new URLSearchParams(window.location.search).get('state')
+  const pageStyle = screenPatternStyle(contract)
+  return <main className="screen-page-artifact" data-page-artifact data-screen-pattern={example} style={pageStyle}>
+    <ScreenPatternContent artifact artifactState={artifactState} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} focusPolicy={contract.interactionPolicy.focus} />
+  </main>
+}
+
+function screenPatternStyle(contract: UiContract): React.CSSProperties {
   const colors = contract.designPolicy.color.light
-  const pageStyle = {
+  return {
     '--page': colors.background, '--surface': colors.surface, '--surface-soft': colors.surfaceSoft,
     '--text': colors.text, '--muted': colors.mutedText, '--line': colors.border,
     '--line-strong': colors.border, '--primary': colors.primary, '--primary-strong': colors.primary,
     '--primary-soft': colors.brandBackground, '--success': colors.success, '--warning': colors.warning,
-    '--danger': colors.danger, '--focus-outer': colors.focusOuter,
+    '--danger': colors.danger, '--focus-outer': colors.focusOuter, '--focus-inner': colors.focusInner,
   } as React.CSSProperties
-  return <main className="screen-page-artifact" data-page-artifact data-screen-pattern={example} style={pageStyle}>
-    <ScreenPatternContent artifact artifactState={artifactState} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} />
-  </main>
 }
 
-function ScreenPatternContent({ artifact = false, artifactState, button, confirmation, example }: { artifact?: boolean; artifactState?: string | null; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId }) {
-  if (example === 'search-list') return <SearchListExample artifact={artifact} button={button} initialState={artifactState === 'results' || artifactState === 'selected' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} initialSelection={artifactState === 'selected' ? [accounts[0][0]] : []} />
-  if (example === 'edit-detail') return <EditDetailExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : 'initial'} />
-  if (example === 'edit-list') return <EditListExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : artifactState === 'editing' ? 'editing' : 'initial'} />
-  if (example === 'read-only-detail') return <ReadOnlyDetailExample artifact={artifact} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
-  return <DestructiveActionExample artifact={artifact} confirmation={confirmation} button={button} initialState={artifactState === 'confirmation' || artifactState === 'error' || artifactState === 'result' ? artifactState : 'initial'} />
+function ScreenPatternContent({ artifact = false, artifactState, button, confirmation, example, focusPolicy }: { artifact?: boolean; artifactState?: string | null; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId; focusPolicy: UiContract['interactionPolicy']['focus'] }) {
+  const focusClass = `screen-pattern-focus focus-visibility-${focusPolicy.visibility} focus-indicator-${focusPolicy.indicatorStyle}`
+  const content = example === 'search-list'
+    ? <SearchListExample artifact={artifact} button={button} initialState={artifactState === 'results' || artifactState === 'selected' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} initialSelection={artifactState === 'selected' ? [accounts[0][0]] : []} />
+    : example === 'edit-detail'
+      ? <EditDetailExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : 'initial'} />
+      : example === 'edit-list'
+        ? <EditListExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : artifactState === 'editing' ? 'editing' : 'initial'} />
+        : example === 'read-only-detail'
+          ? <ReadOnlyDetailExample artifact={artifact} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
+          : <DestructiveActionExample artifact={artifact} confirmation={confirmation} button={button} initialState={artifactState === 'confirmation' || artifactState === 'error' || artifactState === 'result' ? artifactState : 'initial'} />
+  return <div className={focusClass}>{content}</div>
 }
 
 function ScreenHeader({ title }: { title: string }) {
