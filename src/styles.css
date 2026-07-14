@@ -1355,7 +1355,9 @@ h3 {
 .business-table { width: 100%; border-collapse: collapse; color: var(--text); text-align: left; }
 .business-table th,
 .business-table td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: middle; font-size: 13px; }
-.business-table th { color: var(--muted); background: var(--surface-soft); font-size: 12px; }
+.business-table th { color: var(--muted); font-size: 12px; }
+.business-table thead th { background: var(--surface-soft); }
+.business-table tbody th { background: var(--surface); }
 .business-table td strong,
 .business-table td small { display: block; }
 .business-table td small { margin-top: 3px; color: var(--muted); }
