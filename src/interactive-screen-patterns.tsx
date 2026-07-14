@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ConfirmationSurface, UiContract } from './contract/types'
+import { translateUiText, type UiLanguage } from './i18n'
 import { type ScreenPatternExampleId } from './screen-pattern-evidence'
 
 type Props = {
@@ -42,7 +43,7 @@ export function ScreenPatternPageArtifact({ contract, example }: { contract: UiC
 }
 
 function ScreenPatternContent({ artifact = false, artifactState, button, confirmation, example }: { artifact?: boolean; artifactState?: string | null; button: Props['button']; confirmation: Props['confirmation']; example: ScreenPatternExampleId }) {
-  if (example === 'search-list') return <SearchListExample artifact={artifact} button={button} initialState={artifactState === 'results' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} />
+  if (example === 'search-list') return <SearchListExample artifact={artifact} button={button} initialState={artifactState === 'results' || artifactState === 'selected' ? 'results' : artifactState === 'loading' ? 'busy' : artifactState === 'zero-results' ? 'empty' : artifactState === 'error' ? 'error' : 'unsearched'} initialSelection={artifactState === 'selected' ? [accounts[0][0]] : []} />
   if (example === 'edit-detail') return <EditDetailExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : 'initial'} />
   if (example === 'edit-list') return <EditListExample artifact={artifact} button={button} initialState={artifactState === 'validation' ? 'validation' : artifactState === 'editing' ? 'editing' : 'initial'} />
   if (example === 'read-only-detail') return <ReadOnlyDetailExample artifact={artifact} button={button} initialState={artifactState === 'error' ? 'error' : 'initial'} />
@@ -55,15 +56,46 @@ function ScreenHeader({ title }: { title: string }) {
 
 function screenButtonClasses(button: Props['button']) { return `button-primary-${button.primaryEmphasis} button-secondary-${button.secondaryEmphasis} button-danger-${button.dangerEmphasis} button-danger-placement-${button.dangerPlacement}` }
 
-function SearchListExample({ artifact = false, button, initialState = 'unsearched' }: { artifact?: boolean; button: Props['button']; initialState?: SearchState }) {
+function SearchListExample({ artifact = false, button, initialState = 'unsearched', initialSelection = [] }: { artifact?: boolean; button: Props['button']; initialState?: SearchState; initialSelection?: string[] }) {
+  const translate = (text: string) => translateUiText(text, document.documentElement.lang === 'ja' ? 'ja' : 'en' as UiLanguage)
   const [state, setState] = useState<SearchState>(initialState)
   const [term, setTerm] = useState(initialState === 'empty' ? noMatchAccount : '')
   const [submitted, setSubmitted] = useState(initialState === 'empty' ? noMatchAccount : '')
+  const [selected, setSelected] = useState(() => new Set(initialSelection))
+  const [assignmentStatus, setAssignmentStatus] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [sortDirection, setSortDirection] = useState<'ascending' | 'descending'>('descending')
+  const selectAllRef = useRef<HTMLInputElement>(null)
   const loadingTimerRef = useRef<number | null>(null)
   useEffect(() => () => { if (loadingTimerRef.current !== null) window.clearTimeout(loadingTimerRef.current) }, [])
+  const sortedAccounts = sortDirection === 'descending' ? accounts : [...accounts].reverse()
+  const accountsPerPage = 2
+  const pageCount = Math.ceil(sortedAccounts.length / accountsPerPage)
+  const visibleAccounts = sortedAccounts.slice((page - 1) * accountsPerPage, page * accountsPerPage)
+  const selectedOnPage = visibleAccounts.filter(([name]) => selected.has(name))
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = selectedOnPage.length > 0 && selectedOnPage.length < visibleAccounts.length
+  }, [selectedOnPage.length, visibleAccounts.length])
+  const clearSelection = () => setSelected(new Set())
+  const assignOwner = () => { clearSelection(); setAssignmentStatus('Owner assigned.') }
+  const toggleSelection = (name: string) => setSelected((current) => {
+    const next = new Set(current)
+    if (next.has(name)) next.delete(name)
+    else next.add(name)
+    return next
+  })
+  const togglePageSelection = () => setSelected((current) => {
+    const next = new Set(current)
+    const selectPage = selectedOnPage.length !== visibleAccounts.length
+    visibleAccounts.forEach(([name]) => { if (selectPage) next.add(name); else next.delete(name) })
+    return next
+  })
   const apply = () => {
     if (state === 'busy') return
     const requestedTerm = term
+    clearSelection()
+    setAssignmentStatus(null)
+    setPage(1)
     setSubmitted(requestedTerm)
     setState('busy')
     loadingTimerRef.current = window.setTimeout(() => {
@@ -71,7 +103,7 @@ function SearchListExample({ artifact = false, button, initialState = 'unsearche
       loadingTimerRef.current = null
     }, searchLoadingDelayMs)
   }
-  const reset = () => { setTerm(''); setSubmitted(''); setState('unsearched') }
+  const reset = () => { clearSelection(); setAssignmentStatus(null); setPage(1); setTerm(''); setSubmitted(''); setState('unsearched') }
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="search-list" data-screen="search-list" data-state={state} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Account directory" />
     <form className="screen-section search-conditions" onSubmit={(event) => { event.preventDefault(); apply() }} aria-label="Search conditions">
@@ -85,7 +117,7 @@ function SearchListExample({ artifact = false, button, initialState = 'unsearche
       {state === 'busy' && <div className="screen-state" role="status"><strong>Loading accounts</strong><div className="skeleton-row" /><div className="skeleton-row short" /></div>}
       {state === 'empty' && <div className="screen-state" role="status"><strong>No accounts found.</strong></div>}
       {state === 'error' && <div className="screen-state is-error" role="alert"><strong>Account results are unavailable</strong><p>Could not load the results. Try again.</p><button className="contract-button primary-filled" type="button" onClick={apply}>Retry</button></div>}
-      {state === 'results' && <div className="table-with-pagination"><div data-table-context-toolbar className="table-context-summary"><p>{submitted ? `Results for “${submitted}”` : '4 accounts'} · Sorted by Updated, newest first</p></div><table className="business-table"><thead data-i18n-skip><tr><th>Account</th><th>Status</th><th>Updated ↓</th></tr></thead><tbody data-i18n-skip>{accounts.map(([name, status, updated]) => <tr key={name}><td><strong>{name}</strong></td><td><span className={`record-status ${status === 'Active' ? 'success' : 'warning'}`}>{status}</span></td><td>{updated}</td></tr>)}</tbody></table></div>}
+      {state === 'results' && <div className="table-with-pagination"><div data-table-context-toolbar className={`table-context-toolbar table-context-summary${selected.size ? ' batch-action-bar' : ''}`}>{selected.size ? <div className="bulk-context"><strong>{translate(`${selected.size} ${selected.size === 1 ? 'account' : 'accounts'} selected`)}</strong><button className="table-action" type="button" onClick={assignOwner}>{translate('Assign owner')}</button><button className="table-action" type="button" onClick={clearSelection}>{translate('Clear selection')}</button></div> : assignmentStatus ? <p role="status">{translate(assignmentStatus)}</p> : <p>{submitted ? `Results for “${submitted}”` : translate('4 accounts')} · {translate('Sorted by Updated, newest first')}</p>}</div><table className="business-table"><thead data-i18n-skip><tr><th scope="col"><input ref={selectAllRef} aria-label={translate('Select all accounts')} checked={visibleAccounts.length > 0 && selectedOnPage.length === visibleAccounts.length} onChange={togglePageSelection} type="checkbox" /></th><th scope="col">Account</th><th scope="col">Status</th><th aria-sort={sortDirection} scope="col"><button aria-label={translate('Sort by updated')} className="table-sort-button" type="button" onClick={() => setSortDirection((current) => current === 'descending' ? 'ascending' : 'descending')}>Updated</button></th><th scope="col"><span className="visually-hidden">Action</span></th></tr></thead><tbody data-i18n-skip>{visibleAccounts.map(([name, status, updated]) => <tr data-selected={selected.has(name)} key={name}><td><input aria-label={translate('Select account')} checked={selected.has(name)} onChange={() => toggleSelection(name)} type="checkbox" /></td><th scope="row"><strong>{name}</strong></th><td><span className={`record-status ${status === 'Active' ? 'success' : 'warning'}`}>{status}</span></td><td>{updated}</td><td><a aria-disabled={selected.size > 0 || undefined} className="table-action" href="/?screen-artifact=read-only-detail" onClick={(event) => { if (selected.size) event.preventDefault() }} onKeyDown={(event) => { if (selected.size && event.key === 'Enter') event.preventDefault() }} tabIndex={selected.size > 0 ? -1 : undefined}>{translate('View account')}</a></td></tr>)}</tbody></table><nav aria-label={translate('Account result pages')} className="paging"><button disabled={page === 1} type="button" onClick={() => setPage((current) => current - 1)}>{translate('Previous')}</button><span aria-current="page" aria-label={`Page ${page} of ${pageCount}`}>{page}</span><button disabled={page === pageCount} type="button" onClick={() => setPage((current) => current + 1)}>{translate('Next')}</button></nav></div>}
     </section>
   </article>
 }
@@ -114,7 +146,7 @@ function EditDetailExample({ artifact = false, button, initialState = 'initial' 
   return <article className={`business-screen ${screenButtonClasses(button)}`} data-artifact={artifact || undefined} data-example="edit-detail" data-screen="edit-detail" data-state={submitted && hasErrors ? 'validation' : saved ? 'saved' : 'initial'} data-primary-emphasis={button.primaryEmphasis}>
     <ScreenHeader title="Edit account" />
     {submitted && hasErrors && <div className="validation-summary" role="alert">Correct the highlighted required and invalid fields before saving.</div>}
-    <form onSubmit={save} noValidate><section className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>AC-2048</strong></div></div><div className="section-title"><h5>Personal information</h5></div><div className="screen-field-grid">{field('name', 'Account name')}{field('dateOfBirth', 'Date of birth', 'date')}{field('email', 'Email', 'email')}{field('phone', 'Phone number', 'tel')}{field('streetAddress', 'Street address', 'text', true)}{field('city', 'City')}{field('postalCode', 'Postal code')}</div></section><div className="screen-action-bar"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
+    <form onSubmit={save} noValidate><section aria-labelledby="edit-account-personal-information" className="screen-section"><div className="read-only-detail-grid"><div><span>Account ID</span><strong>AC-2048</strong></div></div><div className="section-title"><h5 id="edit-account-personal-information">Personal information</h5></div><div className="screen-field-grid grouped-form-fields"><div className="grouped-form-column">{field('name', 'Account name')}{field('dateOfBirth', 'Date of birth', 'date')}{field('email', 'Email', 'email')}{field('phone', 'Phone number', 'tel')}</div><div className="grouped-form-column">{field('streetAddress', 'Street address', 'text', true)}{field('city', 'City')}{field('postalCode', 'Postal code')}</div></div></section><div aria-label="Account actions" className="screen-action-bar" role="group"><div className="screen-actions"><button aria-label="Cancel account changes" className="contract-button secondary-outline" type="button" onClick={reset}>Cancel</button><button aria-label="Save account changes" className="contract-button primary-filled" type="submit">Save</button></div></div>{saved && <p className="success-message" role="status">Account changes saved.</p>}</form>
   </article>
 }
 

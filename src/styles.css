@@ -1325,6 +1325,8 @@ h3 {
 .screen-actions { flex-wrap: wrap; justify-content: flex-end; }
 .screen-actions .contract-button { width: auto; }
 .screen-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grouped-form-fields { grid-template-columns: repeat(2, minmax(0, 440px)); align-items: start; }
+.grouped-form-column { display: grid; align-content: start; gap: 12px; }
 .screen-field-span-full { grid-column: 1 / -1; }
 
 .example-field select {
@@ -1347,6 +1349,8 @@ h3 {
 .table-context-toolbar p { margin: 0; }
 .table-context-summary { color: var(--muted); background: var(--surface); }
 .batch-action-bar { border-color: var(--primary); color: var(--primary-strong); background: var(--primary-soft); font-weight: 700; }
+.bulk-context { min-width: 0; flex-wrap: nowrap; }
+.bulk-context strong { white-space: nowrap; }
 .business-table tr[data-selected="true"] { background: var(--primary-soft); }
 .business-table { width: 100%; border-collapse: collapse; color: var(--text); text-align: left; }
 .business-table th,
@@ -1360,6 +1364,8 @@ h3 {
 .record-status.success { color: var(--success); background: color-mix(in srgb, var(--success) 12%, var(--surface)); }
 .record-status.warning { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, var(--surface)); }
 .table-action { border: 0; padding: 0; color: var(--primary-strong); background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
+.table-action[aria-disabled="true"] { color: var(--muted); cursor: not-allowed; pointer-events: none; text-decoration: none; }
+.table-sort-button { border: 0; padding: 0; color: inherit; background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
 .table-action:disabled { color: var(--muted); cursor: not-allowed; }
 .table-with-pagination { display: grid; gap: 0; }
 .table-with-pagination .paging { padding: 10px 0 0; border-top: 1px solid var(--line); }
