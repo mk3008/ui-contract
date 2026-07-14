@@ -150,14 +150,10 @@ If ownership is unclear, document the ambiguity before implementation.
 
 ## Screen Pattern Acceptance Invariant
 
-A Screen Pattern acceptance surface must be a deterministic, integrated mock of a plausible business task with full-page desktop evidence. Final review captures must show a complete screen-local application page and exclude Contract Editor and evidence/meta chrome; PNG and JPEG dimensions must exactly match the documented viewport. An isolated component or state demo is not a Screen Pattern.
-
-Before accepting a Screen Pattern, apply
-`docs/reviews/screen-pattern-realism-review.md`. Reject demo, Contract,
-acceptance, process, and UI-explanation copy from the rendered business page;
-review normal action captions for concise, context-appropriate wording. This
-review is separate from Contract option governance and does not itself add
-schema fields or options.
+`docs/reviews/screen-pattern-acceptance-contract.md` is the sole detailed
+authority for Screen Pattern acceptance quality, evidence, and the human
+realism gate. Apply `docs/reviews/screen-pattern-realism-review.md` before
+acceptance; that review does not itself add schema fields or options.
 
 ## Reporting Rule
 

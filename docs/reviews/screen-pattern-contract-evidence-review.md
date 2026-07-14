@@ -1,8 +1,9 @@
 # Screen Pattern Contract Evidence Review
 
-This review records the acceptance evidence for the two persisted Screen
-Pattern decisions. It does not add a pattern, an option, or a screen-local
-fixture value to the UI Contract.
+This review records the current implementation evidence for the two persisted
+Screen Pattern decisions under `screen-pattern-acceptance-contract.md`. It is
+not the Acceptance Contract itself and does not add a pattern, an option, or a
+screen-local fixture value to the UI Contract.
 
 | Catalog rule and Contract path | Acceptance screen and required structure | Relevant states | DOM proof | Deterministic image evidence |
 | --- | --- | --- | --- | --- |

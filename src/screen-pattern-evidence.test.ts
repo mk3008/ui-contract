@@ -14,6 +14,8 @@ describe('screen-pattern acceptance evidence', () => {
     expect(evidence.examples.map((example) => example.id)).toEqual(screenPatternExampleIds)
     expect(evidence.examples.every((example) => example.fixture.seed === 'screen-pattern-fixtures-v1')).toBe(true)
     expect(evidence.examples.every((example) => example.states.some((state) => state.id === 'initial'))).toBe(true)
+    expect(evidence.examples.every((example) => example.composes.length > 0 && example.states.every((state) => state.png.endsWith('.png') && state.jpeg.endsWith('.jpg')))).toBe(true)
+    expect(evidence.capture.captureTarget).toBe('[data-page-artifact]')
     expect(evidence.contract.canonicalJsonDigest).toMatch(/^fnv1a-32:[0-9a-f]{8}$/)
     expect(evidence.contract.canonicalJson).toBe(generateJson(defaultContract))
     expect(generateScreenPatternEvidenceJson(defaultContract)).toBe(generateScreenPatternEvidenceJson(defaultContract))

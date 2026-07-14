@@ -125,16 +125,16 @@ Examples:
 Screen patterns provide a standard shape.
 They should not freeze every layout dimension or all screen-specific business choices.
 
-### Screen Pattern Acceptance
+### Screen Pattern Composition
 
-A Screen Pattern acceptance surface is a deterministic, integrated mock of a
-plausible business task. It composes an immutable Contract snapshot with
-screen-local fictional fixtures so a reviewer can judge whether foundations,
-components, and interaction policy form a coherent operational screen. It must
-show task identity and context, information hierarchy, action hierarchy, and
-the applicable recovery states. It is not a component gallery, a static mood
-board, an external-screen copy, a service implementation, or a new Contract
-option.
+A Screen Pattern composes an immutable Contract snapshot with screen-local
+fictional fixtures. It gives a reviewer a concrete screen structure in which
+foundations, components, and interaction policy can be assessed together.
+
+`docs/reviews/screen-pattern-acceptance-contract.md` owns the fixed acceptance
+quality gates, proof hierarchy, deterministic-capture requirements, and human
+realism decision. This section owns the composition and fixture boundaries that
+the Acceptance Contract audits.
 
 The ownership boundary is deliberate: foundations own visual roles and focus;
 components own controls and visible control states; interaction policy owns
@@ -162,38 +162,14 @@ relevant search context. This composes the existing loading and state-feedback
 invariants; it does not add a Contract option or make result criteria Contract
 policy.
 
-Each named state requires full-page evidence at the documented desktop viewport.
-Its manifest records screen/state ID, UI state, fixture seed/version, viewport,
-browser, capture command, canonical Contract JSON digest, relevant Contract
-paths, and image path. Tests must separately cover semantic structure, labels
-and validation association, keyboard/focus/dialog paths, recovery actions, and
-Contract-derived hierarchy. Screenshots are visual evidence only; they do not
-prove assistive-technology behavior.
-
-The captured artifact root must have exactly the documented viewport dimensions
-in both PNG regression output and JPEG review output. Tests must parse each
-generated image and verify those observed dimensions against the manifest; a
-browser viewport setting or full-page capture alone is insufficient evidence.
-
-Before human acceptance, run the evidence twice from a clean state and confirm
-the manifest and captures are deterministic. A human reviewer must be able to
-recognize each page as a plausible business task without reading source code.
-
-The final review capture is a complete application page, not an editor region:
-it includes concise screen-local application header/context and may use a
-collapsed application navigation fixture, while excluding Contract Editor
-chrome, Contract download controls, evidence controls, fixture prose, and other
-design explanations. The shell is screen-local fixture composition using
-existing foundations, not a Contract option; promote it only when alternate
-shell selection is proven to be reusable product policy.
-
-Review the completed page for business realism first, then audit Contract
-composition. The composition-accountability matrix should explain about 80% of
-meaningful visible structural, control, state, interaction, and feedback
-decisions with existing Contract paths. It excludes fine layout mechanics.
-Necessary record data, workflow semantics, and screen-local shell fixtures may
-remain justified exceptions. The matrix audits a finished realistic page; it
-must never drive artificial UI, copy, or states solely to increase coverage.
+The Acceptance Contract requires the associated full-page evidence, semantic
+and action proof, exact image verification, deterministic reruns, and human
+realism review. A screen-local application shell is fixture composition using
+existing foundations, not a Contract option; promote an alternate shell only
+when it is proven reusable product policy. Its composition-accountability
+matrix audits the finished realistic page and excludes fine layout mechanics;
+necessary record data, workflow semantics, and shell fixtures remain justified
+exceptions rather than reasons to add artificial UI or Contract values.
 
 ### Structured Search/List Composition
 

@@ -1,8 +1,10 @@
 # Screen Pattern Realism and Copy Review
 
-Use this review for final Screen Pattern artifacts. It complements
-`nielsen-heuristic-review.md`, which evaluates UI Contract Editor rather than a
-completed operational screen.
+Use this as the human-review procedure required by
+`screen-pattern-acceptance-contract.md` for final Screen Pattern artifacts. It
+owns the qualitative business-realism, copy, action, and interaction review.
+It complements `nielsen-heuristic-review.md`, which evaluates UI Contract
+Editor rather than a completed operational screen.
 
 ## Gate
 
