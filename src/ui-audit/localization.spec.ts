@@ -363,6 +363,36 @@ test('renders compact, interactive Focus Policy indicators without changing focu
   expect(focusPreviewStyles).not.toMatch(/focus-(?:outer|inner)[^\n]*(?:danger|error|primary)/)
 })
 
+test('applies the active color mode to interactive and artifact Screen Patterns', async ({ page }, testInfo) => {
+  const evidenceDirectory = join('output', 'playwright', 'screen-pattern-color-mode', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.setItem('ui-contract-language', 'en')
+    localStorage.setItem('ui-contract-theme', 'light')
+  })
+  await page.reload()
+  await page.getByRole('button', { name: 'Search/List', exact: true }).click()
+
+  const interactivePattern = page.locator('.interactive-screen-patterns')
+  await expect(interactivePattern).toHaveCSS('--page', '#f1f5f9')
+  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(interactivePattern).toHaveCSS('--page', '#0f172a')
+  await expect(interactivePattern).toHaveCSS('--surface', '#111827')
+  await expect(interactivePattern.locator('[data-screen="search-list"]')).toHaveCSS('background-color', 'rgb(31, 41, 55)')
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.locator('.main-panel').screenshot({ path: join(evidenceDirectory, 'interactive-dark.png'), animations: 'disabled' })
+
+  await page.goto('/?screen-artifact=search-list')
+  const artifact = page.locator('[data-page-artifact]')
+  await expect(artifact).toHaveCSS('--page', '#0f172a')
+  await expect(artifact).toHaveCSS('background-color', 'rgb(15, 23, 42)')
+  await page.screenshot({ path: join(evidenceDirectory, 'artifact-dark.png'), animations: 'disabled' })
+})
+
 test('keeps the shared editor header structural, English, and free of explanatory chrome in both locales', async ({ page }) => {
   await page.goto('/')
   const header = page.locator('header.topbar')

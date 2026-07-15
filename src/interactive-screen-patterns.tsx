@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ConfirmationSurface, UiContract } from './contract/types'
+import type { ColorModeKey, ConfirmationSurface, UiContract } from './contract/types'
 import { translateUiText, type UiLanguage } from './i18n'
 import { type ScreenPatternExampleId } from './screen-pattern-evidence'
 
@@ -18,22 +18,22 @@ const searchLoadingDelayMs = 3_000
 
 export function isLocalUndoEligible(surface: ConfirmationSurface): boolean { return surface === 'undo-when-reversible' }
 
-export function InteractiveScreenPatterns({ contract, confirmation, example, button }: Props & { example: ScreenPatternExampleId }) {
-  return <section className="interactive-screen-patterns" aria-label="Screen pattern acceptance surface" style={screenPatternStyle(contract)}>
+export function InteractiveScreenPatterns({ contract, confirmation, example, button, colorMode }: Props & { example: ScreenPatternExampleId; colorMode: ColorModeKey }) {
+  return <section className="interactive-screen-patterns" aria-label="Screen pattern acceptance surface" style={screenPatternStyle(contract, colorMode)}>
     <div className="interactive-example-stage"><ScreenPatternContent button={button} confirmation={confirmation} example={example} focusPolicy={contract.interactionPolicy.focus} /></div>
   </section>
 }
 
-export function ScreenPatternPageArtifact({ contract, example }: { contract: UiContract; example: ScreenPatternExampleId }) {
+export function ScreenPatternPageArtifact({ contract, example, colorMode }: { contract: UiContract; example: ScreenPatternExampleId; colorMode: ColorModeKey }) {
   const artifactState = new URLSearchParams(window.location.search).get('state')
-  const pageStyle = screenPatternStyle(contract)
+  const pageStyle = screenPatternStyle(contract, colorMode)
   return <main className="screen-page-artifact" data-page-artifact data-screen-pattern={example} style={pageStyle}>
     <ScreenPatternContent artifact artifactState={artifactState} button={contract.componentPolicy.button} confirmation={contract.interactionPolicy.confirmation} example={example} focusPolicy={contract.interactionPolicy.focus} />
   </main>
 }
 
-function screenPatternStyle(contract: UiContract): React.CSSProperties {
-  const colors = contract.designPolicy.color.light
+function screenPatternStyle(contract: UiContract, colorMode: ColorModeKey): React.CSSProperties {
+  const colors = contract.designPolicy.color[colorMode]
   return {
     '--page': colors.background, '--surface': colors.surface, '--surface-soft': colors.surfaceSoft,
     '--text': colors.text, '--muted': colors.mutedText, '--line': colors.border,

@@ -895,7 +895,7 @@ function App() {
     }
 
     if (selectedScreenPattern) {
-      return <ScreenPatternsPanel contract={contract} example={selectedScreenPattern.example} />
+      return <ScreenPatternsPanel contract={contract} example={selectedScreenPattern.example} theme={theme} />
     }
 
     if (selectedMenu === 'Settings') {
@@ -907,7 +907,7 @@ function App() {
 
   const artifactCandidate = new URLSearchParams(window.location.search).get('screen-artifact')
   const artifactExample = screenPatternExampleIds.find((example) => example === artifactCandidate)
-  if (artifactExample) return <ScreenPatternPageArtifact contract={contract} example={artifactExample} />
+  if (artifactExample) return <ScreenPatternPageArtifact colorMode={theme} contract={contract} example={artifactExample} />
 
   return (
     <div className={`app-shell ${isSidebarOpen ? '' : 'is-sidebar-collapsed'}`}>
@@ -2915,7 +2915,7 @@ function StatusChip({
   )
 }
 
-function ScreenPatternsPanel({ contract, example }: { contract: UiContract; example: ScreenPatternExampleId }) {
+function ScreenPatternsPanel({ contract, example, theme }: { contract: UiContract; example: ScreenPatternExampleId; theme: Theme }) {
   return (
     <div className="screen-pattern-panel">
       <InteractiveScreenPatterns
@@ -2923,6 +2923,7 @@ function ScreenPatternsPanel({ contract, example }: { contract: UiContract; exam
         example={example}
         button={contract.componentPolicy.button}
         confirmation={contract.interactionPolicy.confirmation}
+        colorMode={theme}
       />
     </div>
   )
