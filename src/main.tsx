@@ -27,9 +27,7 @@ import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
 import { InteractiveScreenPatterns, ScreenPatternPageArtifact } from './interactive-screen-patterns'
 import { screenPatternExampleIds, type ScreenPatternExampleId } from './screen-pattern-evidence'
 import { translateUiDocument, translateUiText, type UiLanguage } from './i18n'
-import { defaultContract } from './contract/defaults'
-import { importContract } from './contract/import'
-import { generateJson } from './contract/output'
+import { createDefaultContract, loadContractJson, serializeContract } from './contract'
 import { catalogDecision, catalogOptions } from './contract/catalog'
 import { renderedMainDecisionIds } from './contract/rendered-decisions'
 import type { ActiveColorProfileId, AvailabilityLayout, AvailabilityTreatment, BrandIdentityPolicy, CardInteraction, CardTreatment, ColorModeKey, ColorPolicy, ColorProfile, ColorProfileId, ColorRoleKey, ConfirmationScope, ConfirmationSurface, DangerEmphasis, DangerPlacement, FocusIndicatorStyle, FocusVisibility, IconAdornment, IconOnlyPolicy, PrimaryEmphasis, SecondaryEmphasis, SidePanelRelationship, SidePanelResponsive, TextFieldLabelPlacement, TextFieldMessageAreaBehavior, TextFieldPlaceholderUsage, TextFieldRequiredIndicator, TextFieldStyle, UiContract, ValidationPresentation, ValidationTrigger } from './contract/types'
@@ -40,6 +38,7 @@ declare global {
 }
 
 type Theme = 'light' | 'dark'
+type LoadFeedback = { kind: 'malformed' | 'unsupported' | 'invalid' | 'warning'; details?: string[] }
 type OverviewLanguage = UiLanguage
 type OverviewSection = {
   eyebrow: string
@@ -336,8 +335,6 @@ const colorProfiles: ColorProfile[] = [
   },
 ]
 
-const sampleContract = defaultContract as unknown as UiContract
-
 const screenPatternMenuItems: ScreenPatternMenuItem[] = [
   { label: 'Search/List', page: 'Screen Patterns / Search/List', status: 'active', example: 'search-list' },
   { label: 'Edit Detail', page: 'Screen Patterns / Edit Detail', status: 'active', example: 'edit-detail' },
@@ -428,9 +425,9 @@ function App() {
     return (localStorage.getItem('ui-contract-theme') as Theme | null) ?? 'light'
   })
   const [selectedMenu, setSelectedMenu] = useState<MenuItem>('Overview')
-  const [contract, setContract] = useState<UiContract>(sampleContract)
+  const [contract, setContract] = useState<UiContract>(() => createDefaultContract())
   const [loadedFile, setLoadedFile] = useState<LoadedFile | null>(null)
-  const [loadError, setLoadError] = useState<'malformed' | 'invalid' | null>(null)
+  const [loadFeedback, setLoadFeedback] = useState<LoadFeedback | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -719,26 +716,31 @@ function App() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-    setLoadError(null)
+    setLoadFeedback(null)
 
     try {
-      const content = await file.text()
-      let result
-      try { result = importContract(JSON.parse(content)) } catch { setLoadError('malformed'); return }
-      if (!result.contract) { setLoadError('invalid'); return }
-      setContract(result.contract as unknown as UiContract)
-      setLoadError(null)
+      const result = loadContractJson(await file.text())
+      if (!result.ok) {
+        const code = result.errors[0]?.code
+        setLoadFeedback({
+          kind: code === 'json.parse' ? 'malformed' : code === 'schema.unsupported-version' ? 'unsupported' : 'invalid',
+          details: result.errors.slice(0, 3).map((issue) => `${issue.path}: ${issue.message}`),
+        })
+        return
+      }
+      setContract(result.contract)
+      setLoadFeedback(result.warnings.length ? { kind: 'warning', details: result.warnings.slice(0, 3).map((issue) => issue.message) } : null)
       setLoadedFile({
         name: file.name,
         loadedAt: new Date().toLocaleString(),
       })
-    } catch { setLoadError('invalid') } finally {
+    } catch { setLoadFeedback({ kind: 'invalid' }) } finally {
       event.target.value = ''
     }
   }
 
   const handleSave = () => {
-    const blob = new Blob([generateJson(contract as unknown as import('./contract/types').UiContract)], { type: 'application/json' })
+    const blob = new Blob([serializeContract(contract)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
@@ -1020,7 +1022,7 @@ function App() {
                   </div>
                 </div>
               ) : null}
-              {loadError ? <div className="load-feedback" role="alert"><p>{translateUiText(loadError === 'malformed' ? 'Could not read this file as JSON. Choose a JSON file and try again.' : 'This Contract cannot be loaded. Choose a supported UI Contract file and try again.', language)}</p><button className="contract-button secondary-outline" onClick={handleLoad} type="button">{translateUiText('Try another file', language)}</button></div> : null}
+              {loadFeedback ? <div className="load-feedback" role={loadFeedback.kind === 'warning' ? 'status' : 'alert'}><p>{translateUiText(loadFeedback.kind === 'malformed' ? 'Could not read this file as JSON. Choose a JSON file and try again.' : loadFeedback.kind === 'warning' ? 'Loaded with migration warnings.' : 'This Contract cannot be loaded. Choose a supported UI Contract file and try again.', language)}</p>{loadFeedback.details?.length ? <ul>{loadFeedback.details.map((detail) => <li key={detail}>{detail}</li>)}</ul> : null}<button className="contract-button secondary-outline" onClick={handleLoad} type="button">{translateUiText('Try another file', language)}</button></div> : null}
 
               {renderMainContent()}
 

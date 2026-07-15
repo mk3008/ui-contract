@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { catalogDecision, contractCatalog, previewRegistry, translationRegistry } from './catalog'
-import { defaultContract } from './defaults'
+import { createDefaultContract, defaultContract } from './defaults'
 import { importContract } from './import'
+import { loadContract, loadContractJson } from './load'
 import { generateJson, generateMarkdown } from './output'
 import { uiContractJsonSchema } from './schema'
 import { renderedMainDecisionIds } from './rendered-decisions'
@@ -54,6 +55,14 @@ function phaseSixContract() {
 }
 
 describe('catalog integrity', () => {
+  it('protects the shared default and returns an editable factory clone', () => {
+    expect(Object.isFrozen(defaultContract)).toBe(true)
+    expect(Object.isFrozen(defaultContract.designPolicy.color.light)).toBe(true)
+    const cloned = createDefaultContract()
+    cloned.meta.name = 'Editable clone'
+    expect(defaultContract.meta.name).toBe('Business UI Contract')
+  })
+
   it('has unique IDs, resolved preview and translation references, and valid defaults', () => {
     expect(new Set(contractCatalog.map((entry) => entry.id)).size).toBe(contractCatalog.length)
     expect(new Set(contractCatalog.map((entry) => entry.path)).size).toBe(contractCatalog.length)
@@ -155,7 +164,7 @@ describe('schema and import outcomes', () => {
     expect((schemaProperties.designPolicy.properties as Record<string, Record<string, unknown>>).choiceGroupLayout.enum).toEqual(['stacked-default-with-constrained-inline'])
     expect(importContract(defaultContract).outcome).toBe('valid')
     expect(importContract({ ...defaultContract, meta: validFixture.meta }).outcome).toBe('valid')
-    expect(importContract({ ...defaultContract, extra: true }).outcome).toBe('accepted-with-ignored-unknown-fields')
+    expect(importContract({ ...defaultContract, extra: true }).outcome).toBe('invalid')
     expect(importContract(phaseTwoContract()).outcome).toBe('migrated')
     expect(importContract(phaseThreeContract()).outcome).toBe('migrated')
     expect(importContract(phaseFourContract()).outcome).toBe('migrated')
@@ -185,13 +194,13 @@ describe('schema and import outcomes', () => {
     legacy.interactionPolicy.confirmation.scope = 'unexpected-scope'
     const result = importContract(legacy)
     expect(result).toMatchObject({ outcome: 'invalid' })
-    expect(result.diagnostics.join(' ')).toContain('confirmation.scope: unexpected-scope')
+    expect(result.diagnostics.join(' ')).toContain('/interactionPolicy/confirmation/scope')
   })
 
   it('never silently replaces an invalid selected value', () => {
     const result = importContract({ ...defaultContract, componentPolicy: { ...defaultContract.componentPolicy, button: { ...defaultContract.componentPolicy.button, primaryEmphasis: 'gradient' } } })
     expect(result.contract).toBeUndefined()
-    expect(result.diagnostics.join(' ')).toContain('primaryEmphasis: gradient')
+    expect(result.diagnostics.join(' ')).toContain('/componentPolicy/button/primaryEmphasis')
   })
 
   it('migrates a valid 0.2.0 Contract with an observable Phase 4 diagnostic, but rejects invalid current form-section values', () => {
@@ -200,7 +209,7 @@ describe('schema and import outcomes', () => {
     expect(migrated).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.6.0', screenPatternPolicy: { formSection: 'grouped-form-section' } } })
     expect(migrated.diagnostics.join(' ')).toContain('Added fixed Phase 4 Screen Pattern')
     expect(invalidCurrent).toMatchObject({ outcome: 'invalid' })
-    expect(invalidCurrent.diagnostics.join(' ')).toContain('formSection: two-column-form')
+    expect(invalidCurrent.diagnostics.join(' ')).toContain('/screenPatternPolicy/formSection')
   })
 
   it('migrates a valid old Contract without introducing a Radio Group Component Contract', () => {
@@ -217,7 +226,7 @@ describe('schema and import outcomes', () => {
     expect(migrated.diagnostics.join(' ')).toContain('Moved Checkbox group layout to Foundation policy')
     expect(migrated.diagnostics.join(' ')).toContain('Removed obsolete Radio Group Component Contract')
     expect(invalidCurrent).toMatchObject({ outcome: 'invalid' })
-    expect(invalidCurrent.diagnostics.join(' ')).toContain('choiceGroupLayout: unbounded-inline')
+    expect(invalidCurrent.diagnostics.join(' ')).toContain('/designPolicy/choiceGroupLayout')
   })
 
   it('migrates the former segmented Tabs treatment to contained tabs and rejects it in current-version input', () => {
@@ -226,22 +235,50 @@ describe('schema and import outcomes', () => {
     expect(migrated).toMatchObject({ outcome: 'migrated', contract: { schemaVersion: '0.6.0', componentPolicy: { tabs: { treatment: 'contained-tabs', adornment: 'text-only' } } } })
     expect(migrated.diagnostics.join(' ')).toContain('segmented binary presentation remains Toggle-owned')
     expect(invalidCurrent).toMatchObject({ outcome: 'invalid' })
-    expect(invalidCurrent.diagnostics.join(' ')).toContain('tabs.treatment: segmented-contained')
+    expect(invalidCurrent.diagnostics.join(' ')).toContain('/componentPolicy/tabs/treatment')
   })
 
   it('rejects obsolete confirmation scope and altered fixed invariants in current-version input', () => {
     const obsoleteScope = importContract({ ...defaultContract, interactionPolicy: { ...defaultContract.interactionPolicy, confirmation: { ...defaultContract.interactionPolicy.confirmation, scope: 'destructive-bulk-unsaved' } } })
     const alteredInvariant = importContract({ ...defaultContract, interactionPolicy: { ...defaultContract.interactionPolicy, loading: { feedback: 'spinner-only' } } })
     expect(obsoleteScope).toMatchObject({ outcome: 'invalid' })
-    expect(obsoleteScope.diagnostics.join(' ')).toContain('confirmation.scope: destructive-bulk-unsaved')
+    expect(obsoleteScope.diagnostics.join(' ')).toContain('/interactionPolicy/confirmation/scope')
     expect(alteredInvariant).toMatchObject({ outcome: 'invalid' })
-    expect(alteredInvariant.diagnostics.join(' ')).toContain('interactionPolicy.loading.feedback: spinner-only')
+    expect(alteredInvariant.diagnostics.join(' ')).toContain('/interactionPolicy/loading/feedback')
   })
 
-  it('routes editor file imports through the domain importer, without a legacy normalizer', () => {
+  it('routes editor file imports through the explicit domain loader, without a legacy normalizer', () => {
     const mainSource = readFileSync(new URL('../main.tsx', import.meta.url), 'utf8')
-    expect(mainSource).toContain('importContract(JSON.parse(content))')
+    expect(mainSource).toContain('loadContractJson(await file.text())')
     expect(mainSource).not.toContain('normalizeContract')
+  })
+
+  it('distinguishes parse, current-schema, migration-warning, and unsupported-version outcomes', () => {
+    expect(loadContractJson('{')).toMatchObject({ ok: false, errors: [{ code: 'json.parse', severity: 'error' }] })
+    expect(loadContract({ ...defaultContract, extra: true })).toMatchObject({ ok: false, errors: [{ code: 'schema.validation', severity: 'error' }] })
+    expect(loadContract({ ...defaultContract, schemaVersion: '99.0.0' })).toMatchObject({ ok: false, errors: [{ code: 'schema.unsupported-version', severity: 'error' }] })
+    expect(loadContract(phaseTwoContract())).toMatchObject({ ok: true, migratedFrom: '0.1.0' })
+  })
+
+  it('rejects invalid colors and missing current-version required properties without defaulting them', () => {
+    const invalidColor = structuredClone(defaultContract) as Record<string, any>
+    invalidColor.designPolicy.color.light.primary = 'blue'
+    const missingRequired = structuredClone(defaultContract) as Record<string, any>
+    delete missingRequired.componentPolicy.checkbox
+    const colorResult = loadContract(invalidColor)
+    const missingResult = loadContract(missingRequired)
+    expect(colorResult.ok).toBe(false)
+    expect(missingResult.ok).toBe(false)
+    if (!colorResult.ok) expect(colorResult.errors.some((issue) => issue.code === 'schema.validation')).toBe(true)
+    if (!missingResult.ok) expect(missingResult.errors.some((issue) => issue.code === 'schema.validation')).toBe(true)
+  })
+
+  it('round-trips every color role with the explicit loader and serializer', () => {
+    const serialized = generateJson(defaultContract)
+    const first = loadContractJson(serialized)
+    expect(first).toMatchObject({ ok: true, contract: defaultContract })
+    if (!first.ok) throw new Error('Expected current Contract to load')
+    expect(loadContractJson(generateJson(first.contract))).toMatchObject({ ok: true, contract: defaultContract })
   })
 
   it('keeps persisted Contract type ownership in the domain module', () => {

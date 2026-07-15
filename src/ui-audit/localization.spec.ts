@@ -293,6 +293,8 @@ test('retains file import and Contract save without the Inspector', async ({ pag
 
 test('recovers from malformed and unsupported Contract files with the existing Load control', async ({ page }) => {
   await page.goto('/')
+  await page.getByRole('button', { name: 'Focus', exact: true }).click()
+  await page.getByText('All focused controls', { exact: true }).click()
   const input = page.locator('input[type="file"]')
   await input.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{') })
   await expect(page.getByRole('alert')).toContainText('このファイルをJSONとして読み込めませんでした。')
@@ -301,6 +303,7 @@ test('recovers from malformed and unsupported Contract files with the existing L
   await chooser
   await input.setInputFiles({ name: 'unsupported.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion":"99.0.0"}') })
   await expect(page.getByRole('alert')).toContainText('このContractは読み込めません。')
+  await expect(page.getByText('All focused controls', { exact: true }).locator('..')).toHaveClass(/is-selected/)
   const recoveryChooser = page.waitForEvent('filechooser')
   await page.getByRole('button', { name: '別のファイルを選ぶ' }).click()
   await recoveryChooser

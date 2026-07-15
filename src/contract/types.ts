@@ -45,5 +45,18 @@ export type UiContract = {
   componentPolicy: { button: { primaryEmphasis: PrimaryEmphasis; secondaryEmphasis: SecondaryEmphasis; dangerPlacement: DangerPlacement; dangerEmphasis: DangerEmphasis; iconAdornment: IconAdornment; iconOnlyPolicy: IconOnlyPolicy }; textField: { fieldStyle: TextFieldStyle; labelPlacement: TextFieldLabelPlacement; requiredIndicator: TextFieldRequiredIndicator; messageAreaBehavior: TextFieldMessageAreaBehavior; placeholderUsage: TextFieldPlaceholderUsage }; select: SelectPolicy; tabs: TabsPolicy; toggle: TogglePolicy; checkbox: CheckboxPolicy; card: { treatment: CardTreatment; interaction: CardInteraction }; sidePanel: { relationship: SidePanelRelationship; responsive: SidePanelResponsive } }
   screenPatternPolicy: { searchList: SearchListPolicy; formSection: FormSectionPolicy }
 }
-export type ImportOutcome = 'valid' | 'migrated' | 'accepted-with-ignored-unknown-fields' | 'invalid' | 'unsupported-version'
+export type ContractLoadIssue = {
+  path: string
+  code: string
+  message: string
+  severity: 'warning' | 'error'
+}
+
+export type ContractLoadResult =
+  | { ok: true; contract: UiContract; warnings: ContractLoadIssue[]; migratedFrom?: string }
+  | { ok: false; errors: ContractLoadIssue[] }
+
+/** @deprecated Use ContractLoadResult through loadContractJson instead. */
+export type ImportOutcome = 'valid' | 'migrated' | 'invalid' | 'unsupported-version'
+/** @deprecated Compatibility shape for existing callers during the core split. */
 export type ImportResult = { outcome: ImportOutcome; diagnostics: string[]; contract?: UiContract }

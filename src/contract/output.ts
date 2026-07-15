@@ -1,6 +1,7 @@
+import { serializeContract } from './serialize'
 import type { UiContract } from './types'
 
-export function generateJson(contract: UiContract): string { return `${JSON.stringify(contract, null, 2)}\n` }
+export function generateJson(contract: UiContract): string { return serializeContract(contract) }
 
 export function generateMarkdown(contract: UiContract): string {
   const lines = [`# ${contract.meta.name}`, '', contract.meta.description, '', `Schema version: \`${contract.schemaVersion}\``, '', '## Product', '', `- System type: ${contract.product.systemType}`, `- Information density: ${contract.product.informationDensity}`, `- Visual tone: ${contract.product.visualTone}`, '', '## Design decisions', '']
