@@ -123,9 +123,9 @@ test('uses the same left-pane group and card vocabulary for choices, fixed rules
   const fixedRules = page.locator('main .select-policy-controls .option-group[aria-label="Fixed rules"]')
   await expect(fixedRules).toHaveCount(1)
   await expect(fixedRules.locator('.fixed-rule-card')).toHaveCount(3)
+  await expect(fixedRules.locator('.fixed-rule-card.is-selected')).toHaveCount(3)
   await expect(fixedRules.locator('.fixed-rule-card .option-title')).toHaveText(['Minimum target', 'Meaning and scope', 'Keyboard and state'])
   await expect(page.locator('main .classification-notes')).toHaveCount(0)
-  await expect(fixedRules.locator('.fixed-rule-card').first()).toHaveCSS('cursor', 'default')
 
   const evidenceDirectory = join('output', 'playwright', 'left-pane-consistency', testInfo.project.name || 'local')
   rmSync(evidenceDirectory, { recursive: true, force: true })

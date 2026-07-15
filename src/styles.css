@@ -1012,15 +1012,6 @@ h3 {
   background: var(--primary-soft);
 }
 
-.fixed-rule-card,
-.fixed-rule-card:hover {
-  border-color: var(--line);
-  border-left-color: var(--line);
-  color: var(--text);
-  background: var(--surface-soft);
-  cursor: default;
-}
-
 .option-title {
   min-width: 0;
   overflow: hidden;

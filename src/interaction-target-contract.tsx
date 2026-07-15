@@ -21,15 +21,15 @@ export function InteractiveTargetContractPanel() {
         controls={
           <section aria-label="Fixed rules" className="option-group">
             <div className="option-grid">
-              <div className="option-card fixed-rule-card">
+              <div className="option-card is-selected fixed-rule-card">
                 <span className="option-title">Minimum target</span>
                 <span className="option-note">Pointer-operable controls provide at least a 24 by 24 CSS pixel target. Frequent or touch-relevant operations aim for 44 by 44 CSS pixels where practical.</span>
               </div>
-              <div className="option-card fixed-rule-card">
+              <div className="option-card is-selected fixed-rule-card">
                 <span className="option-title">Meaning and scope</span>
                 <span className="option-note">Choice labels and controls form one target. Row selection remains separate from record navigation and row actions.</span>
               </div>
-              <div className="option-card fixed-rule-card">
+              <div className="option-card is-selected fixed-rule-card">
                 <span className="option-title">Keyboard and state</span>
                 <span className="option-note">The same native control receives pointer activation, keyboard focus, and an accessible name. Checked state is never conveyed by color alone.</span>
               </div>
