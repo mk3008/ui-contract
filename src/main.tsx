@@ -24,6 +24,7 @@ import {
   SelectSectionedContractPanel,
 } from './select-contract'
 import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
+import { InteractiveTargetContractPanel } from './interaction-target-contract'
 import { InteractiveScreenPatterns, ScreenPatternPageArtifact } from './interactive-screen-patterns'
 import { screenPatternExampleIds, type ScreenPatternExampleId } from './screen-pattern-evidence'
 import { translateUiDocument, translateUiText, type UiLanguage } from './i18n'
@@ -67,6 +68,7 @@ type MenuItem =
   | 'Contract Editor / Toggle'
   | 'Contract Editor / Checkbox'
   | 'Choice Group Layout'
+  | 'Interactive Targets'
   | 'Contract Editor / Card'
   | 'Contract Editor / Side Panel'
   | 'Contract Editor / Confirmation'
@@ -349,6 +351,7 @@ const navigationGroups: NavigationGroup[] = [
     children: [
       { label: 'Color Settings', page: 'Color Settings' },
       { label: 'Choice Group Layout', page: 'Choice Group Layout' },
+      { label: 'Interactive Targets', page: 'Interactive Targets' },
     ],
   },
   {
@@ -830,7 +833,7 @@ function App() {
                             : selectedMenu === 'Contract Editor / State Feedback'
                               ? 'State Feedback Policy'
                 : selectedMenu)
-  const pageEyebrow = isContractEditorPage ? 'Contract Editor' : selectedScreenPattern ? 'Screen Patterns' : selectedMenu === 'Choice Group Layout' ? 'Foundation' : 'Main page'
+  const pageEyebrow = isContractEditorPage ? 'Contract Editor' : selectedScreenPattern ? 'Screen Patterns' : selectedMenu === 'Choice Group Layout' || selectedMenu === 'Interactive Targets' ? 'Foundation' : 'Main page'
   const isOverviewPage = selectedMenu === 'Overview'
 
   const renderMainContent = () => {
@@ -871,6 +874,10 @@ function App() {
 
     if (selectedMenu === 'Choice Group Layout') {
       return <ChoiceGroupLayoutContractPanel choiceGroupLayout={choiceGroupLayout} />
+    }
+
+    if (selectedMenu === 'Interactive Targets') {
+      return <InteractiveTargetContractPanel />
     }
 
     if (selectedMenu === 'Color Settings') {

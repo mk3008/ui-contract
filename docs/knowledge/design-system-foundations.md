@@ -108,6 +108,30 @@ Examples:
 
 Interaction policy should not be hidden inside one component merely because that component triggers the interaction.
 
+### Interactive Targets
+
+Interactive target policy is a fixed Foundation invariant, not a component-size
+option. It applies to Checkbox, Radio, Toggle, icon-only actions, pagination,
+and other pointer-operable controls.
+
+- Pointer-operable controls provide a target of at least 24 by 24 CSS pixels.
+  Frequently used or touch-relevant operations aim for 44 by 44 CSS pixels
+  where practical.
+- A visible choice label activates its associated native control. The visible
+  mark may be smaller than the target; the surrounding label is part of the
+  target.
+- An unlabeled control, such as a grid row-selection checkbox, owns a dedicated
+  selection cell with the enlarged target and an accessible name that identifies
+  the affected record.
+- Selection, row activation, and row actions remain distinct targets. Adjacent
+  target areas must not overlap.
+- Pointer activation, keyboard focus, and accessible naming reach the same
+  underlying native control. Checked and selected states use more than color.
+
+The precise CSS measurement, padding, and table-cell width are implementation
+details. The Contract catalog records this as the fixed `Interactive targets`
+Foundation invariant, not a choice between hit-area measurements.
+
 ### Keyboard Focus and Navigation
 
 Keyboard traversal is a fixed interaction-policy and Screen Pattern acceptance

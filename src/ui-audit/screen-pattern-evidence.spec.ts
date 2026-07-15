@@ -118,10 +118,17 @@ test('exports deterministic, complete business-page PNG and JPEG evidence withou
   await expect(tableContextToolbar).toContainText('4 accounts')
   const selectAll = page.getByRole('checkbox', { name: 'Select all accounts on this page' })
   const selectedRowCheckbox = table.getByRole('checkbox', { name: 'Select account: Aster Works' })
+  const selectAllTarget = selectAll.locator('xpath=..')
+  const selectedRowTarget = selectedRowCheckbox.locator('xpath=..')
   const tableHeader = table.locator('thead')
   const unaffectedRow = table.locator('tbody tr').nth(1)
+  for (const target of [selectAllTarget, selectedRowTarget]) {
+    const box = await target.boundingBox()
+    expect(box).not.toBeNull()
+    expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(48)
+  }
   const before = await Promise.all([selectAll.boundingBox(), selectedRowCheckbox.boundingBox(), tableHeader.boundingBox(), unaffectedRow.boundingBox()])
-  await selectedRowCheckbox.click()
+  await selectedRowTarget.click()
   await expect(table.locator('tbody tr').first()).toHaveAttribute('data-selected', 'true')
   await expect(tableContextToolbar).toContainText('1 account selected')
   await expect(page.getByRole('button', { name: 'Assign owner' })).toBeVisible()

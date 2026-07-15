@@ -2,13 +2,13 @@ import { expect, test } from '@playwright/test'
 import { mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
-const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Choice Group Layout', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Settings']
+const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Choice Group Layout', 'Interactive Targets', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Settings']
 const screenPatternPages = ['Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action'] as const
 const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
 const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
 const englishStructureSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'
 const immutableVocabulary = new Set(['Contract Editor', 'Foundation', 'Main page', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
-const fixtureRecordValues = new Set(['Lumen Office', 'Pine Services', 'M. Suzuki', 'A. Tanaka'])
+const fixtureRecordValues = new Set(['Harbor Supply', 'Lumen Office', 'Pine Services', 'M. Suzuki', 'A. Tanaka'])
 
 async function expectLocalizedPage(page: import('@playwright/test').Page, language: 'JP' | 'EN', view: string) {
   const untranslatedStructure = await page.locator(englishStructureSelector).allTextContents()
@@ -71,7 +71,7 @@ test('orders the navigation as a guided, non-blocking authoring sequence', async
   await expect(navigation).toHaveAttribute('aria-label', 'Contract authoring navigation')
   await expect(navigation.locator('.menu-group-label')).toHaveText(['Foundations', 'Components', 'Interaction Policies', 'Screen Patterns'])
   await expect(navigation.locator('[data-authored-flow="true"] .submenu-item')).toHaveText([
-    'Color Settings', 'Choice Group Layout',
+    'Color Settings', 'Choice Group Layout', 'Interactive Targets',
     'Button', 'Text Field', 'Select', 'Toggle', 'Checkbox', 'Tabs', 'Card', 'Side Panel',
     'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation',
     'Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action',
@@ -96,6 +96,37 @@ test('orders the navigation as a guided, non-blocking authoring sequence', async
     await page.keyboard.press('Enter')
     await expect(entry).toHaveClass(/is-active/)
   }
+})
+
+test('makes choice labels and row-selection cells forgiving, accessible targets', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+
+  const checkbox = page.getByRole('checkbox', { name: 'Send account updates', exact: true })
+  const checkboxTarget = checkbox.locator('xpath=..')
+  const standardDelivery = page.getByRole('radio', { name: 'Standard delivery', exact: true })
+  const toggle = page.getByRole('checkbox', { name: 'Enable review alerts', exact: true })
+  const rowSelection = page.getByRole('checkbox', { name: 'Select account: Harbor Supply', exact: true })
+  const rowTarget = rowSelection.locator('xpath=..')
+
+  await expect(checkbox).toBeChecked()
+  await checkboxTarget.click()
+  await expect(checkbox).not.toBeChecked()
+  await expect(standardDelivery).toBeChecked()
+  await toggle.focus()
+  await expect(toggle).toBeFocused()
+  await rowTarget.click()
+  await expect(rowSelection).toBeChecked()
+  await expect(rowTarget.locator('xpath=..')).toHaveClass(/is-selected/)
+
+  for (const target of [checkboxTarget, rowTarget]) {
+    const box = await target.boundingBox()
+    expect(box).not.toBeNull()
+    expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(40)
+  }
+  expect(await rowTarget.getAttribute('class')).toContain('target-selection-cell')
 })
 
 test('renders compact, interactive Focus Policy indicators without changing focus geometry', async ({ page }, testInfo) => {

@@ -19,6 +19,34 @@ The goal is not to copy one design system. The goal is to avoid presenting patte
 - `boundary deny`: The pattern may be valid, but it belongs outside the current contract boundary.
 - `context-limited`: The pattern exists, but only under specific conditions.
 
+## Interactive Target Anti-Patterns
+
+### BAN-TARGET-001: Do not make a small visual marker the only pointer target
+
+Evidence level: `hard deny`
+
+Decision:
+Do not require users to hit only the visible checkbox, radio, or switch glyph
+when its visible label can activate the same native control. For a selection
+cell without a visible label, provide a dedicated, forgiving cell target with
+an accessible name that identifies the record.
+
+Rationale:
+Small pointer targets make routine business tasks unnecessarily error-prone.
+The target must remain the same semantic control for pointer input, keyboard
+focus, and assistive technology. Do not merge row selection with row navigation
+or row actions merely to enlarge the target.
+
+Local consequence:
+Treat this as a fixed Foundation invariant, not as a visual-choice option.
+Use at least a 24 by 24 CSS-pixel target for pointer-operable controls; aim for
+44 by 44 CSS pixels for frequent or touch-relevant operations when practical.
+
+Sources:
+- https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum
+- https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html
+- https://www.w3.org/WAI/tutorials/forms/labels/
+
 ## Button Anti-Patterns
 
 ### BAN-BTN-001: Do not make disabled buttons the default unavailable-action pattern
