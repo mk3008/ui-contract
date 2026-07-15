@@ -104,6 +104,36 @@ test('uses the page header once and keeps only distinct section headings below i
   await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'choice-group-layout.png'), animations: 'disabled' })
 })
 
+test('uses the same left-pane group and card vocabulary for choices, fixed rules, and editable options', async ({ page }, testInfo) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+
+  await page.getByRole('button', { name: 'Button', exact: true }).click()
+  const buttonGroups = page.locator('main .select-policy-controls .option-group')
+  await expect(buttonGroups).toHaveCount(6)
+  await expect(buttonGroups.first().locator('.option-card')).toHaveCount(3)
+
+  await page.getByRole('button', { name: 'Choice Group Layout', exact: true }).click()
+  const choiceGroup = page.locator('main .select-policy-controls .option-group')
+  await expect(choiceGroup).toHaveCount(1)
+  await expect(choiceGroup.locator('.choice-group-layout-fixed-decision')).toHaveCount(1)
+
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+  const fixedRules = page.locator('main .select-policy-controls .option-group[aria-label="Fixed rules"]')
+  await expect(fixedRules).toHaveCount(1)
+  await expect(fixedRules.locator('.fixed-rule-card')).toHaveCount(3)
+  await expect(fixedRules.locator('.fixed-rule-card .option-title')).toHaveText(['Minimum target', 'Meaning and scope', 'Keyboard and state'])
+  await expect(page.locator('main .classification-notes')).toHaveCount(0)
+  await expect(fixedRules.locator('.fixed-rule-card').first()).toHaveCSS('cursor', 'default')
+
+  const evidenceDirectory = join('output', 'playwright', 'left-pane-consistency', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'interactive-targets.png'), animations: 'disabled' })
+})
+
 test('orders the navigation as a guided, non-blocking authoring sequence', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('/')

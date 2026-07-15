@@ -19,11 +19,22 @@ export function InteractiveTargetContractPanel() {
         controlsLabel="Fixed rules"
         previewLabel="Try it"
         controls={
-          <div className="classification-notes">
-              <div><h4>Minimum target</h4><p>Pointer-operable controls provide at least a 24 by 24 CSS pixel target. Frequent or touch-relevant operations aim for 44 by 44 CSS pixels where practical.</p></div>
-              <div><h4>Meaning and scope</h4><p>Choice labels and controls form one target. Row selection remains separate from record navigation and row actions.</p></div>
-              <div><h4>Keyboard and state</h4><p>The same native control receives pointer activation, keyboard focus, and an accessible name. Checked state is never conveyed by color alone.</p></div>
-          </div>
+          <section aria-label="Fixed rules" className="option-group">
+            <div className="option-grid">
+              <div className="option-card fixed-rule-card">
+                <span className="option-title">Minimum target</span>
+                <span className="option-note">Pointer-operable controls provide at least a 24 by 24 CSS pixel target. Frequent or touch-relevant operations aim for 44 by 44 CSS pixels where practical.</span>
+              </div>
+              <div className="option-card fixed-rule-card">
+                <span className="option-title">Meaning and scope</span>
+                <span className="option-note">Choice labels and controls form one target. Row selection remains separate from record navigation and row actions.</span>
+              </div>
+              <div className="option-card fixed-rule-card">
+                <span className="option-title">Keyboard and state</span>
+                <span className="option-note">The same native control receives pointer activation, keyboard focus, and an accessible name. Checked state is never conveyed by color alone.</span>
+              </div>
+            </div>
+          </section>
         }
         preview={
           <div aria-label={translate('Interactive target preview')}>
