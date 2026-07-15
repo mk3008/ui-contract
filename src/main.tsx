@@ -1502,10 +1502,14 @@ function StateFeedbackContractPanel() {
         title="Loading feedback"
         description="Interaction Policy requires observable busy feedback. Search/List owns which result region loads and the data it requests."
         controls={
-          <div className="state-feedback-requirements">
+          <section aria-label="Fixed rules" className="option-group">
             <h4>Invariant</h4>
-            <span>Busy feedback is required; skeletons are only for structured content and inline indicators are for a single processing action.</span>
-          </div>
+            <div className="option-grid">
+              <div className="option-card is-selected fixed-rule-card">
+                <span className="option-note">Busy feedback is required; skeletons are only for structured content and inline indicators are for a single processing action.</span>
+              </div>
+            </div>
+          </section>
         }
         preview={<LoadingFeedbackPreview />}
       />
@@ -1513,10 +1517,14 @@ function StateFeedbackContractPanel() {
         title="Empty state"
         description="Interaction Policy requires plain-language explanation and an available next step. Search/List owns filters, result criteria, and whether no results exist."
         controls={
-          <div className="state-feedback-requirements">
+          <section aria-label="Fixed rules" className="option-group">
             <h4>Invariant</h4>
-            <span>Explain empty conditions and an available next step; no-result criteria remain screen-owned.</span>
-          </div>
+            <div className="option-grid">
+              <div className="option-card is-selected fixed-rule-card">
+                <span className="option-note">Explain empty conditions and an available next step; no-result criteria remain screen-owned.</span>
+              </div>
+            </div>
+          </section>
         }
         preview={<EmptyStatePreview />}
       />
@@ -1524,10 +1532,14 @@ function StateFeedbackContractPanel() {
         title="Error guidance"
         description="Interaction Policy requires plain-language recovery guidance. The screen pattern owns the failure cause, retry action, and affected content."
         controls={
-          <div className="state-feedback-requirements">
+          <section aria-label="Fixed rules" className="option-group">
             <h4>Invariant</h4>
-            <span>Explain the problem and recovery path; error classification and retry behavior remain application-owned.</span>
-          </div>
+            <div className="option-grid">
+              <div className="option-card is-selected fixed-rule-card">
+                <span className="option-note">Explain the problem and recovery path; error classification and retry behavior remain application-owned.</span>
+              </div>
+            </div>
+          </section>
         }
         preview={<ErrorGuidancePreview />}
       />

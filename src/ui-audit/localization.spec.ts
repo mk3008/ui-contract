@@ -127,11 +127,16 @@ test('uses the same left-pane group and card vocabulary for choices, fixed rules
   await expect(fixedRules.locator('.fixed-rule-card .option-title')).toHaveText(['Minimum target', 'Meaning and scope', 'Keyboard and state'])
   await expect(page.locator('main .classification-notes')).toHaveCount(0)
 
+  await page.getByRole('button', { name: 'State Feedback', exact: true }).click()
+  const stateFeedbackRules = page.locator('main .select-policy-controls .option-group[aria-label="Fixed rules"]')
+  await expect(stateFeedbackRules).toHaveCount(3)
+  await expect(stateFeedbackRules.locator('.fixed-rule-card.is-selected')).toHaveCount(3)
+
   const evidenceDirectory = join('output', 'playwright', 'left-pane-consistency', testInfo.project.name || 'local')
   rmSync(evidenceDirectory, { recursive: true, force: true })
   mkdirSync(evidenceDirectory, { recursive: true })
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'interactive-targets.png'), animations: 'disabled' })
+  await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'state-feedback.png'), animations: 'disabled' })
 })
 
 test('orders the navigation as a guided, non-blocking authoring sequence', async ({ page }, testInfo) => {

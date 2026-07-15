@@ -2610,18 +2610,6 @@ h3 {
   justify-content: start;
 }
 
-.state-feedback-requirements {
-  display: grid;
-  gap: 7px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.state-feedback-requirements strong {
-  color: var(--text);
-}
-
 .state-feedback-stage {
   min-height: 200px;
   justify-content: start;
