@@ -15,7 +15,6 @@ export function InteractiveTargetContractPanel() {
   return (
     <div className="select-sectioned-panel interaction-target-panel" data-interaction-target-policy="accessible-labeled-targets">
       <SelectLikePolicySection
-        title="Interactive target policy"
         description="Every choice control has a forgiving target. Labels activate their control; record selection uses a dedicated selection cell when no visible label is available."
         controlsLabel="Fixed rules"
         previewLabel="Try it"

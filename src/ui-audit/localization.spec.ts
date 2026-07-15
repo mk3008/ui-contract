@@ -64,6 +64,46 @@ test('audits every active view in JP and EN while preserving only structural and
   }
 })
 
+test('uses the page header once and keeps only distinct section headings below it', async ({ page }, testInfo) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+
+  for (const view of activeViews.filter((item) => item !== 'Overview')) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    const pageTitle = (await page.locator('main .section-heading h2').textContent())?.trim().toLocaleLowerCase()
+    const sectionTitles = await page.locator('main .select-policy-heading h3').allTextContents()
+    expect(sectionTitles.map((title) => title.trim().toLocaleLowerCase())).not.toContain(pageTitle)
+  }
+
+  for (const { view, labels } of [
+    { view: 'Choice Group Layout', labels: ['Settings', 'Preview'] },
+    { view: 'Interactive Targets', labels: ['Fixed rules', 'Try it'] },
+    { view: 'Focus', labels: ['Settings', 'Preview'] },
+    { view: 'Validation', labels: ['Settings', 'Preview'] },
+    { view: 'Availability', labels: ['Settings', 'Preview'] },
+  ]) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    await expect(page.locator('main .select-policy-heading h3')).toHaveCount(0)
+    await expect(page.locator('main .select-column-label')).toHaveText(labels)
+  }
+
+  await page.getByRole('button', { name: 'Button', exact: true }).click()
+  expect(await page.locator('main .select-policy-heading h3').allTextContents()).toEqual(['Action intent', 'Danger action', 'Icon usage'])
+
+  for (const view of screenPatternPages) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    await expect(page.locator('.screen-pattern-intro')).toHaveCount(0)
+  }
+
+  const evidenceDirectory = join('output', 'playwright', 'editor-header-hierarchy', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.getByRole('button', { name: 'Choice Group Layout', exact: true }).click()
+  await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'choice-group-layout.png'), animations: 'disabled' })
+})
+
 test('orders the navigation as a guided, non-blocking authoring sequence', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('/')

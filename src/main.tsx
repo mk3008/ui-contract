@@ -1810,7 +1810,6 @@ function FocusSectionedContractPanel({
   return (
     <div className="select-sectioned-panel">
       <SelectLikePolicySection
-        title="Focus policy"
         description="Define when focus is visible and how the indicator is drawn."
         controls={
           <>
@@ -1847,7 +1846,6 @@ function ValidationSectionedContractPanel({
   return (
     <div className="select-sectioned-panel">
       <SelectLikePolicySection
-        title="Validation policy"
         description="Define when errors appear and where users can read them."
         controls={
           <>
@@ -1886,7 +1884,6 @@ function AvailabilitySectionedContractPanel({
   return (
     <div className="select-sectioned-panel">
       <SelectLikePolicySection
-        title="Availability policy"
         description="Define how unavailable controls are shown. Temporary unavailable layout is separate from not-applicable hiding."
         controls={
           <>
@@ -2909,13 +2906,6 @@ function StatusChip({
 function ScreenPatternsPanel({ contract, example }: { contract: UiContract; example: ScreenPatternExampleId }) {
   return (
     <div className="screen-pattern-panel">
-      <section className="screen-pattern-intro">
-        <div>
-          <p className="eyebrow">Screen pattern</p>
-          <h3>Screen Patterns</h3>
-        </div>
-        <p>Screen Patterns define reusable structures that compose existing Component Contracts. They do not choose fields, workflow behavior, or layout mechanics.</p>
-      </section>
       <InteractiveScreenPatterns
         contract={contract}
         example={example}
