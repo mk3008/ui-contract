@@ -1364,7 +1364,6 @@ h3 {
 .business-table .table-selection-cell { width: 48px; padding: 0; }
 .business-table .table-selection-target { display: grid; place-items: center; min-width: 48px; min-height: 48px; cursor: pointer; }
 .business-table .table-selection-target input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary); }
-.business-table .table-selection-target:focus-within { outline: 3px solid var(--focus-outer); outline-offset: -3px; }
 .record-status { width: max-content; padding: 3px 7px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .record-status.success { color: var(--success); background: color-mix(in srgb, var(--success) 12%, var(--surface)); }
 .record-status.warning { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, var(--surface)); }
@@ -1398,17 +1397,17 @@ h3 {
 .screen-pattern-focus.focus-indicator-outer-ring .business-screen :focus-visible,
 .screen-pattern-focus.focus-visibility-keyboard-and-active-inputs.focus-indicator-outer-ring .business-screen :is(input, select, textarea):focus,
 .screen-pattern-focus.focus-visibility-all-focused-controls.focus-indicator-outer-ring .business-screen :focus {
-  outline: 3px solid var(--focus-outer);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus-outer);
+  outline: 2px solid var(--focus-outer);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .screen-pattern-focus.focus-indicator-high-contrast-highlight .business-screen :focus-visible,
 .screen-pattern-focus.focus-visibility-keyboard-and-active-inputs.focus-indicator-high-contrast-highlight .business-screen :is(input, select, textarea):focus,
 .screen-pattern-focus.focus-visibility-all-focused-controls.focus-indicator-high-contrast-highlight .business-screen :focus {
-  outline: 4px solid var(--focus-inner);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 6px var(--focus-outer);
+  outline: 3px solid color-mix(in srgb, var(--focus-outer) 82%, var(--focus-inner));
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 /* The screen action hierarchy follows the existing Button Contract values. */
@@ -1712,7 +1711,7 @@ h3 {
 
 .target-toggle-control input:checked + .target-toggle-track { background: var(--primary); }
 .target-toggle-control input:checked + .target-toggle-track::after { transform: translateX(16px); }
-.target-toggle-control input:focus-visible + .target-toggle-track { outline: 3px solid var(--focus-outer); outline-offset: 3px; }
+.target-toggle-control input:focus-visible + .target-toggle-track { outline: 2px solid var(--focus-outer); outline-offset: 2px; }
 .target-toggle-control strong { color: var(--muted); font-size: 12px; }
 
 .target-selection-row {
@@ -1740,7 +1739,8 @@ h3 {
   accent-color: var(--primary);
 }
 
-.target-selection-cell:focus-within { outline: 3px solid var(--focus-outer); outline-offset: -3px; }
+.target-selection-cell input:focus-visible,
+.business-table .table-selection-target input:focus-visible { outline: 2px solid var(--focus-outer); outline-offset: 2px; }
 .target-selection-row button { min-block-size: 32px; border: 0; color: var(--primary-strong); background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
 
 .classification-notes {
@@ -3255,22 +3255,18 @@ h3 {
 .focus-style-outer-ring[data-input-modality='keyboard'] .focus-interactive-preview :focus-visible,
 .focus-style-outer-ring.focus-visibility-all-focused-controls .focus-interactive-preview :focus,
 .focus-style-outer-ring.focus-visibility-keyboard-and-active-inputs .focus-interactive-preview input:focus {
-  outline: 0 solid transparent !important;
-  outline-offset: 0;
-  box-shadow:
-    0 0 0 1px var(--surface),
-    0 0 0 3px var(--focus-outer);
+  outline: 2px solid var(--focus-outer) !important;
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .focus-style-high-contrast-highlight .focus-demo-indicator,
 .focus-style-high-contrast-highlight[data-input-modality='keyboard'] .focus-interactive-preview :focus-visible,
 .focus-style-high-contrast-highlight.focus-visibility-all-focused-controls .focus-interactive-preview :focus,
 .focus-style-high-contrast-highlight.focus-visibility-keyboard-and-active-inputs .focus-interactive-preview input:focus {
-  outline: 0 solid transparent !important;
-  outline-offset: 0;
-  box-shadow:
-    0 0 0 1px var(--focus-inner),
-    0 0 0 3px var(--focus-outer);
+  outline: 3px solid color-mix(in srgb, var(--focus-outer) 82%, var(--focus-inner)) !important;
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 @media (max-width: 720px) {

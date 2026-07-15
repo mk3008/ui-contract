@@ -538,11 +538,28 @@ test('applies Focus Policy to natural Screen Pattern task controls', async ({ pa
     const style = window.getComputedStyle(element)
     return { outlineWidth: style.outlineWidth, outlineColor: style.outlineColor, boxShadow: style.boxShadow }
   })
-  expect(outerRing.outlineWidth).toBe('3px')
+  expect(outerRing.outlineWidth).toBe('2px')
   expect(outerRing.outlineColor).not.toBe('rgba(0, 0, 0, 0)')
-  expect(outerRing.boxShadow).not.toBe('none')
+  expect(outerRing.boxShadow).toBe('none')
   await page.keyboard.press('Tab')
   await expect(clear).toBeFocused()
+
+  await page.goto('/?screen-artifact=search-list&state=results')
+  const rowCheckbox = page.getByRole('checkbox', { name: 'Select account: Aster Works' })
+  const rowCheckboxTarget = rowCheckbox.locator('xpath=..')
+  await rowCheckbox.focus()
+  const [checkboxFocus, targetFocus] = await Promise.all([
+    rowCheckbox.evaluate((element) => {
+      const style = window.getComputedStyle(element)
+      return { outlineWidth: style.outlineWidth, outlineOffset: style.outlineOffset, boxShadow: style.boxShadow }
+    }),
+    rowCheckboxTarget.evaluate((element) => {
+      const style = window.getComputedStyle(element)
+      return { outlineStyle: style.outlineStyle, boxShadow: style.boxShadow }
+    }),
+  ])
+  expect(checkboxFocus).toMatchObject({ outlineWidth: '2px', outlineOffset: '2px', boxShadow: 'none' })
+  expect(targetFocus).toMatchObject({ outlineStyle: 'none', boxShadow: 'none' })
 
   await page.goto('/')
   await page.getByRole('button', { name: 'Focus', exact: true }).click()
@@ -555,9 +572,9 @@ test('applies Focus Policy to natural Screen Pattern task controls', async ({ pa
     const style = window.getComputedStyle(element)
     return { outlineWidth: style.outlineWidth, outlineColor: style.outlineColor, boxShadow: style.boxShadow }
   })
-  expect(highContrast.outlineWidth).toBe('4px')
+  expect(highContrast.outlineWidth).toBe('3px')
   expect(highContrast.outlineColor).not.toBe(outerRing.outlineColor)
-  expect(highContrast.boxShadow).not.toBe(outerRing.boxShadow)
+  expect(highContrast.boxShadow).toBe('none')
 })
 
 test('keeps Japanese Edit Detail actions concise while preserving contextual accessible names', async ({ page }) => {

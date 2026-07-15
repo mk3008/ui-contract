@@ -169,39 +169,37 @@ test('renders compact, interactive Focus Policy indicators without changing focu
   await expect(primary).toBeFocused()
   const outerRing = await primary.evaluate((element) => {
     const style = window.getComputedStyle(element)
-    return { outlineWidth: style.outlineWidth, boxShadow: style.boxShadow }
+    return { outlineWidth: style.outlineWidth, outlineOffset: style.outlineOffset, boxShadow: style.boxShadow }
   })
-  expect(outerRing).toMatchObject({ outlineWidth: '0px' })
-  expect(outerRing.boxShadow).not.toBe('none')
+  expect(outerRing).toMatchObject({ outlineWidth: '2px', outlineOffset: '2px', boxShadow: 'none' })
   const evidenceDirectory = join('output', 'playwright', 'focus-indicator', testInfo.project.name || 'local')
   rmSync(evidenceDirectory, { recursive: true, force: true })
   mkdirSync(evidenceDirectory, { recursive: true })
   await preview.screenshot({ path: join(evidenceDirectory, 'light-keyboard-outer-ring.png'), animations: 'disabled' })
 
   await primary.click()
-  const pointerButton = await primary.evaluate((element) => window.getComputedStyle(element).boxShadow)
-  expect(pointerButton).toBe('none')
+  const pointerButton = await primary.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(Number.parseFloat(pointerButton)).toBeLessThan(2)
   await input.click()
-  const pointerInput = await input.evaluate((element) => window.getComputedStyle(element).boxShadow)
-  expect(pointerInput).not.toBe('none')
+  const pointerInput = await input.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(pointerInput).toBe('2px')
   await input.fill('Northwind Cooperative')
   await expect(input).toHaveValue('Northwind Cooperative')
   await expect(input).toBeFocused()
-  await expect(input).not.toHaveCSS('box-shadow', 'none')
+  await expect(input).toHaveCSS('outline-width', '2px')
 
   await page.getByText('All focused controls', { exact: true }).click()
   await expect(staticPointerFocus).toHaveClass(/focus-demo-indicator/)
   await primary.click()
-  const allFocusedPointer = await primary.evaluate((element) => window.getComputedStyle(element).boxShadow)
-  expect(allFocusedPointer).not.toBe('none')
+  const allFocusedPointer = await primary.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(allFocusedPointer).toBe('2px')
   await page.getByText('High contrast highlight', { exact: true }).click()
   await primary.focus()
   const highContrast = await primary.evaluate((element) => {
     const style = window.getComputedStyle(element)
-    return { outlineWidth: style.outlineWidth, boxShadow: style.boxShadow }
+    return { outlineWidth: style.outlineWidth, outlineOffset: style.outlineOffset, boxShadow: style.boxShadow }
   })
-  expect(highContrast).toMatchObject({ outlineWidth: '0px' })
-  expect(highContrast.boxShadow).not.toBe(outerRing.boxShadow)
+  expect(highContrast).toMatchObject({ outlineWidth: '3px', outlineOffset: '2px', boxShadow: 'none' })
 
   const [primaryAfter, secondaryAfter, inputAfter] = await Promise.all([
     primary.boundingBox(),
@@ -215,14 +213,15 @@ test('renders compact, interactive Focus Policy indicators without changing focu
   await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
   await expect(preview).toHaveCSS('--focus-outer', '#facc15')
   await primary.focus()
-  const darkRing = await primary.evaluate((element) => window.getComputedStyle(element).boxShadow)
-  expect(darkRing).not.toBe('none')
+  const darkRing = await primary.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(darkRing).toBe('3px')
   await preview.screenshot({ path: join(evidenceDirectory, 'dark-keyboard-high-contrast.png'), animations: 'disabled' })
 
   const styles = readFileSync(join(process.cwd(), 'src/styles.css'), 'utf8')
   const main = readFileSync(join(process.cwd(), 'src/main.tsx'), 'utf8')
   const focusPreviewStyles = styles.slice(styles.indexOf('.focus-stage'), styles.indexOf('.preview-button-wrap'))
-  expect(focusPreviewStyles).not.toMatch(/outline:\s*[34]px\s+solid/)
+  expect(focusPreviewStyles).toMatch(/outline:\s*2px\s+solid\s+var\(--focus-outer\)/)
+  expect(focusPreviewStyles).toMatch(/outline:\s*3px\s+solid\s+color-mix/)
   expect(focusPreviewStyles).not.toMatch(/border-width:\s*[^;]+/)
   expect(main).not.toMatch(/tabIndex=\{?[1-9]/)
   expect(focusPreviewStyles).not.toMatch(/focus-(?:outer|inner)[^\n]*(?:danger|error|primary)/)
