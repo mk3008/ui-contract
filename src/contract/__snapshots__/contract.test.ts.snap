@@ -1,0 +1,139 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`output generators > generates deterministic Markdown from the same source 1`] = `
+"# Business UI Contract
+
+Button policy prototype for the UI Contract Editor.
+
+Schema version: \`0.6.0\`
+
+## Product
+
+- System type: business-admin
+- Information density: compact
+- Visual tone: calm
+
+## Fixed rules
+
+### Structural consistency
+
+Screens with the same purpose, information structure, and interaction model must reuse the same established screen pattern, information hierarchy, spacing relationships, and action placement. Minor differences must be expressed within the established regions through content, labels, states, or presentation. A new screen structure may be introduced only when the task flow, interaction model, or information relationship is materially different. The reason for introducing a new pattern must be recorded.
+
+Before creating or changing a screen layout:
+
+1. Identify the screen's purpose, information structure, and interaction model.
+2. Find an existing screen pattern with the same characteristics.
+3. Reuse its hierarchy, regions, spacing relationships, and action placement.
+4. Express differences inside the established regions.
+5. Introduce a new pattern only when the existing pattern cannot represent a material interaction or information difference.
+6. Record the reason for introducing a new pattern.
+
+### Visible focus
+
+Keyboard focus must remain visible.
+
+### Interactive targets
+
+Controls use forgiving, labelled targets. Choice labels activate their controls; unlabeled row selection uses a dedicated, record-named selection cell.
+
+### Loading feedback
+
+Loading must visibly and programmatically communicate that the affected region is busy. Use skeletons only for structured content; use an inline indicator for a single processing action.
+
+### Empty and error guidance
+
+Empty and error states must explain the condition in plain language and provide a next step when one is available.
+
+### Button/link semantics
+
+Buttons perform actions; links navigate.
+
+## Design decisions
+
+### Foundations
+
+- colorProfileId: \`default\`
+- choiceGroupLayout: \`stacked-default-with-constrained-inline\`
+- brandIdentity.mark: \`#2563eb\`
+- brandIdentity.markBackground: \`#ffffff\`
+- brandIdentity.markBorder: \`#cbd5e1\`
+- color.light.brandBackground: \`#eff6ff\`
+- color.light.brandText: \`#172554\`
+- color.light.primary: \`#2563eb\`
+- color.light.primaryText: \`#ffffff\`
+- color.light.success: \`#15803d\`
+- color.light.warning: \`#b45309\`
+- color.light.danger: \`#b91c1c\`
+- color.light.info: \`#0f766e\`
+- color.light.focusOuter: \`#111827\`
+- color.light.focusInner: \`#facc15\`
+- color.light.background: \`#f1f5f9\`
+- color.light.surface: \`#ffffff\`
+- color.light.surfaceSoft: \`#f8fafc\`
+- color.light.border: \`#cbd5e1\`
+- color.light.text: \`#0f172a\`
+- color.light.mutedText: \`#64748b\`
+- color.dark.brandBackground: \`#020617\`
+- color.dark.brandText: \`#f8fafc\`
+- color.dark.primary: \`#60a5fa\`
+- color.dark.primaryText: \`#0f172a\`
+- color.dark.success: \`#4ade80\`
+- color.dark.warning: \`#fbbf24\`
+- color.dark.danger: \`#f87171\`
+- color.dark.info: \`#2dd4bf\`
+- color.dark.focusOuter: \`#facc15\`
+- color.dark.focusInner: \`#111827\`
+- color.dark.background: \`#0f172a\`
+- color.dark.surface: \`#111827\`
+- color.dark.surfaceSoft: \`#1f2937\`
+- color.dark.border: \`#334155\`
+- color.dark.text: \`#f8fafc\`
+- color.dark.mutedText: \`#cbd5e1\`
+
+### Interaction policy
+
+- focus.visibility: \`keyboard-and-active-inputs\`
+- focus.indicatorStyle: \`outer-ring\`
+- validation.trigger: \`submit-or-step\`
+- validation.presentation: \`field-and-summary\`
+- availability.treatment: \`keep-enabled-explain-on-action\`
+- availability.layout: \`preserve-space-for-temporary-state\`
+- confirmation.surface: \`danger-dialog\`
+- confirmation.scope: \`destructive-only\`
+- loading.feedback: \`communicate-busy-state\`
+- stateFeedback.guidance: \`explain-condition-and-next-step\`
+
+### Component policy
+
+- button.primaryEmphasis: \`filled\`
+- button.secondaryEmphasis: \`outline\`
+- button.dangerPlacement: \`separated\`
+- button.dangerEmphasis: \`outline\`
+- button.iconAdornment: \`text-only-default\`
+- button.iconOnlyPolicy: \`avoid-icon-only\`
+- textField.fieldStyle: \`outlined\`
+- textField.labelPlacement: \`top\`
+- textField.requiredIndicator: \`mark-optional\`
+- textField.messageAreaBehavior: \`reserved-message-area\`
+- textField.placeholderUsage: \`avoid-placeholder\`
+- select.emptyDisplay: \`placeholder-text\`
+- select.multiSelectedItemDisplay: \`chips\`
+- select.multiRemoveAffordance: \`chip-remove-button\`
+- select.searchFieldTreatment: \`embedded-search-field\`
+- tabs.treatment: \`line-tabs\`
+- tabs.adornment: \`text-only\`
+- toggle.treatment: \`switch-control\`
+- toggle.labelPolicy: \`visible-label\`
+- checkbox.choiceSurface: \`plain-label\`
+- checkbox.mixedState: \`show-indeterminate\`
+- card.treatment: \`outlined-card\`
+- card.interaction: \`static-card\`
+- sidePanel.relationship: \`persistent-inspector\`
+- sidePanel.responsive: \`collapse-to-toggle\`
+
+### Screen patterns
+
+- searchList: \`standard-search-list\`
+- formSection: \`grouped-form-section\`
+"
+`;

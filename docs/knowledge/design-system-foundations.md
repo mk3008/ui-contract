@@ -108,6 +108,95 @@ Examples:
 
 Interaction policy should not be hidden inside one component merely because that component triggers the interaction.
 
+### Structural Consistency
+
+Structural consistency is a fixed Foundation invariant, not a selectable
+screen-level option. Screens with the same purpose, information structure, and
+interaction model must reuse the same established screen pattern, information
+hierarchy, spacing relationships, and action placement.
+
+Minor differences belong inside the established regions through content,
+labels, states, or presentation. A new screen structure is justified only when
+the task flow, interaction model, or information relationship is materially
+different; record the reason when introducing that new pattern.
+
+Before creating or changing a screen layout:
+
+1. Identify its purpose, information structure, and interaction model.
+2. Find the established screen pattern with the same characteristics.
+3. Reuse its hierarchy, regions, spacing relationships, and action placement.
+4. Express variation within those regions.
+5. Introduce a new pattern only when the established one cannot represent a
+   material interaction or information difference.
+6. Record the reason for the new pattern.
+
+An interactive preview, a different amount of explanatory copy, staff
+preference, a newly added screen, or local visual styling alone does not make a
+screen structurally different.
+
+### Interactive Targets
+
+Interactive target policy is a fixed Foundation invariant, not a component-size
+option. It applies to Checkbox, Radio, Toggle, icon-only actions, pagination,
+and other pointer-operable controls.
+
+- Pointer-operable controls provide a target of at least 24 by 24 CSS pixels.
+  Frequently used or touch-relevant operations aim for 44 by 44 CSS pixels
+  where practical.
+- A visible choice label activates its associated native control. The visible
+  mark may be smaller than the target; the surrounding label is part of the
+  target.
+- An unlabeled control, such as a grid row-selection checkbox, owns a dedicated
+  selection cell with the enlarged target and an accessible name that identifies
+  the affected record.
+- Selection, row activation, and row actions remain distinct targets. Adjacent
+  target areas must not overlap.
+- Pointer activation, keyboard focus, and accessible naming reach the same
+  underlying native control. Checked and selected states use more than color.
+
+The precise CSS measurement, padding, and table-cell width are implementation
+details. The Contract catalog records this as the fixed `Interactive targets`
+Foundation invariant, not a choice between hit-area measurements.
+
+### Keyboard Focus and Navigation
+
+Keyboard traversal is a fixed interaction-policy and Screen Pattern acceptance
+rule, not a selectable Contract value. Natural Tab order follows visual and
+semantic reading order. Keep DOM and CSS visual order aligned and never use a
+positive `tabindex`; `tabindex="-1"` is limited to programmatic focus or
+temporary exclusion.
+
+In an LTR multi-column form, Tab proceeds left-to-right across each visual row,
+then continues with the next row. Column-first traversal is appropriate only
+when the columns are independently labelled semantic groups. The same DOM order
+must remain the one-column reading order at narrow widths.
+
+Do not steal focus during a state update unless it continues the current task.
+Removing the focused item moves focus to the semantic next target. A validation
+summary may receive programmatic focus, after which Tab continues to the first
+invalid field; it is not a permanent tab stop. Dialog Cancel and Escape return
+to the originating trigger. A confirmed destructive action instead moves focus
+to a visible result or recovery target, never to the document body or back to
+the trigger. Selection changes retain the checkbox or select-all focus and do
+not move focus to batch actions; temporarily unavailable row actions leave Tab
+order only while that state applies.
+
+These rules are render-output acceptance criteria. They do not add a Focus,
+Button, Checkbox, Confirmation, or Screen Pattern Contract option.
+
+The persisted Focus Policy still controls the visible treatment of every
+focusable control that a Screen Pattern renders. A Screen Pattern must apply
+both its visibility mode and indicator style to ordinary task actions such as
+Search, Clear, Save, Cancel, paging, and row selection; it must not remove
+those actions from natural Tab order merely to simplify a preview.
+
+Focus treatment is a compact semantic boundary around the active control, not
+a selected, destructive, invalid, or dominant surface treatment. It preserves
+the control's shape and geometry without changing border width or moving
+content. Use Focus semantic colors, rather than primary, danger, or error
+colors, and review their visibility on light, dark, neutral, and coloured
+surfaces.
+
 ### Screen Patterns
 
 Screen patterns define repeated page or workflow structures.
@@ -124,6 +213,108 @@ Examples:
 
 Screen patterns provide a standard shape.
 They should not freeze every layout dimension or all screen-specific business choices.
+
+### Screen Pattern Composition
+
+A Screen Pattern composes an immutable Contract snapshot with screen-local
+fictional fixtures. It gives a reviewer a concrete screen structure in which
+foundations, components, and interaction policy can be assessed together.
+
+`docs/reviews/screen-pattern-acceptance-contract.md` owns the fixed acceptance
+quality gates, proof hierarchy, deterministic-capture requirements, and human
+realism decision. This section owns the composition and fixture boundaries that
+the Acceptance Contract audits.
+
+The ownership boundary is deliberate: foundations own visual roles and focus;
+components own controls and visible control states; interaction policy owns
+shared loading, validation, availability, feedback, and confirmation behavior;
+Screen Patterns own the repeated page structure and composed Contract paths;
+screen-local fixtures own fictional records, columns, fields, query values, and
+deterministic outcomes. Fixture details must not be promoted into Contract
+values merely because an acceptance screen needs them.
+
+| Pattern | Required integrated composition |
+| --- | --- |
+| Search/List | Labelled conditions with apply/reset, result count, sortable table/list, selection and bulk context, row action, paging, plus loading, no-results, and error/retry states. |
+| Edit Detail | Record identity, grouped editable sections, label/help/error treatment, distinct Save/Cancel action area, and validation plus saved/cancelled outcome. |
+| Edit List | Preserved list context, a row action and editing surface, row validation, commit, and cancel. |
+| Read-only Detail | Scan-friendly record identity and grouped values, explicit availability/non-editability, legitimate next actions, and detail recovery. |
+| Destructive Action | Originating record context, named target and consequence, safe cancel focus, confirmation, result, and failure/retry; an undo appears only when existing policy permits it. |
+
+For Search/List state feedback, distinguish an unsearched initial state from a
+completed zero-result state. Before a request, do not present result records as
+if they had already been returned. When the page title, conditions, and search
+action already make the next task clear, leave the result region empty rather
+than adding instructional copy. After a request returns no matching records,
+explain that condition and provide a recovery action while retaining the
+relevant search context. This composes the existing loading and state-feedback
+invariants; it does not add a Contract option or make result criteria Contract
+policy.
+
+The Acceptance Contract requires the associated full-page evidence, semantic
+and action proof, exact image verification, deterministic reruns, and human
+realism review. A screen-local application shell is fixture composition using
+existing foundations, not a Contract option; promote an alternate shell only
+when it is proven reusable product policy. Its composition-accountability
+matrix audits the finished realistic page and excludes fine layout mechanics;
+necessary record data, workflow semantics, and shell fixtures remain justified
+exceptions rather than reasons to add artificial UI or Contract values.
+
+### Structured Search/List Composition
+
+Directories, search results, and comparable structured operational content use a
+constrained content grid by default. This is a semantic Screen Pattern/layout
+principle: a fixed grid preserves the relationship between conditions, actions,
+the result table, and pagination on wide desktop views. Fluid layout is reserved
+for content with no natural horizontal maximum, such as a board or canvas.
+
+The numeric CSS maximum is an implementation detail, not a Contract field.
+Search Apply and Reset belong in the same local condition/action grouping; table
+pagination belongs directly below the related table in the same bounded region.
+Their precise alignment is Screen Pattern composition, not a Button or
+Pagination component option.
+
+This principle does not presently justify a selectable Contract field. Keep the
+recommended constrained composition as the default and hold any option proposal
+until product evidence establishes a durable, user-selectable alternative
+layout policy with clear ownership.
+
+For multi-select tables, explicit checkboxes remain the selection control.
+Selected rows receive visible feedback in addition to their checkbox state, and
+the scoped batch-action bar is immediately adjacent to the table. Do not make
+arbitrary row surfaces toggle selection when a separate row action has a
+different intent; row activation remains deliberate. This is fixed
+standard-search-list behavior, not a Checkbox or Button Contract option.
+
+### Spatial Target Stability in Data Tables
+
+Do not dynamically insert controls that displace an active or likely-next
+pointer target. When a header or top-of-table region needs variable state, it
+reserves the same block size from the initial render: its unselected state
+presents useful table context, while its selected state replaces that content
+with scoped count and batch actions. This preserves the coordinates of the
+table header, checkboxes, and rows during selection instead of treating the
+shift as acceptable merely because it follows user input or does not affect a
+CLS score.
+
+This is a spatial-stability rule, not a forced location. A footer can be a
+valid case-by-case alternative, while a top-of-table placement remains
+appropriate when it improves discoverability or task context. In either case,
+the variable region must reserve equal space before the state transition.
+
+The invariant is exact: **a state transition initiated from a control must not
+change viewport coordinates of the initiating control, nor any existing
+interactive target above it, during the direct follow-up interaction window.**
+Treat this as render-output acceptance, independent of MVVM or other state
+implementation. Avoid dynamically inserting controls above a table; where no
+above target exists, retain the rule as a general requirement for future
+tables and forms.
+
+This is a fixed Screen Pattern/layout stability rule. The reserved block size
+is an implementation detail, not a Contract field or a Button/Checkbox option.
+Focused interaction tests should compare the triggering target, select-all or
+header controls, and visible rows above it across the state change and return
+transition, while retaining semantic checkbox and batch-action coverage.
 
 ## Review Rules
 

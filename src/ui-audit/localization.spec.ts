@@ -1,0 +1,512 @@
+import { expect, test } from '@playwright/test'
+import { mkdirSync, readFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
+
+const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Choice Group Layout', 'Interactive Targets', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Settings']
+const screenPatternPages = ['Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action'] as const
+const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Interactive Targets', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
+const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
+const englishStructureSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'
+const immutableVocabulary = new Set(['Contract Editor', 'Foundation', 'Main page', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
+const fixtureRecordValues = new Set(['Harbor Supply', 'Lumen Office', 'Pine Services', 'M. Suzuki', 'A. Tanaka'])
+
+async function expectLocalizedPage(page: import('@playwright/test').Page, language: 'JP' | 'EN', view: string) {
+  const untranslatedStructure = await page.locator(englishStructureSelector).allTextContents()
+  expect(untranslatedStructure.filter((text) => /[ぁ-んァ-ン一-龯]/.test(text)), `${view} has a structural label that does not remain English`).toEqual([])
+  const visibleCopy = await page.locator('main *').evaluateAll((nodes, excludedSelector) => {
+    const visible = (node: Element) => {
+      const style = window.getComputedStyle(node)
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+    }
+    return nodes
+      .filter((node) => visible(node) && !node.closest(excludedSelector))
+      .flatMap((node) => {
+        const text = node.children.length === 0 ? node.textContent?.trim() ?? '' : ''
+        const attributes = ['aria-label', 'title', 'placeholder']
+          .map((attribute) => node.getAttribute(attribute)?.trim() ?? '')
+        return [text, ...attributes].filter(Boolean)
+      })
+  }, excludedRegionSelector)
+  const allowed = (text: string) => immutableVocabulary.has(text) || fixtureRecordValues.has(text) || /^#?[0-9a-fA-F]{6}$/.test(text) || /^\d+$/.test(text) || /^AC-\d+$/.test(text)
+  const untranslated = language === 'JP'
+    ? visibleCopy.filter((text) => /^[\x20-\x7E]+$/.test(text) && !allowed(text))
+    : visibleCopy.filter((text) => /[ぁ-んァ-ン一-龯]/.test(text) && !allowed(text))
+  expect(untranslated, `${view} has visible ${language === 'JP' ? 'English' : 'Japanese'} non-structural copy without its language pair`).toEqual([])
+}
+
+test('audits every active view in JP and EN while preserving only structural and Contract vocabulary English', async ({ page }) => {
+  await page.goto('/')
+  for (const language of ['JP', 'EN'] as const) {
+    await page.getByRole('button', { name: language, exact: true }).click()
+    for (const view of activeViews) {
+      await page.getByRole('button', { name: view, exact: true }).click()
+      await expect(page.locator(view === 'Overview' ? 'main h3' : 'main h2').first()).toBeVisible()
+      await expect(page.locator('nav.menu-list')).toContainText('Button')
+      await expect(page.locator('nav.menu-list')).toContainText('State Feedback')
+      if (view === 'Choice Group Layout') {
+        await expect(page.locator('.choice-group-layout-fixed-decision .option-title')).toHaveText('Stacked by default')
+        await expect(page.locator('main .section-heading .eyebrow')).toHaveText('Foundation')
+        await expect(page.getByText('Constrained inline allowance', { exact: true })).toBeVisible()
+      }
+      if (sectionedContractEditors.has(view)) {
+        await expect(page.locator('main .select-sectioned-panel')).toBeVisible()
+        expect(await page.locator('main .select-policy-section-grid').count()).toBeGreaterThan(0)
+      }
+      await expectLocalizedPage(page, language, view)
+    }
+    for (const screenPattern of screenPatternPages) {
+      await page.getByRole('button', { name: screenPattern, exact: true }).click()
+      await expect(page.locator('.main-panel > .section-heading h2')).toHaveText(screenPattern)
+      await expect(page.getByRole('tablist')).toHaveCount(0)
+      await expect(page.getByText(/Each screen is a deterministic, local business-task mock|各画面は、現在の Contract を構成する決定的なローカル業務タスクモック/, { exact: true })).toHaveCount(0)
+      await expectLocalizedPage(page, language, screenPattern)
+    }
+  }
+})
+
+test('uses the page header once and keeps only distinct section headings below it', async ({ page }, testInfo) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+
+  for (const view of activeViews.filter((item) => item !== 'Overview')) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    const pageTitle = (await page.locator('main .section-heading h2').textContent())?.trim().toLocaleLowerCase()
+    const sectionTitles = await page.locator('main .select-policy-heading h3').allTextContents()
+    expect(sectionTitles.map((title) => title.trim().toLocaleLowerCase())).not.toContain(pageTitle)
+  }
+
+  for (const { view, labels } of [
+    { view: 'Choice Group Layout', labels: ['Settings', 'Preview'] },
+    { view: 'Interactive Targets', labels: ['Fixed rules', 'Try it'] },
+    { view: 'Focus', labels: ['Settings', 'Preview'] },
+    { view: 'Validation', labels: ['Settings', 'Preview'] },
+    { view: 'Availability', labels: ['Settings', 'Preview'] },
+  ]) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    await expect(page.locator('main .select-policy-heading h3')).toHaveCount(0)
+    await expect(page.locator('main .select-column-label')).toHaveText(labels)
+  }
+
+  await page.getByRole('button', { name: 'Button', exact: true }).click()
+  expect(await page.locator('main .select-policy-heading h3').allTextContents()).toEqual(['Action intent', 'Danger action', 'Icon usage'])
+
+  for (const view of screenPatternPages) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    await expect(page.locator('.screen-pattern-intro')).toHaveCount(0)
+  }
+
+  const evidenceDirectory = join('output', 'playwright', 'editor-header-hierarchy', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.getByRole('button', { name: 'Choice Group Layout', exact: true }).click()
+  await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'choice-group-layout.png'), animations: 'disabled' })
+})
+
+test('uses the same left-pane group and card vocabulary for choices, fixed rules, and editable options', async ({ page }, testInfo) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+
+  await page.getByRole('button', { name: 'Button', exact: true }).click()
+  const buttonGroups = page.locator('main .select-policy-controls .option-group')
+  await expect(buttonGroups).toHaveCount(6)
+  await expect(buttonGroups.first().locator('.option-card')).toHaveCount(3)
+
+  await page.getByRole('button', { name: 'Choice Group Layout', exact: true }).click()
+  const choiceGroup = page.locator('main .select-policy-controls .option-group')
+  await expect(choiceGroup).toHaveCount(1)
+  await expect(choiceGroup.locator('.choice-group-layout-fixed-decision')).toHaveCount(1)
+
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+  const fixedRules = page.locator('main .select-policy-controls .option-group[aria-label="Fixed rules"]')
+  await expect(fixedRules).toHaveCount(1)
+  await expect(fixedRules.locator('.fixed-rule-card')).toHaveCount(3)
+  await expect(fixedRules.locator('.fixed-rule-card.is-selected')).toHaveCount(3)
+  await expect(fixedRules.locator('.fixed-rule-card .option-title')).toHaveText(['Minimum target', 'Meaning and scope', 'Keyboard and state'])
+  await expect(page.locator('main .classification-notes')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'State Feedback', exact: true }).click()
+  const stateFeedbackRules = page.locator('main .select-policy-controls .option-group[aria-label="Fixed rules"]')
+  await expect(stateFeedbackRules).toHaveCount(3)
+  await expect(stateFeedbackRules.locator('.fixed-rule-card.is-selected')).toHaveCount(3)
+
+  const evidenceDirectory = join('output', 'playwright', 'left-pane-consistency', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.locator('main .main-panel').screenshot({ path: join(evidenceDirectory, 'state-feedback.png'), animations: 'disabled' })
+})
+
+test('orders the navigation as a guided, non-blocking authoring sequence', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/')
+  const navigation = page.locator('nav.menu-list')
+  await expect(navigation).toHaveAttribute('aria-label', 'Contract authoring navigation')
+  await expect(navigation.locator('.menu-group-label')).toHaveText(['Foundations', 'Components', 'Interaction Policies', 'Screen Patterns'])
+  await expect(navigation.locator('[data-authored-flow="true"] .submenu-item')).toHaveText([
+    'Color Settings', 'Choice Group Layout', 'Interactive Targets',
+    'Button', 'Text Field', 'Select', 'Toggle', 'Checkbox', 'Tabs', 'Card', 'Side Panel',
+    'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation',
+    'Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action',
+  ])
+  await expect(navigation.locator('[data-authored-flow="true"] > .menu-item')).toHaveCount(0)
+  await expect(navigation.locator('[data-authored-flow="false"] [role="separator"]')).toHaveAttribute('aria-label', 'Settings')
+  await expect(navigation.locator('[data-authored-flow="false"]')).toHaveText('Settings')
+
+  const evidenceDirectory = join('output', 'playwright', 'wizard-navigation', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await page.screenshot({ path: join(evidenceDirectory, 'desktop-top.png'), animations: 'disabled' })
+  await page.locator('aside.sidebar').evaluate((element) => { element.scrollTop = element.scrollHeight })
+  await page.screenshot({ path: join(evidenceDirectory, 'desktop-bottom.png'), animations: 'disabled' })
+  await page.setViewportSize({ width: 700, height: 900 })
+  await page.goto('/')
+  await page.screenshot({ path: join(evidenceDirectory, 'narrow.png'), animations: 'disabled' })
+
+  for (const target of ['Color Settings', 'Button', 'Focus', 'Search/List', 'Settings']) {
+    const entry = navigation.getByRole('button', { name: target, exact: true })
+    await entry.focus()
+    await page.keyboard.press('Enter')
+    await expect(entry).toHaveClass(/is-active/)
+  }
+})
+
+test('makes choice labels and row-selection cells forgiving, accessible targets', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+
+  const checkbox = page.getByRole('checkbox', { name: 'Send account updates', exact: true })
+  const checkboxTarget = checkbox.locator('xpath=..')
+  const standardDelivery = page.getByRole('radio', { name: 'Standard delivery', exact: true })
+  const toggle = page.getByRole('checkbox', { name: 'Enable review alerts', exact: true })
+  const rowSelection = page.getByRole('checkbox', { name: 'Select account: Harbor Supply', exact: true })
+  const rowTarget = rowSelection.locator('xpath=..')
+
+  await expect(checkbox).toBeChecked()
+  await checkboxTarget.click()
+  await expect(checkbox).not.toBeChecked()
+  await expect(standardDelivery).toBeChecked()
+  await toggle.focus()
+  await expect(toggle).toBeFocused()
+  await rowTarget.click()
+  await expect(rowSelection).toBeChecked()
+  await expect(rowTarget.locator('xpath=..')).toHaveClass(/is-selected/)
+
+  for (const target of [checkboxTarget, rowTarget]) {
+    const box = await target.boundingBox()
+    expect(box).not.toBeNull()
+    expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(40)
+  }
+  expect(await rowTarget.getAttribute('class')).toContain('target-selection-cell')
+})
+
+test('reuses the common Settings and Preview editor structure for Interactive Targets', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+
+  const targetPanel = page.locator('[data-interaction-target-policy]')
+  const targetGrid = targetPanel.locator('.select-policy-section-grid')
+  const controls = targetGrid.locator('.select-policy-controls')
+  const preview = targetGrid.locator('.select-policy-preview')
+  await expect(targetGrid).toHaveCount(1)
+  await expect(controls.locator('.select-column-label')).toHaveText('Fixed rules')
+  await expect(preview.locator('.select-column-label')).toHaveText('Try it')
+  await expect(preview.getByRole('checkbox', { name: 'Send account updates', exact: true })).toBeVisible()
+  await expect(preview.getByRole('radio', { name: 'Standard delivery', exact: true })).toBeVisible()
+  await expect(preview.getByRole('checkbox', { name: /Enable review alerts/ })).toBeVisible()
+  await expect(preview.getByRole('checkbox', { name: 'Select account: Harbor Supply', exact: true })).toBeVisible()
+
+  const [controlBox, previewBox] = await Promise.all([controls.boundingBox(), preview.boundingBox()])
+  expect(controlBox).not.toBeNull()
+  expect(previewBox).not.toBeNull()
+  expect(controlBox!.x).toBeLessThan(previewBox!.x)
+
+  const targetSource = readFileSync(join(process.cwd(), 'src/interaction-target-contract.tsx'), 'utf8')
+  const sharedSectionSource = readFileSync(join(process.cwd(), 'src/sectioned-policy-section.tsx'), 'utf8')
+  expect(targetSource).toContain("from './sectioned-policy-section'")
+  expect(targetSource).toContain('<SelectLikePolicySection')
+  expect(targetSource).not.toContain('select-policy-section-grid')
+  expect(sharedSectionSource).toContain('select-policy-section-grid')
+  expect(sharedSectionSource).toContain('select-policy-controls')
+  expect(sharedSectionSource).toContain('select-policy-preview')
+
+  const evidenceDirectory = join('output', 'playwright', 'structural-consistency', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await targetPanel.screenshot({ path: join(evidenceDirectory, 'interactive-targets-wide.png'), animations: 'disabled' })
+
+  for (const view of ['Focus', 'Validation']) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    const commonGrid = page.locator('main .select-policy-section-grid').first()
+    const [commonControls, commonPreview] = await Promise.all([
+      commonGrid.locator('.select-policy-controls').boundingBox(),
+      commonGrid.locator('.select-policy-preview').boundingBox(),
+    ])
+    expect(await commonGrid.evaluate((element) => window.getComputedStyle(element).display)).toBe('grid')
+    expect(commonControls).not.toBeNull()
+    expect(commonPreview).not.toBeNull()
+    expect(commonControls!.x).toBeLessThan(commonPreview!.x)
+  }
+
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+  await page.setViewportSize({ width: 700, height: 1000 })
+  const [narrowControls, narrowPreview] = await Promise.all([controls.boundingBox(), preview.boundingBox()])
+  expect(narrowControls).not.toBeNull()
+  expect(narrowPreview).not.toBeNull()
+  expect(narrowControls!.y).toBeLessThan(narrowPreview!.y)
+  expect(Math.abs(narrowControls!.x - narrowPreview!.x)).toBeLessThanOrEqual(1)
+  await targetPanel.screenshot({ path: join(evidenceDirectory, 'interactive-targets-narrow.png'), animations: 'disabled' })
+})
+
+test('renders compact, interactive Focus Policy indicators without changing focus geometry', async ({ page }, testInfo) => {
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.setItem('ui-contract-language', 'en')
+    localStorage.setItem('ui-contract-theme', 'light')
+  })
+  await page.reload()
+  await page.getByRole('button', { name: 'Focus', exact: true }).click()
+
+  const preview = page.locator('.focus-stage')
+  const staticSamples = preview.locator('.focus-state-samples')
+  const interactive = preview.locator('.focus-interactive-preview')
+  const staticPointerFocus = staticSamples.getByText('Preview', { exact: true })
+  const primary = interactive.getByRole('button', { name: 'Save changes', exact: true })
+  const secondary = interactive.getByRole('button', { name: 'Cancel', exact: true })
+  const input = interactive.getByRole('textbox', { name: 'Customer name', exact: true })
+  await expect(preview.getByText('Keyboard focus', { exact: true })).toBeVisible()
+  await expect(preview.getByText('Pointer focus', { exact: true })).toBeVisible()
+  await expect(preview.getByText('Active text input', { exact: true })).toBeVisible()
+  await expect(staticSamples.getByRole('heading', { name: 'Static samples', exact: true })).toBeVisible()
+  await expect(interactive.getByRole('heading', { name: 'Interactive preview', exact: true })).toBeVisible()
+  await expect(interactive.locator('.focus-demo-indicator')).toHaveCount(0)
+  await expect(staticPointerFocus).toHaveClass(/is-pointer-quiet/)
+
+  const [primaryBefore, secondaryBefore, inputBefore] = await Promise.all([
+    primary.boundingBox(),
+    secondary.boundingBox(),
+    input.boundingBox(),
+  ])
+  expect(primaryBefore).not.toBeNull()
+  expect(secondaryBefore).not.toBeNull()
+  expect(inputBefore).not.toBeNull()
+
+  await primary.focus()
+  await page.keyboard.press('Tab')
+  await expect(secondary).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(primary).toBeFocused()
+  const outerRing = await primary.evaluate((element) => {
+    const style = window.getComputedStyle(element)
+    return { outlineWidth: style.outlineWidth, outlineOffset: style.outlineOffset, boxShadow: style.boxShadow }
+  })
+  expect(outerRing).toMatchObject({ outlineWidth: '2px', outlineOffset: '2px', boxShadow: 'none' })
+  const evidenceDirectory = join('output', 'playwright', 'focus-indicator', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await preview.screenshot({ path: join(evidenceDirectory, 'light-keyboard-outer-ring.png'), animations: 'disabled' })
+
+  await primary.click()
+  const pointerButton = await primary.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(Number.parseFloat(pointerButton)).toBeLessThan(2)
+  await input.click()
+  const pointerInput = await input.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(pointerInput).toBe('2px')
+  await input.fill('Northwind Cooperative')
+  await expect(input).toHaveValue('Northwind Cooperative')
+  await expect(input).toBeFocused()
+  await expect(input).toHaveCSS('outline-width', '2px')
+
+  await page.getByText('All focused controls', { exact: true }).click()
+  await expect(staticPointerFocus).toHaveClass(/focus-demo-indicator/)
+  await primary.click()
+  const allFocusedPointer = await primary.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(allFocusedPointer).toBe('2px')
+  await page.getByText('High contrast highlight', { exact: true }).click()
+  await primary.focus()
+  const highContrast = await primary.evaluate((element) => {
+    const style = window.getComputedStyle(element)
+    return { outlineWidth: style.outlineWidth, outlineOffset: style.outlineOffset, boxShadow: style.boxShadow }
+  })
+  expect(highContrast).toMatchObject({ outlineWidth: '3px', outlineOffset: '2px', boxShadow: 'none' })
+
+  const [primaryAfter, secondaryAfter, inputAfter] = await Promise.all([
+    primary.boundingBox(),
+    secondary.boundingBox(),
+    input.boundingBox(),
+  ])
+  expect(primaryAfter).toEqual(primaryBefore)
+  expect(secondaryAfter).toEqual(secondaryBefore)
+  expect(inputAfter).toEqual(inputBefore)
+
+  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
+  await expect(preview).toHaveCSS('--focus-outer', '#facc15')
+  await primary.focus()
+  const darkRing = await primary.evaluate((element) => window.getComputedStyle(element).outlineWidth)
+  expect(darkRing).toBe('3px')
+  await preview.screenshot({ path: join(evidenceDirectory, 'dark-keyboard-high-contrast.png'), animations: 'disabled' })
+
+  const styles = readFileSync(join(process.cwd(), 'src/styles.css'), 'utf8')
+  const main = readFileSync(join(process.cwd(), 'src/main.tsx'), 'utf8')
+  const focusPreviewStyles = styles.slice(styles.indexOf('.focus-stage'), styles.indexOf('.preview-button-wrap'))
+  expect(focusPreviewStyles).toMatch(/outline:\s*2px\s+solid\s+var\(--focus-outer\)/)
+  expect(focusPreviewStyles).toMatch(/outline:\s*3px\s+solid\s+color-mix/)
+  expect(focusPreviewStyles).not.toMatch(/border-width:\s*[^;]+/)
+  expect(main).not.toMatch(/tabIndex=\{?[1-9]/)
+  expect(focusPreviewStyles).not.toMatch(/focus-(?:outer|inner)[^\n]*(?:danger|error|primary)/)
+})
+
+test('applies the active color mode to interactive and artifact Screen Patterns', async ({ page }, testInfo) => {
+  const evidenceDirectory = join('output', 'playwright', 'screen-pattern-color-mode', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.setItem('ui-contract-language', 'en')
+    localStorage.setItem('ui-contract-theme', 'light')
+  })
+  await page.reload()
+  await page.getByRole('button', { name: 'Search/List', exact: true }).click()
+
+  const interactivePattern = page.locator('.interactive-screen-patterns')
+  await expect(interactivePattern).toHaveCSS('--page', '#f1f5f9')
+  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(interactivePattern).toHaveCSS('--page', '#0f172a')
+  await expect(interactivePattern).toHaveCSS('--surface', '#111827')
+  await expect(interactivePattern.locator('[data-screen="search-list"]')).toHaveCSS('background-color', 'rgb(31, 41, 55)')
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.locator('.main-panel').screenshot({ path: join(evidenceDirectory, 'interactive-dark.png'), animations: 'disabled' })
+
+  await page.goto('/?screen-artifact=search-list')
+  const artifact = page.locator('[data-page-artifact]')
+  await expect(artifact).toHaveCSS('--page', '#0f172a')
+  await expect(artifact).toHaveCSS('background-color', 'rgb(15, 23, 42)')
+  await page.screenshot({ path: join(evidenceDirectory, 'artifact-dark.png'), animations: 'disabled' })
+})
+
+test('keeps the shared editor header structural, English, and free of explanatory chrome in both locales', async ({ page }) => {
+  await page.goto('/')
+  const header = page.locator('header.topbar')
+
+  for (const language of ['JP', 'EN'] as const) {
+    await page.getByRole('button', { name: language, exact: true }).click()
+    await expect(header.locator('.brand-name')).toHaveText('UI Contract Editor')
+    await expect(header.getByRole('heading', { name: 'Contract Workspace', exact: true })).toBeVisible()
+    await expect(header.locator('.brand-subtitle, .topbar-title p')).toHaveCount(0)
+    await expect(header.getByText('Business UI rules', { exact: true })).toHaveCount(0)
+    await expect(header.getByText('Component and color policy are the first editable slices.', { exact: true })).toHaveCount(0)
+    await expect(page.locator('.inspector, .json-preview, #contract-inspector')).toHaveCount(0)
+    await expect(header.getByRole('button', { name: /Contract JSON/ })).toHaveCount(0)
+    await expect(page.locator('.sidebar-card')).toHaveCount(0)
+    await expect(page.getByText(language === 'JP' ? '現在の対象' : 'Current focus', { exact: true })).toHaveCount(0)
+    await expect(page.getByText(language === 'JP' ? 'コンポーネントとカラー規約の編集は、焦点を絞ったプレビューにつながっています。' : 'Component and color contract editing are wired to focused previews.', { exact: true })).toHaveCount(0)
+    await expect(header.locator('.topbar-actions')).toHaveCSS('flex-wrap', 'nowrap')
+    await expect(header.getByRole('button', { name: language === 'JP' ? 'UI Contract を読み込む' : 'Load UI Contract' })).toBeVisible()
+    await expect(header.getByRole('button', { name: language === 'JP' ? 'UI Contract を保存' : 'Save UI Contract' })).toBeVisible()
+    await expect(page.locator('.overview-tagline')).toHaveCount(0)
+    await expect(page.locator('.overview-hero h3')).toHaveCount(1)
+    await expect(page.locator('.overview-hero h3')).toHaveText('UI Contract Editor')
+    await expect(page.getByText(language === 'JP' ? '業務UIの原則を書くためのエディタです。「どうあるべきか」を定義します。' : 'An editor for writing business UI principles. It defines how the UI should behave and appear.', { exact: true })).toBeVisible()
+    await expect(page.getByText(language === 'JP' ? 'UIの規約を作る' : 'Define the UI contract.', { exact: true })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Contract and design system', exact: true })).toBeVisible()
+    await expect(page.getByText(language === 'JP' ? 'UI Contract は、プロダクト、デザイン、エンジニアリング、AIの利用者へ設計意図を伝えるため、関係する再利用可能なUIルールを具体化した、可搬で実装から独立したガードレイヤーです。完全なデザインシステム、製品仕様、CSS、テーマプリセット、コードやコンポーネント実装ではありません。デザインシステムには原則や基盤に加え、コンポーネント、パターン、ドキュメント、トークン、ツール、実装アセットも含まれます。Contract はその関連ルールを明示してエクスポート可能にしますが、デザインシステムを置き換えず、状況に応じた判断をなくしません。' : 'A UI Contract is a portable, implementation-independent guardrail layer that makes relevant reusable UI rules concrete for communicating design intent to product, design, engineering, and AI consumers. It is not a complete design system, product specification, CSS, theme preset, or code or component implementation. A design system includes principles and foundations as well as components, patterns, documentation, tokens, tools, and implementation assets. The Contract makes related rules explicit and exportable; it does not replace the design system or remove contextual judgment.', { exact: true })).toBeVisible()
+  }
+})
+
+test('uses the recovered editor width without an inspector column at a narrow viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 900 })
+  await page.goto('/')
+  const contentGrid = page.locator('.content-grid')
+  const mainPanel = page.locator('.main-panel')
+  await expect(contentGrid).toHaveCount(1)
+  await expect(mainPanel).toBeVisible()
+  await expect(page.locator('.inspector, .json-preview, #contract-inspector, .sidebar-card')).toHaveCount(0)
+  const [gridBox, panelBox] = await Promise.all([contentGrid.boundingBox(), mainPanel.boundingBox()])
+  expect(gridBox).not.toBeNull()
+  expect(panelBox).not.toBeNull()
+  expect(panelBox!.x).toBeGreaterThanOrEqual(gridBox!.x)
+  expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(gridBox!.x + gridBox!.width + 0.1)
+})
+
+test('keeps the header visible while navigation and editor content scroll independently', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  const header = page.locator('header.topbar')
+  const sidebar = page.locator('aside.sidebar')
+  const workspace = page.locator('main.workspace')
+  await expect(header).toBeVisible()
+  await expect(sidebar).toHaveCSS('overflow-y', 'auto')
+  await expect(workspace).toHaveCSS('overflow-y', 'auto')
+
+  const [sidebarMetrics, workspaceMetrics, pageMetrics, headerBefore] = await Promise.all([
+    sidebar.evaluate((element) => ({ clientHeight: element.clientHeight, scrollHeight: element.scrollHeight, scrollTop: element.scrollTop })),
+    workspace.evaluate((element) => ({ clientHeight: element.clientHeight, scrollHeight: element.scrollHeight, scrollTop: element.scrollTop })),
+    page.evaluate(() => ({ clientHeight: document.scrollingElement!.clientHeight, scrollHeight: document.scrollingElement!.scrollHeight, scrollTop: document.scrollingElement!.scrollTop })),
+    header.boundingBox(),
+  ])
+  expect(sidebarMetrics.scrollHeight).toBeGreaterThan(sidebarMetrics.clientHeight)
+  expect(workspaceMetrics.scrollHeight).toBeGreaterThan(workspaceMetrics.clientHeight)
+  expect(pageMetrics.scrollHeight).toBeLessThanOrEqual(pageMetrics.clientHeight + 1)
+  expect(headerBefore).not.toBeNull()
+
+  await workspace.evaluate((element) => { element.scrollTop = 240 })
+  await expect.poll(() => workspace.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+  const headerAfter = await header.boundingBox()
+  expect(headerAfter).not.toBeNull()
+  expect(Math.abs(headerAfter!.y - headerBefore!.y)).toBeLessThanOrEqual(0.1)
+  await expect.poll(() => sidebar.evaluate((element) => element.scrollTop)).toBe(0)
+
+  await sidebar.evaluate((element) => { element.scrollTop = 240 })
+  await expect.poll(() => sidebar.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+  const sidebarScrollTop = await sidebar.evaluate((element) => element.scrollTop)
+  await workspace.evaluate((element) => { element.scrollTop = 480 })
+  await expect.poll(() => sidebar.evaluate((element) => element.scrollTop)).toBe(sidebarScrollTop)
+  await expect.poll(() => page.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0)
+})
+
+test('retains file import and Contract save without the Inspector', async ({ page }, testInfo) => {
+  await page.goto('/')
+  const fileInput = page.locator('input[type="file"]')
+  await fileInput.setInputFiles({ name: 'loaded-contract.json', mimeType: 'application/json', buffer: readFileSync('src/contract/fixtures/valid.json') })
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'UI Contract を保存' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe('ui-contract.json')
+  const savedPath = testInfo.outputPath('valid.json')
+  await download.saveAs(savedPath)
+  expect(JSON.parse(readFileSync(savedPath, 'utf8'))).toMatchObject({ schemaVersion: '0.6.0', meta: { name: 'Business UI Contract' } })
+})
+
+test('recovers from malformed and unsupported Contract files with the existing Load control', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Focus', exact: true }).click()
+  await page.getByText('All focused controls', { exact: true }).click()
+  const input = page.locator('input[type="file"]')
+  await input.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{') })
+  await expect(page.getByRole('alert')).toContainText('このファイルをJSONとして読み込めませんでした。')
+  const chooser = page.waitForEvent('filechooser')
+  await page.getByRole('button', { name: '別のファイルを選ぶ' }).click()
+  await chooser
+  await input.setInputFiles({ name: 'unsupported.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion":"99.0.0"}') })
+  await expect(page.getByRole('alert')).toContainText('このContractは読み込めません。')
+  await expect(page.getByText('All focused controls', { exact: true }).locator('..')).toHaveClass(/is-selected/)
+  const recoveryChooser = page.waitForEvent('filechooser')
+  await page.getByRole('button', { name: '別のファイルを選ぶ' }).click()
+  await recoveryChooser
+  await input.setInputFiles({ name: 'valid.json', mimeType: 'application/json', buffer: readFileSync('src/contract/fixtures/valid.json') })
+  await expect(page.getByRole('alert')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await input.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{') })
+  await expect(page.getByRole('alert')).toContainText('Could not read this file as JSON.')
+})

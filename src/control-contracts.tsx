@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react'
 import { Check, Columns3, PanelTop, ToggleLeft } from 'lucide-react'
+import { catalogOptions } from './contract/catalog'
+import type { CheckboxPolicy, TabsPolicy, TogglePolicy } from './contract/types'
+
+export type { CheckboxPolicy, TabsPolicy, TogglePolicy } from './contract/types'
 
 type Option<T extends string> = {
   value: T
@@ -7,130 +11,24 @@ type Option<T extends string> = {
   note: string
 }
 
-export type TabsTreatment = 'segmented-contained' | 'underline-tabs'
-export type TabsAdornment = 'text-only' | 'icon-when-clarifying' | 'count-when-useful'
-export type ToggleTreatment = 'switch-control' | 'segmented-binary'
-export type ToggleLabelPolicy = 'visible-label' | 'label-plus-state-text'
-export type CheckboxGroupLayout = 'stacked-list' | 'inline-compact'
-export type CheckboxChoiceSurface = 'plain-label' | 'row-surface' | 'bordered-choice-row'
-export type CheckboxMixedState = 'show-indeterminate' | 'avoid-parent-checkbox'
+export type TabsTreatment = TabsPolicy['treatment']
+export type TabsAdornment = TabsPolicy['adornment']
+export type ToggleTreatment = TogglePolicy['treatment']
+export type ToggleLabelPolicy = TogglePolicy['labelPolicy']
+export type CheckboxChoiceSurface = CheckboxPolicy['choiceSurface']
+export type CheckboxMixedState = CheckboxPolicy['mixedState']
 
-export type TabsPolicy = {
-  treatment: TabsTreatment
-  adornment: TabsAdornment
-}
+export const tabsTreatmentOptions: Array<Option<TabsTreatment>> = catalogOptions('tabs-treatment')
+export const tabsAdornmentOptions: Array<Option<TabsAdornment>> = catalogOptions('tabs-adornment')
+export const toggleTreatmentOptions: Array<Option<ToggleTreatment>> = catalogOptions('toggle-treatment')
+export const toggleLabelPolicyOptions: Array<Option<ToggleLabelPolicy>> = catalogOptions('toggle-label-policy')
+export const checkboxChoiceSurfaceOptions: Array<Option<CheckboxChoiceSurface>> = catalogOptions('checkbox-choice-surface')
+export const checkboxMixedStateOptions: Array<Option<CheckboxMixedState>> = catalogOptions('checkbox-mixed-state')
 
-export type TogglePolicy = {
-  treatment: ToggleTreatment
-  labelPolicy: ToggleLabelPolicy
-}
-
-export type CheckboxPolicy = {
-  groupLayout: CheckboxGroupLayout
-  choiceSurface: CheckboxChoiceSurface
-  mixedState: CheckboxMixedState
-}
-
-export const tabsTreatmentOptions: Array<Option<TabsTreatment>> = [
-  {
-    value: 'segmented-contained',
-    label: 'Contained tabs',
-    note: 'Use contained tabs for panels inside a work surface.',
-  },
-  {
-    value: 'underline-tabs',
-    label: 'Underline tabs',
-    note: 'Use an underline indicator for page-level tabs.',
-  },
-]
-
-export const tabsAdornmentOptions: Array<Option<TabsAdornment>> = [
-  {
-    value: 'text-only',
-    label: 'Text only',
-    note: 'Keep tab meaning in the visible label.',
-  },
-  {
-    value: 'icon-when-clarifying',
-    label: 'Clarifying icons',
-    note: 'Add icons only when they clarify stable tab categories.',
-  },
-  {
-    value: 'count-when-useful',
-    label: 'Count badge',
-    note: 'Show counts when users compare tab contents.',
-  },
-]
-
-export const toggleTreatmentOptions: Array<Option<ToggleTreatment>> = [
-  {
-    value: 'switch-control',
-    label: 'Switch control',
-    note: 'Use for one setting that takes effect immediately.',
-  },
-  {
-    value: 'segmented-binary',
-    label: 'Segmented binary control',
-    note: 'Use when both states need visible names.',
-  },
-]
-
-export const toggleLabelPolicyOptions: Array<Option<ToggleLabelPolicy>> = [
-  {
-    value: 'visible-label',
-    label: 'Visible label',
-    note: 'Keep the setting name visible beside the control.',
-  },
-  {
-    value: 'label-plus-state-text',
-    label: 'Visible label + state text',
-    note: 'Add On/Off text when the state must be readable without color.',
-  },
-]
-
-export const checkboxGroupLayoutOptions: Array<Option<CheckboxGroupLayout>> = [
-  {
-    value: 'stacked-list',
-    label: 'Stacked list',
-    note: 'Use for scan-friendly form or filter choices.',
-  },
-  {
-    value: 'inline-compact',
-    label: 'Inline compact',
-    note: 'Use only for a short set of closely related choices.',
-  },
-]
-
-export const checkboxChoiceSurfaceOptions: Array<Option<CheckboxChoiceSurface>> = [
-  {
-    value: 'plain-label',
-    label: 'Plain label',
-    note: 'Use the familiar checkbox and label for ordinary forms.',
-  },
-  {
-    value: 'row-surface',
-    label: 'Row surface',
-    note: 'Use a filled row surface when choices are scanned as a list.',
-  },
-  {
-    value: 'bordered-choice-row',
-    label: 'Outlined row',
-    note: 'Make the clickable choice area explicit for dense tools.',
-  },
-]
-
-export const checkboxMixedStateOptions: Array<Option<CheckboxMixedState>> = [
-  {
-    value: 'show-indeterminate',
-    label: 'Indeterminate',
-    note: 'Show a mixed state when a parent represents partial selection.',
-  },
-  {
-    value: 'avoid-parent-checkbox',
-    label: 'No parent checkbox',
-    note: 'Avoid a parent checkbox when partial state would be unclear.',
-  },
-]
+export const renderedControlDecisionIds = [
+  'tabs-treatment', 'tabs-adornment', 'toggle-treatment', 'toggle-label-policy',
+  'checkbox-choice-surface', 'checkbox-mixed-state',
+] as const
 
 export function TabsSectionedContractPanel({
   tabsPolicy,
@@ -214,12 +112,6 @@ export function CheckboxSectionedContractPanel({
         description="Checkboxes represent independent choices, often applied with a form, filter, or screen action."
         controls={
           <>
-            <OptionGroup
-              title="Group layout"
-              value={checkboxPolicy.groupLayout}
-              options={checkboxGroupLayoutOptions}
-              onChange={(value) => onUpdate('groupLayout', value)}
-            />
             <OptionGroup
               title="Choice surface"
               value={checkboxPolicy.choiceSurface}
@@ -319,23 +211,24 @@ function OptionGroup<T extends string>({
 }
 
 function TabsPreview({ tabsPolicy }: { tabsPolicy: TabsPolicy }) {
-  const className = tabsPolicy.treatment === 'underline-tabs'
-    ? 'control-tabs control-tabs-underline'
-    : 'control-tabs control-tabs-segmented'
+  const isContained = tabsPolicy.treatment === 'contained-tabs'
+  const className = isContained
+    ? 'control-tabs control-tabs-contained'
+    : 'control-tabs control-tabs-line'
 
   return (
     <div className="control-stage">
-      <ControlStateCard title="Panel tabs" caption="Switch related views in one work area">
-        <div className={className} role="tablist" aria-label="Preview tabs">
+      <ControlStateCard title="Related tab and panel" caption="The selected tab stays visibly connected to its panel">
+        <div className={`control-tab-pattern ${isContained ? 'is-contained' : 'is-line'}`}>
+          <div className={className} role="tablist" aria-label="Preview tabs">
           <PreviewTab active adornment={tabsPolicy.adornment} icon={<PanelTop size={14} />} label="Open" count="12" />
           <PreviewTab adornment={tabsPolicy.adornment} icon={<Columns3 size={14} />} label="History" count="4" />
           <PreviewTab adornment={tabsPolicy.adornment} icon={<ToggleLeft size={14} />} label="Inspector" count="2" />
-        </div>
-      </ControlStateCard>
-      <ControlStateCard title="Selected panel" caption="Active tab has a visible panel relationship">
-        <div className="control-tab-panel">
-          <strong>Open SQL</strong>
-          <span>Panel content belongs to the selected tab.</span>
+          </div>
+          <div aria-labelledby="preview-tab-open" className="control-tab-panel" id="preview-tab-panel" role="tabpanel">
+            <strong>Open SQL</strong>
+            <span>Panel content belongs to the selected tab.</span>
+          </div>
         </div>
       </ControlStateCard>
     </div>
@@ -356,7 +249,7 @@ function PreviewTab({
   label: string
 }) {
   return (
-    <button aria-selected={active} className={active ? 'is-active' : ''} role="tab" type="button">
+    <button aria-controls={active ? 'preview-tab-panel' : undefined} aria-selected={active} className={active ? 'is-active' : ''} id={active ? 'preview-tab-open' : undefined} role="tab" type="button">
       {adornment === 'icon-when-clarifying' ? icon : null}
       <span>{label}</span>
       {adornment === 'count-when-useful' ? <small>{count}</small> : null}
@@ -393,14 +286,10 @@ function TogglePreview({ togglePolicy }: { togglePolicy: TogglePolicy }) {
 }
 
 function CheckboxPreview({ checkboxPolicy }: { checkboxPolicy: CheckboxPolicy }) {
-  const groupClass = checkboxPolicy.groupLayout === 'inline-compact'
-    ? 'control-checkbox-group is-inline'
-    : 'control-checkbox-group'
-
   return (
     <div className="control-stage">
       <ControlStateCard title="Choice group" caption="Independent choices can be selected together">
-        <div className={groupClass}>
+        <div className="control-checkbox-group">
           <CheckboxRow checked choiceSurface={checkboxPolicy.choiceSurface} label="Tables" />
           <CheckboxRow checked choiceSurface={checkboxPolicy.choiceSurface} label="CTEs" />
           <CheckboxRow choiceSurface={checkboxPolicy.choiceSurface} label="Derived" />

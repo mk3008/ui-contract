@@ -19,6 +19,64 @@ The goal is not to copy one design system. The goal is to avoid presenting patte
 - `boundary deny`: The pattern may be valid, but it belongs outside the current contract boundary.
 - `context-limited`: The pattern exists, but only under specific conditions.
 
+## Structural Consistency Anti-Patterns
+
+### BAN-STRUCTURE-001: Do not redesign structurally equivalent screens
+
+Evidence level: `context-limited`
+
+Decision:
+Do not redesign structurally equivalent screens. Screens that have the same
+purpose, information structure, and interaction model reuse the established
+screen pattern, information hierarchy, spacing relationships, and action
+placement.
+
+An interactive preview alone is not a reason for a different shell. Nor are a
+different amount of explanatory copy, staff preference, a newly added screen,
+or local visual styling. Express those differences within the established
+regions through content, labels, state, or presentation.
+
+A new structure is permitted only when the task flow, interaction model, or
+information relationship is materially different. Record the reason before
+introducing the new pattern.
+
+Local consequence:
+Treat structural consistency as a fixed Foundation invariant. It is not a
+screen-level choice and it must not be bypassed merely because a panel contains
+an interactive sample.
+
+Related guidance:
+- `docs/knowledge/design-system-foundations.md`
+- `docs/reviews/nielsen-heuristic-review.md`
+
+## Interactive Target Anti-Patterns
+
+### BAN-TARGET-001: Do not make a small visual marker the only pointer target
+
+Evidence level: `hard deny`
+
+Decision:
+Do not require users to hit only the visible checkbox, radio, or switch glyph
+when its visible label can activate the same native control. For a selection
+cell without a visible label, provide a dedicated, forgiving cell target with
+an accessible name that identifies the record.
+
+Rationale:
+Small pointer targets make routine business tasks unnecessarily error-prone.
+The target must remain the same semantic control for pointer input, keyboard
+focus, and assistive technology. Do not merge row selection with row navigation
+or row actions merely to enlarge the target.
+
+Local consequence:
+Treat this as a fixed Foundation invariant, not as a visual-choice option.
+Use at least a 24 by 24 CSS-pixel target for pointer-operable controls; aim for
+44 by 44 CSS pixels for frequent or touch-relevant operations when practical.
+
+Sources:
+- https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum
+- https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html
+- https://www.w3.org/WAI/tutorials/forms/labels/
+
 ## Button Anti-Patterns
 
 ### BAN-BTN-001: Do not make disabled buttons the default unavailable-action pattern
@@ -307,6 +365,14 @@ Evidence level: `hard deny`
 
 Decision:
 Do not add Focus Policy options that remove, suppress, or make focus indicators subtle enough that keyboard users cannot reliably locate the active element.
+
+Local interpretation:
+Focus indicators must be clearly visible without reading as selected, destructive,
+invalid, or visually dominant over the focused control. Preserve the control's
+shape and box geometry: do not change border width or move adjacent content
+when focus appears. Use semantic Focus tokens rather than primary, danger, or
+error colors, and verify that the indicator remains perceivable on light, dark,
+neutral, and coloured surfaces.
 
 Evidence:
 - WCAG says each item receiving keyboard focus needs a visible indicator.

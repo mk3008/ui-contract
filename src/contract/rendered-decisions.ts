@@ -1,0 +1,4 @@
+/** Persisted decisions rendered by the main editor panels (color roles are generated per mode). */
+export const renderedMainDecisionIds = [
+  'color-profile', 'choice-group-layout', 'button-primary-emphasis', 'button-secondary-emphasis', 'button-danger-placement', 'button-danger-emphasis', 'button-icon-adornment', 'button-icon-only-policy', 'text-field-style', 'text-field-label-placement', 'text-field-required-indicator', 'text-field-message-area', 'text-field-placeholder', 'focus-visibility', 'focus-indicator-style', 'validation-trigger', 'validation-presentation', 'availability-treatment', 'availability-layout', 'confirmation-surface', 'confirmation-scope', 'card-treatment', 'card-interaction', 'side-panel-relationship', 'side-panel-responsive', 'search-list-pattern', 'form-section-pattern',
+] as const

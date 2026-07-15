@@ -1,0 +1,149 @@
+import { defaultContract } from './defaults'
+import type { ImportResult, UiContract } from './types'
+import { validateCurrentContract } from './validate'
+
+const supportedVersion = '0.6.0'
+const phaseSixVersion = '0.5.0'
+const phaseFiveVersion = '0.4.0'
+const phaseFourVersion = '0.3.0'
+const phaseThreeVersion = '0.2.0'
+const phaseTwoVersion = '0.1.0'
+const legacyVersion = '0.0.0'
+
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+
+const allowedShape: Record<string, unknown> = {
+  schemaVersion: true, meta: { name: true, description: true }, product: { systemType: true, informationDensity: true, visualTone: true }, screenPatternPolicy: { searchList: true, formSection: true },
+  designPolicy: { colorProfileId: true, choiceGroupLayout: true, brandIdentity: { mark: true, markBackground: true, markBorder: true }, color: { light: '*', dark: '*' } },
+  interactionPolicy: { focus: { visibility: true, indicatorStyle: true }, validation: { trigger: true, presentation: true }, availability: { treatment: true, layout: true }, confirmation: { surface: true, scope: true }, loading: { feedback: true }, stateFeedback: { guidance: true } },
+  componentPolicy: { button: { primaryEmphasis: true, secondaryEmphasis: true, dangerPlacement: true, dangerEmphasis: true, iconAdornment: true, iconOnlyPolicy: true }, textField: { fieldStyle: true, labelPlacement: true, requiredIndicator: true, messageAreaBehavior: true, placeholderUsage: true }, select: { emptyDisplay: true, multiSelectedItemDisplay: true, multiRemoveAffordance: true, searchFieldTreatment: true }, tabs: { treatment: true, adornment: true }, toggle: { treatment: true, labelPolicy: true }, checkbox: { choiceSurface: true, mixedState: true }, card: { treatment: true, interaction: true }, sidePanel: { relationship: true, responsive: true } },
+}
+
+function unknownFields(value: unknown, shape: unknown, path = ''): string[] {
+  if (!value || typeof value !== 'object' || !shape || typeof shape !== 'object') return []
+  const result: string[] = []
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    const expected = (shape as Record<string, unknown>)[key]
+    const childPath = path ? `${path}.${key}` : key
+    if (expected === undefined) result.push(childPath)
+    else if (expected !== '*' && expected !== true) result.push(...unknownFields(child, expected, childPath))
+  }
+  return result
+}
+
+function removeUnknown(value: Record<string, unknown>, shape: Record<string, unknown>): Record<string, unknown> {
+  const output: Record<string, unknown> = {}
+  for (const [key, expected] of Object.entries(shape)) {
+    const child = value[key]
+    if (child === undefined) continue
+    output[key] = expected === '*' || expected === true || !child || typeof child !== 'object' ? child : removeUnknown(child as Record<string, unknown>, expected as Record<string, unknown>)
+  }
+  return output
+}
+
+function migrateLegacyToPhaseTwo(value: Record<string, unknown>): Record<string, unknown> {
+  const migrated = clone(value)
+  migrated.schemaVersion = phaseTwoVersion
+  if (!migrated.screenPatternPolicy || typeof migrated.screenPatternPolicy !== 'object') {
+    migrated.screenPatternPolicy = clone(defaultContract.screenPatternPolicy)
+  }
+  const profile = ((migrated.designPolicy as Record<string, unknown> | undefined)?.colorProfileId)
+  if (profile === 'lineage-slate') ((migrated.designPolicy as Record<string, unknown>).colorProfileId = 'deep-slate-blue')
+  return migrated
+}
+
+function migratePhaseTwoToPhaseThree(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  const diagnostics: string[] = []
+  migrated.schemaVersion = phaseThreeVersion
+  const interactionPolicy = migrated.interactionPolicy as Record<string, unknown> | undefined
+  if (!interactionPolicy || typeof interactionPolicy !== 'object') return { value: migrated, diagnostics }
+  if (!interactionPolicy.loading) {
+    interactionPolicy.loading = clone(defaultContract.interactionPolicy.loading)
+    diagnostics.push('Added fixed Phase 3 invariant: interactionPolicy.loading.feedback = communicate-busy-state.')
+  }
+  if (!interactionPolicy.stateFeedback) {
+    interactionPolicy.stateFeedback = clone(defaultContract.interactionPolicy.stateFeedback)
+    diagnostics.push('Added fixed Phase 3 invariant: interactionPolicy.stateFeedback.guidance = explain-condition-and-next-step.')
+  }
+  const confirmation = interactionPolicy.confirmation as Record<string, unknown> | undefined
+  if (confirmation?.scope === 'destructive-bulk-unsaved') {
+    confirmation.scope = 'destructive-and-bulk'
+    diagnostics.push('Migrated confirmation.scope destructive-bulk-unsaved to destructive-and-bulk; unsaved-change navigation is now screen/application-flow owned.')
+  }
+  return { value: migrated, diagnostics }
+}
+
+function migratePhaseThreeToPhaseFour(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  migrated.schemaVersion = phaseFourVersion
+  const screenPatternPolicy = migrated.screenPatternPolicy as Record<string, unknown> | undefined
+  if (screenPatternPolicy && typeof screenPatternPolicy === 'object' && !('formSection' in screenPatternPolicy)) {
+    screenPatternPolicy.formSection = defaultContract.screenPatternPolicy.formSection
+  }
+  return { value: migrated, diagnostics: ['Added fixed Phase 4 Screen Pattern: screenPatternPolicy.formSection = grouped-form-section.'] }
+}
+
+function migratePhaseFourToCurrent(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  migrated.schemaVersion = phaseFiveVersion
+  return { value: migrated, diagnostics: [] }
+}
+
+function migratePhaseFiveToPhaseSix(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  migrated.schemaVersion = phaseSixVersion
+  const componentPolicy = migrated.componentPolicy as Record<string, unknown> | undefined
+  const checkbox = componentPolicy?.checkbox as Record<string, unknown> | undefined
+  if (checkbox && typeof checkbox === 'object') {
+    const legacyLayout = checkbox.groupLayout
+    if (legacyLayout !== undefined && legacyLayout !== 'stacked-list' && legacyLayout !== 'inline-compact') return { value: migrated, diagnostics: [`Invalid legacy Checkbox layout at componentPolicy.checkbox.groupLayout: ${String(legacyLayout)}`] }
+    delete checkbox.groupLayout
+  }
+  if (componentPolicy && typeof componentPolicy === 'object') delete componentPolicy.radioGroup
+  const designPolicy = migrated.designPolicy as Record<string, unknown> | undefined
+  if (designPolicy && typeof designPolicy === 'object') designPolicy.choiceGroupLayout = defaultContract.designPolicy.choiceGroupLayout
+  return { value: migrated, diagnostics: ['Moved Checkbox group layout to Foundation policy: designPolicy.choiceGroupLayout = stacked-default-with-constrained-inline.', 'Removed obsolete Radio Group Component Contract; native radio semantics are not a persisted Contract decision.'] }
+}
+
+function migratePhaseSixToCurrent(value: Record<string, unknown>): { value: Record<string, unknown>; diagnostics: string[] } {
+  const migrated = clone(value)
+  migrated.schemaVersion = supportedVersion
+  const tabs = ((migrated.componentPolicy as Record<string, unknown> | undefined)?.tabs) as Record<string, unknown> | undefined
+  if (tabs?.treatment === 'segmented-contained') {
+    tabs.treatment = 'contained-tabs'
+    return { value: migrated, diagnostics: ['Migrated componentPolicy.tabs.treatment segmented-contained to contained-tabs; segmented binary presentation remains Toggle-owned.'] }
+  }
+  return { value: migrated, diagnostics: [] }
+}
+
+/** Parses imported JSON without normalising invalid selections. */
+export function importContract(input: unknown): ImportResult {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return { outcome: 'invalid', diagnostics: ['Document must be an object.'] }
+  const raw = input as Record<string, unknown>
+  const version = raw.schemaVersion
+  if (version !== supportedVersion && version !== phaseSixVersion && version !== phaseFiveVersion && version !== phaseFourVersion && version !== phaseThreeVersion && version !== phaseTwoVersion && version !== legacyVersion) return { outcome: 'unsupported-version', diagnostics: [`Unsupported schemaVersion: ${String(version)}`] }
+  const phaseTwoInput = version === legacyVersion ? migrateLegacyToPhaseTwo(raw) : clone(raw)
+  const phaseThreeMigration = version === legacyVersion || version === phaseTwoVersion ? migratePhaseTwoToPhaseThree(phaseTwoInput) : { value: phaseTwoInput, diagnostics: [] }
+  const phaseFourMigration = version === legacyVersion || version === phaseTwoVersion || version === phaseThreeVersion ? migratePhaseThreeToPhaseFour(phaseThreeMigration.value) : { value: phaseThreeMigration.value, diagnostics: [] }
+  const phaseFiveMigration = version === legacyVersion || version === phaseTwoVersion || version === phaseThreeVersion || version === phaseFourVersion ? migratePhaseFourToCurrent(phaseFourMigration.value) : { value: phaseFourMigration.value, diagnostics: [] }
+  const phaseSixMigration = version === legacyVersion || version === phaseTwoVersion || version === phaseThreeVersion || version === phaseFourVersion || version === phaseFiveVersion ? migratePhaseFiveToPhaseSix(phaseFiveMigration.value) : { value: phaseFiveMigration.value, diagnostics: [] }
+  const migration = version === supportedVersion ? { value: phaseSixMigration.value, diagnostics: [] } : migratePhaseSixToCurrent(phaseSixMigration.value)
+  const migrated = migration.value
+  const diagnostics = [...migration.diagnostics.filter((diagnostic) => diagnostic.startsWith('Invalid legacy'))]
+  const schemaIssues = validateCurrentContract(migrated)
+  diagnostics.push(...schemaIssues.map((issue) => `${issue.path}: ${issue.message}`))
+  if (diagnostics.length) return { outcome: 'invalid', diagnostics }
+  const ignored = unknownFields(migrated, allowedShape)
+  if (version === supportedVersion && ignored.length) {
+    return { outcome: 'invalid', diagnostics: ignored.map((field) => `Unknown current-version property: ${field}`) }
+  }
+  const contract = (version === supportedVersion ? migrated : removeUnknown(migrated, allowedShape)) as UiContract
+  if (version === legacyVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.0.0 to 0.1.0.', 'Migrated schemaVersion 0.1.0 to 0.2.0.', ...phaseThreeMigration.diagnostics, 'Migrated schemaVersion 0.2.0 to 0.3.0.', ...phaseFourMigration.diagnostics, 'Migrated schemaVersion 0.3.0 to 0.4.0.', ...phaseFiveMigration.diagnostics, 'Migrated schemaVersion 0.4.0 to 0.5.0.', ...phaseSixMigration.diagnostics, 'Migrated schemaVersion 0.5.0 to 0.6.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseTwoVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.1.0 to 0.2.0.', ...phaseThreeMigration.diagnostics, 'Migrated schemaVersion 0.2.0 to 0.3.0.', ...phaseFourMigration.diagnostics, 'Migrated schemaVersion 0.3.0 to 0.4.0.', ...phaseFiveMigration.diagnostics, 'Migrated schemaVersion 0.4.0 to 0.5.0.', ...phaseSixMigration.diagnostics, 'Migrated schemaVersion 0.5.0 to 0.6.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseThreeVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.2.0 to 0.3.0.', ...phaseFourMigration.diagnostics, 'Migrated schemaVersion 0.3.0 to 0.4.0.', ...phaseFiveMigration.diagnostics, 'Migrated schemaVersion 0.4.0 to 0.5.0.', ...phaseSixMigration.diagnostics, 'Migrated schemaVersion 0.5.0 to 0.6.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseFourVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.3.0 to 0.4.0.', ...phaseFiveMigration.diagnostics, 'Migrated schemaVersion 0.4.0 to 0.5.0.', ...phaseSixMigration.diagnostics, 'Migrated schemaVersion 0.5.0 to 0.6.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseFiveVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.4.0 to 0.5.0.', ...phaseSixMigration.diagnostics, 'Migrated schemaVersion 0.5.0 to 0.6.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  if (version === phaseSixVersion) return { outcome: 'migrated', diagnostics: ['Migrated schemaVersion 0.5.0 to 0.6.0.', ...migration.diagnostics, ...ignored.map((field) => `Ignored unknown field: ${field}`)], contract }
+  return { outcome: 'valid', diagnostics: [], contract }
+}
