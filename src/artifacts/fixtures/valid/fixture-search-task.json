@@ -1,0 +1,16 @@
+{
+  "artifactKind": "screen-pattern",
+  "patternSchemaVersion": "0.1.0",
+  "id": "fixture-search-task",
+  "patternVersion": "0.1.0",
+  "title": "Fixture search task",
+  "purpose": "Test a complete search task.",
+  "appliesWhen": ["A user searches a bounded record set."],
+  "nonGoals": ["It does not define application records."],
+  "requires": { "coreSchemaVersion": "0.6.0", "coreRuleIds": ["button-primary-emphasis"] },
+  "composes": { "compositionPatterns": [{ "id": "fixture-form-region", "patternVersion": "0.1.0" }], "interactionScenarios": [{ "id": "fixture-destructive-flow", "scenarioVersion": "0.1.0" }] },
+  "regions": [{ "id": "search-conditions", "purpose": "Collect search criteria.", "required": true }, { "id": "results", "purpose": "Show matching records.", "required": true }],
+  "requiredStates": [{ "id": "initial", "description": "No request has been submitted." }, { "id": "loaded", "description": "Results are available." }],
+  "compositionRules": [{ "id": "conditions-before-results", "statement": "Conditions precede results.", "regionIds": ["search-conditions", "results"] }],
+  "extensionPoints": [{ "id": "search-filters", "regionId": "search-conditions", "kind": "filters", "description": "Application filter fields.", "required": true }, { "id": "result-columns", "regionId": "results", "kind": "columns", "description": "Application result columns.", "required": true }]
+}

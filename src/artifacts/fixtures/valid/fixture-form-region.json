@@ -1,0 +1,16 @@
+{
+  "artifactKind": "composition-pattern",
+  "patternSchemaVersion": "0.1.0",
+  "id": "fixture-form-region",
+  "patternVersion": "0.1.0",
+  "title": "Fixture form region",
+  "purpose": "Test a reusable form region.",
+  "appliesWhen": ["Related fields need a shared heading."],
+  "nonGoals": ["It does not define a full task."],
+  "requires": { "coreSchemaVersion": "0.6.0", "coreRuleIds": ["text-field-label-placement"] },
+  "composes": { "compositionPatterns": [] },
+  "regions": [{ "id": "field-group", "purpose": "Group related fields.", "required": true }, { "id": "form-actions", "purpose": "Separate form actions.", "required": true }],
+  "requiredStates": [{ "id": "editing", "description": "Fields can be edited." }],
+  "compositionRules": [{ "id": "fields-before-actions", "statement": "Fields precede actions.", "regionIds": ["field-group", "form-actions"] }],
+  "extensionPoints": [{ "id": "group-fields", "regionId": "field-group", "kind": "fields", "description": "Application fields.", "required": true }]
+}
