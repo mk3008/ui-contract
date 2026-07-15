@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { translateUiText, type UiLanguage } from './i18n'
+import { SelectLikePolicySection } from './sectioned-policy-section'
 
 /** Fixed Foundation preview for the interactive-target invariant. */
 export function InteractiveTargetContractPanel() {
@@ -13,22 +14,20 @@ export function InteractiveTargetContractPanel() {
 
   return (
     <div className="select-sectioned-panel interaction-target-panel" data-interaction-target-policy="accessible-labeled-targets">
-      <section className="select-policy-section">
-        <div className="select-policy-heading">
-          <h3>Interactive target policy</h3>
-          <p>Every choice control has a forgiving target. Labels activate their control; record selection uses a dedicated selection cell when no visible label is available.</p>
-        </div>
-        <div className="select-policy-section-grid">
-          <section className="select-policy-controls">
-            <span className="select-column-label">Fixed rule</span>
-            <div className="classification-notes">
+      <SelectLikePolicySection
+        title="Interactive target policy"
+        description="Every choice control has a forgiving target. Labels activate their control; record selection uses a dedicated selection cell when no visible label is available."
+        controlsLabel="Fixed rules"
+        previewLabel="Try it"
+        controls={
+          <div className="classification-notes">
               <div><h4>Minimum target</h4><p>Pointer-operable controls provide at least a 24 by 24 CSS pixel target. Frequent or touch-relevant operations aim for 44 by 44 CSS pixels where practical.</p></div>
               <div><h4>Meaning and scope</h4><p>Choice labels and controls form one target. Row selection remains separate from record navigation and row actions.</p></div>
               <div><h4>Keyboard and state</h4><p>The same native control receives pointer activation, keyboard focus, and an accessible name. Checked state is never conveyed by color alone.</p></div>
-            </div>
-          </section>
-          <section className="select-policy-preview" aria-label={translate('Interactive target preview')}>
-            <span className="select-column-label">Try it</span>
+          </div>
+        }
+        preview={
+          <div aria-label={translate('Interactive target preview')}>
             <div className="interaction-target-stage">
               <fieldset>
                 <legend data-i18n-skip>Checkbox</legend>
@@ -51,9 +50,9 @@ export function InteractiveTargetContractPanel() {
                 </div>
               </section>
             </div>
-          </section>
-        </div>
-      </section>
+          </div>
+        }
+      />
     </div>
   )
 }

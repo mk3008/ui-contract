@@ -17,6 +17,7 @@ export type ContractCatalogEntry = {
   options?: readonly ContractOption[]
   label: string
   note: string
+  guidance?: readonly string[]
   previewId: string
   translationKey: string
 }
@@ -35,11 +36,11 @@ const decision = (
   options: readonly ContractOption[],
 ): ContractCatalogEntry => ({ id, boundary, kind: 'decision', path, defaultValue, label, note, options: options.map((item) => ({ ...item, translationKey: `option.${id}.${item.value}` })), previewId: `preview.${id}`, translationKey: `decision.${id}` })
 
-const invariant = (id: string, boundary: ContractBoundary, path: string, label: string, note: string): ContractCatalogEntry => ({
-  id, boundary, kind: 'invariant', path, label, note, previewId: `preview.${id}`, translationKey: `invariant.${id}`,
+const invariant = (id: string, boundary: ContractBoundary, path: string, label: string, note: string, guidance?: readonly string[]): ContractCatalogEntry => ({
+  id, boundary, kind: 'invariant', path, label, note, guidance, previewId: `preview.${id}`, translationKey: `invariant.${id}`,
 })
 
-/** The authoritative metadata for all values currently persisted by the editor. */
+/** The authoritative metadata for Contract decisions and fixed invariants. */
 export const contractCatalog: readonly ContractCatalogEntry[] = [
   decision('color-profile', 'foundation', 'designPolicy.colorProfileId', 'default', 'Color profile', 'Semantic color roles for the product.', ['default', 'deep-slate-blue', 'enterprise-blue', 'productivity-indigo', 'trust-green', 'teal-operations', 'neutral-graphite', 'corporate-red', 'operations-orange', 'office-neutral', 'financial-navy', 'horizon-cyan', 'custom'].map((value) => option(value, value === 'custom' ? 'Custom' : value.split('-').map((word) => word[0].toUpperCase() + word.slice(1)).join(' '), 'Semantic color profile.'))),
   decision('choice-group-layout', 'foundation', 'designPolicy.choiceGroupLayout', 'stacked-default-with-constrained-inline', 'Choice group layout', 'Stack choice groups by default. Use inline layout only for a short binary choice in an appropriate screen context.', [option('stacked-default-with-constrained-inline', 'Stacked by default', 'Stack by default; inline is only for a short binary choice in an appropriate screen context.')]),
@@ -78,6 +79,14 @@ export const contractCatalog: readonly ContractCatalogEntry[] = [
   decision('side-panel-responsive', 'component', 'componentPolicy.sidePanel.responsive', 'collapse-to-toggle', 'Side panel responsive', 'Small viewport behavior.', [option('collapse-to-toggle', 'Collapse to toggle', 'Collapse panel.'), option('full-screen-sheet', 'Full-screen sheet', 'Use full screen sheet.')]),
   decision('search-list-pattern', 'screen-pattern', 'screenPatternPolicy.searchList', 'standard-search-list', 'Search and list', 'A conventional search conditions panel with a results list, sorting, paging, row and bulk action areas.', [option('standard-search-list', 'Standard search and list', 'Use a visible search action, reset, result count, sortable columns, pagination, and contextual row/bulk action areas.')]),
   decision('form-section-pattern', 'screen-pattern', 'screenPatternPolicy.formSection', 'grouped-form-section', 'Form section', 'A visible heading groups related fields in a vertical scan with a distinct action area.', [option('grouped-form-section', 'Grouped form section', 'Use a visible group heading, vertically scannable related fields, and a separate action area.')]),
+  invariant('structural-consistency', 'foundation', 'invariants.structuralConsistency', 'Structural consistency', 'Screens with the same purpose, information structure, and interaction model must reuse the same established screen pattern, information hierarchy, spacing relationships, and action placement. Minor differences must be expressed within the established regions through content, labels, states, or presentation. A new screen structure may be introduced only when the task flow, interaction model, or information relationship is materially different. The reason for introducing a new pattern must be recorded.', [
+    'Identify the screen\'s purpose, information structure, and interaction model.',
+    'Find an existing screen pattern with the same characteristics.',
+    'Reuse its hierarchy, regions, spacing relationships, and action placement.',
+    'Express differences inside the established regions.',
+    'Introduce a new pattern only when the existing pattern cannot represent a material interaction or information difference.',
+    'Record the reason for introducing a new pattern.',
+  ]),
   invariant('visible-focus', 'interaction-policy', 'invariants.visibleFocus', 'Visible focus', 'Keyboard focus must remain visible.'),
   invariant('interactive-targets', 'foundation', 'invariants.interactiveTargets', 'Interactive targets', 'Controls use forgiving, labelled targets. Choice labels activate their controls; unlabeled row selection uses a dedicated, record-named selection cell.'),
   invariant('loading-feedback', 'interaction-policy', 'interactionPolicy.loading.feedback', 'Loading feedback', 'Loading must visibly and programmatically communicate that the affected region is busy. Use skeletons only for structured content; use an inline indicator for a single processing action.'),

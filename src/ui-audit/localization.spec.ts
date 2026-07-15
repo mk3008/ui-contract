@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 const activeViews = ['Overview', 'Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Choice Group Layout', 'Interactive Targets', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'State Feedback', 'Confirmation', 'Color Settings', 'Settings']
 const screenPatternPages = ['Search/List', 'Edit Detail', 'Edit List', 'Read-only Detail', 'Destructive Action'] as const
-const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
+const sectionedContractEditors = new Set(['Button', 'Text Field', 'Select', 'Tabs', 'Toggle', 'Checkbox', 'Interactive Targets', 'Card', 'Side Panel', 'Focus', 'Validation', 'Availability', 'Confirmation'])
 const excludedRegionSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title, [data-i18n-skip], input, textarea, .select-sample-control, .select-option, .select-search-row'
 const englishStructureSelector = 'nav, h1, h2, h3, h4, h5, h6, .eyebrow, .select-column-label, .option-title'
 const immutableVocabulary = new Set(['Contract Editor', 'Foundation', 'Main page', 'Settings', 'Preview', 'Invariant', 'JSON', 'Markdown', 'ui-contract.json', 'ui-contract.md'])
@@ -127,6 +127,67 @@ test('makes choice labels and row-selection cells forgiving, accessible targets'
     expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(40)
   }
   expect(await rowTarget.getAttribute('class')).toContain('target-selection-cell')
+})
+
+test('reuses the common Settings and Preview editor structure for Interactive Targets', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('ui-contract-language', 'en'))
+  await page.reload()
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+
+  const targetPanel = page.locator('[data-interaction-target-policy]')
+  const targetGrid = targetPanel.locator('.select-policy-section-grid')
+  const controls = targetGrid.locator('.select-policy-controls')
+  const preview = targetGrid.locator('.select-policy-preview')
+  await expect(targetGrid).toHaveCount(1)
+  await expect(controls.locator('.select-column-label')).toHaveText('Fixed rules')
+  await expect(preview.locator('.select-column-label')).toHaveText('Try it')
+  await expect(preview.getByRole('checkbox', { name: 'Send account updates', exact: true })).toBeVisible()
+  await expect(preview.getByRole('radio', { name: 'Standard delivery', exact: true })).toBeVisible()
+  await expect(preview.getByRole('checkbox', { name: /Enable review alerts/ })).toBeVisible()
+  await expect(preview.getByRole('checkbox', { name: 'Select account: Harbor Supply', exact: true })).toBeVisible()
+
+  const [controlBox, previewBox] = await Promise.all([controls.boundingBox(), preview.boundingBox()])
+  expect(controlBox).not.toBeNull()
+  expect(previewBox).not.toBeNull()
+  expect(controlBox!.x).toBeLessThan(previewBox!.x)
+
+  const targetSource = readFileSync(join(process.cwd(), 'src/interaction-target-contract.tsx'), 'utf8')
+  const sharedSectionSource = readFileSync(join(process.cwd(), 'src/sectioned-policy-section.tsx'), 'utf8')
+  expect(targetSource).toContain("from './sectioned-policy-section'")
+  expect(targetSource).toContain('<SelectLikePolicySection')
+  expect(targetSource).not.toContain('select-policy-section-grid')
+  expect(sharedSectionSource).toContain('select-policy-section-grid')
+  expect(sharedSectionSource).toContain('select-policy-controls')
+  expect(sharedSectionSource).toContain('select-policy-preview')
+
+  const evidenceDirectory = join('output', 'playwright', 'structural-consistency', testInfo.project.name || 'local')
+  rmSync(evidenceDirectory, { recursive: true, force: true })
+  mkdirSync(evidenceDirectory, { recursive: true })
+  await targetPanel.screenshot({ path: join(evidenceDirectory, 'interactive-targets-wide.png'), animations: 'disabled' })
+
+  for (const view of ['Focus', 'Validation']) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    const commonGrid = page.locator('main .select-policy-section-grid').first()
+    const [commonControls, commonPreview] = await Promise.all([
+      commonGrid.locator('.select-policy-controls').boundingBox(),
+      commonGrid.locator('.select-policy-preview').boundingBox(),
+    ])
+    expect(await commonGrid.evaluate((element) => window.getComputedStyle(element).display)).toBe('grid')
+    expect(commonControls).not.toBeNull()
+    expect(commonPreview).not.toBeNull()
+    expect(commonControls!.x).toBeLessThan(commonPreview!.x)
+  }
+
+  await page.getByRole('button', { name: 'Interactive Targets', exact: true }).click()
+  await page.setViewportSize({ width: 700, height: 1000 })
+  const [narrowControls, narrowPreview] = await Promise.all([controls.boundingBox(), preview.boundingBox()])
+  expect(narrowControls).not.toBeNull()
+  expect(narrowPreview).not.toBeNull()
+  expect(narrowControls!.y).toBeLessThan(narrowPreview!.y)
+  expect(Math.abs(narrowControls!.x - narrowPreview!.x)).toBeLessThanOrEqual(1)
+  await targetPanel.screenshot({ path: join(evidenceDirectory, 'interactive-targets-narrow.png'), animations: 'disabled' })
 })
 
 test('renders compact, interactive Focus Policy indicators without changing focus geometry', async ({ page }, testInfo) => {

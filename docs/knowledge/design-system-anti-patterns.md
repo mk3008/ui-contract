@@ -19,6 +19,36 @@ The goal is not to copy one design system. The goal is to avoid presenting patte
 - `boundary deny`: The pattern may be valid, but it belongs outside the current contract boundary.
 - `context-limited`: The pattern exists, but only under specific conditions.
 
+## Structural Consistency Anti-Patterns
+
+### BAN-STRUCTURE-001: Do not redesign structurally equivalent screens
+
+Evidence level: `context-limited`
+
+Decision:
+Do not redesign structurally equivalent screens. Screens that have the same
+purpose, information structure, and interaction model reuse the established
+screen pattern, information hierarchy, spacing relationships, and action
+placement.
+
+An interactive preview alone is not a reason for a different shell. Nor are a
+different amount of explanatory copy, staff preference, a newly added screen,
+or local visual styling. Express those differences within the established
+regions through content, labels, state, or presentation.
+
+A new structure is permitted only when the task flow, interaction model, or
+information relationship is materially different. Record the reason before
+introducing the new pattern.
+
+Local consequence:
+Treat structural consistency as a fixed Foundation invariant. It is not a
+screen-level choice and it must not be bypassed merely because a panel contains
+an interactive sample.
+
+Related guidance:
+- `docs/knowledge/design-system-foundations.md`
+- `docs/reviews/nielsen-heuristic-review.md`
+
 ## Interactive Target Anti-Patterns
 
 ### BAN-TARGET-001: Do not make a small visual marker the only pointer target

@@ -95,6 +95,37 @@ describe('catalog integrity', () => {
     expect(contractCatalog.some((entry) => entry.path === 'componentPolicy.checkbox.groupLayout')).toBe(false)
     expect(contractCatalog.some((entry) => entry.path === 'componentPolicy.radioGroup.treatment')).toBe(false)
   })
+
+  it('records structural consistency as a fixed Foundation invariant rather than a selectable decision', () => {
+    const rule = contractCatalog.find((entry) => entry.id === 'structural-consistency')
+    expect(rule).toMatchObject({
+      boundary: 'foundation',
+      kind: 'invariant',
+      path: 'invariants.structuralConsistency',
+      label: 'Structural consistency',
+    })
+    expect(rule?.options).toBeUndefined()
+    expect(rule?.defaultValue).toBeUndefined()
+    expect(rule?.guidance).toEqual([
+      "Identify the screen's purpose, information structure, and interaction model.",
+      'Find an existing screen pattern with the same characteristics.',
+      'Reuse its hierarchy, regions, spacing relationships, and action placement.',
+      'Express differences inside the established regions.',
+      'Introduce a new pattern only when the existing pattern cannot represent a material interaction or information difference.',
+      'Record the reason for introducing a new pattern.',
+    ])
+  })
+
+  it('documents the structural-consistency exception boundary and anti-pattern', () => {
+    const foundations = readFileSync(new URL('../../docs/knowledge/design-system-foundations.md', import.meta.url), 'utf8')
+    const antiPatterns = readFileSync(new URL('../../docs/knowledge/design-system-anti-patterns.md', import.meta.url), 'utf8')
+    const agentGuidance = readFileSync(new URL('../../AGENTS.md', import.meta.url), 'utf8')
+    expect(foundations).toContain('### Structural Consistency')
+    expect(foundations).toContain('An interactive preview, a different amount of explanatory copy, staff')
+    expect(antiPatterns).toContain('### BAN-STRUCTURE-001: Do not redesign structurally equivalent screens')
+    expect(antiPatterns).toContain('An interactive preview alone is not a reason for a different shell.')
+    expect(agentGuidance).toContain('## Editor Structural Consistency')
+  })
 })
 
 describe('Phase 3 localization', () => {
@@ -306,6 +337,17 @@ describe('output generators', () => {
     expect(markdown).toContain('formSection: `grouped-form-section`')
     expect(markdown).not.toContain('radioGroup.treatment')
     expect(markdown).toContain('choiceGroupLayout: `stacked-default-with-constrained-inline`')
+  })
+
+  it('exports structural consistency as fixed guidance without adding it to the Contract JSON', () => {
+    const json = generateJson(defaultContract)
+    const markdown = generateMarkdown(defaultContract)
+    expect(json).not.toContain('structuralConsistency')
+    expect(markdown).toContain('## Fixed rules')
+    expect(markdown).toContain('### Structural consistency')
+    expect(markdown).toContain('Screens with the same purpose, information structure, and interaction model must reuse the same established screen pattern, information hierarchy, spacing relationships, and action placement.')
+    expect(markdown).toContain('1. Identify the screen\'s purpose, information structure, and interaction model.')
+    expect(markdown).toContain('6. Record the reason for introducing a new pattern.')
   })
 
   it('exports the fixed loading and state-feedback interaction requirements', () => {

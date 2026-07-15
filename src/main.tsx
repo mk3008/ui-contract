@@ -25,6 +25,7 @@ import {
 } from './select-contract'
 import { ChoiceGroupLayoutContractPanel } from './choice-group-layout-contract'
 import { InteractiveTargetContractPanel } from './interaction-target-contract'
+import { SelectLikePolicySection } from './sectioned-policy-section'
 import { InteractiveScreenPatterns, ScreenPatternPageArtifact } from './interactive-screen-patterns'
 import { screenPatternExampleIds, type ScreenPatternExampleId } from './screen-pattern-evidence'
 import { translateUiDocument, translateUiText, type UiLanguage } from './i18n'
@@ -1358,37 +1359,6 @@ function ButtonSectionedContractPanel({
         preview={<ButtonIconPreview buttonPolicy={buttonPolicy} />}
       />
     </div>
-  )
-}
-
-function SelectLikePolicySection({
-  controls,
-  description,
-  preview,
-  title,
-}: {
-  controls: React.ReactNode
-  description?: string
-  preview: React.ReactNode
-  title: string
-}) {
-  return (
-    <section className="select-policy-section">
-      <div className="select-policy-heading">
-        <h3>{title}</h3>
-        {description ? <p>{description}</p> : null}
-      </div>
-      <div className="select-policy-section-grid">
-        <div className="select-policy-controls">
-          <span className="select-column-label">Settings</span>
-          {controls}
-        </div>
-        <div className="select-policy-preview">
-          <span className="select-column-label">Preview</span>
-          {preview}
-        </div>
-      </div>
-    </section>
   )
 }
 

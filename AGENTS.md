@@ -90,6 +90,17 @@ through option governance instead of accepted as-is.
 The same visual or interaction meaning must keep the same base vocabulary across the editor.
 Using different words for the same design treatment, or reusing the same word for different treatments without a qualifier, is a translation defect and should be caught during review.
 
+## Editor Structural Consistency
+
+When changing UI Contract Editor itself, screens with the same purpose,
+information structure, and interaction model must reuse the established editor
+layout, hierarchy, spacing relationships, and action placement. An interactive
+preview may change an existing region label (for example, `Preview` to `Try
+it`) or its internal representation; it is not by itself a reason to introduce
+a different screen shell. The fixed invariant, exception test, and required
+recording of a new pattern are defined in
+`docs/knowledge/design-system-foundations.md`.
+
 ## Explanatory Copy Language Rule
 
 UI display copy, including page titles, headings, navigation/menu labels,

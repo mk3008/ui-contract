@@ -24,6 +24,7 @@ describe('Phase 5 target-neutral Adapter validator', () => {
     expect(derived.diagnostics).toEqual([])
     expect(derived.rules).toHaveLength(contractCatalog.length)
     expect(derived.rules.find((rule) => rule.catalogId === 'choice-group-layout')).toMatchObject({ kind: 'decision', contractPath: 'designPolicy.choiceGroupLayout', selectedValue: 'stacked-default-with-constrained-inline' })
+    expect(derived.rules.find((rule) => rule.catalogId === 'structural-consistency')).toMatchObject({ kind: 'invariant', contractPath: 'invariants.structuralConsistency', persistedValue: null })
     expect(derived.rules.find((rule) => rule.catalogId === 'visible-focus')).toMatchObject({ kind: 'invariant', contractPath: 'invariants.visibleFocus', statement: 'Keyboard focus must remain visible.', persistedValue: null })
     expect(derived.rules.find((rule) => rule.catalogId === 'loading-feedback')).toMatchObject({ kind: 'invariant', contractPath: 'interactionPolicy.loading.feedback', statement: 'Loading must visibly and programmatically communicate that the affected region is busy. Use skeletons only for structured content; use an inline indicator for a single processing action.', persistedValue: 'communicate-busy-state' })
   })

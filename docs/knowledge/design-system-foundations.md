@@ -108,6 +108,32 @@ Examples:
 
 Interaction policy should not be hidden inside one component merely because that component triggers the interaction.
 
+### Structural Consistency
+
+Structural consistency is a fixed Foundation invariant, not a selectable
+screen-level option. Screens with the same purpose, information structure, and
+interaction model must reuse the same established screen pattern, information
+hierarchy, spacing relationships, and action placement.
+
+Minor differences belong inside the established regions through content,
+labels, states, or presentation. A new screen structure is justified only when
+the task flow, interaction model, or information relationship is materially
+different; record the reason when introducing that new pattern.
+
+Before creating or changing a screen layout:
+
+1. Identify its purpose, information structure, and interaction model.
+2. Find the established screen pattern with the same characteristics.
+3. Reuse its hierarchy, regions, spacing relationships, and action placement.
+4. Express variation within those regions.
+5. Introduce a new pattern only when the established one cannot represent a
+   material interaction or information difference.
+6. Record the reason for the new pattern.
+
+An interactive preview, a different amount of explanatory copy, staff
+preference, a newly added screen, or local visual styling alone does not make a
+screen structurally different.
+
 ### Interactive Targets
 
 Interactive target policy is a fixed Foundation invariant, not a component-size
