@@ -3,6 +3,7 @@ import { issue, result, type ArtifactValidationIssue, type ArtifactValidationRes
 import { validateCompositionPatternArtifact } from '../composition-pattern/validate'
 import { validateInteractionScenarioArtifact } from '../interaction-scenario/validate'
 import { validateScreenPatternArtifact } from '../screen-pattern/validate'
+import { validateDuplicateIdOrPath } from '../validate-utils'
 import { validateBundleManifest } from './validate'
 import type { ArtifactSetInput, BundleManifest, CompositionPatternArtifact, InteractionScenarioArtifact, PatternReference, ResolvedArtifact, ScenarioReference, ScreenPatternArtifact } from '../types'
 
@@ -13,13 +14,7 @@ const versionOf = (document: AnyArtifact): string => document.artifactKind === '
 const referenceVersion = (reference: PatternReference | ScenarioReference): string => 'scenarioVersion' in reference ? reference.scenarioVersion : reference.patternVersion
 
 function validateResolvedDuplicates<T extends AnyArtifact>(items: ResolvedArtifact<T>[], path: string, issues: ArtifactValidationIssue[]): void {
-  const ids = new Set<string>()
-  const paths = new Set<string>()
-  items.forEach((item, index) => {
-    if (ids.has(item.document.id) || paths.has(item.path)) issues.push(issue(`${path}/${index}`, 'artifact.duplicate-id', `Duplicate resolved artifact ${item.document.id}.`))
-    ids.add(item.document.id)
-    paths.add(item.path)
-  })
+  validateDuplicateIdOrPath(items, path, (item) => ({ id: item.document.id, path: item.path }), 'artifact.duplicate-id', (item) => `Duplicate resolved artifact ${item.document.id}.`, issues)
 }
 
 function validateIdentity<T extends AnyArtifact>(references: Array<PatternReference | ScenarioReference>, resolved: ResolvedArtifact<T>[], path: string, issues: ArtifactValidationIssue[]): void {
@@ -74,26 +69,29 @@ function detectCycles(items: ResolvedArtifact<CompositionPatternArtifact | Inter
 }
 
 function validateArtifactSemantics(input: ArtifactSetInput, issues: ArtifactValidationIssue[]): void {
-  input.screenPatterns.forEach((item) => {
+  const rebase = (entries: ArtifactValidationIssue[], prefix: string, index: number): ArtifactValidationIssue[] => entries.map((entry) => ({ ...entry, path: `${prefix}/${index}${entry.path}` }))
+  input.screenPatterns.forEach((item, index) => {
     const validation = validateScreenPatternArtifact(item.document)
-    if (!validation.ok) issues.push(...validation.issues)
+    if (!validation.ok) issues.push(...rebase(validation.issues, '/screenPatterns', index))
   })
-  input.compositionPatterns.forEach((item) => {
+  input.compositionPatterns.forEach((item, index) => {
     const validation = validateCompositionPatternArtifact(item.document)
-    if (!validation.ok) issues.push(...validation.issues)
+    if (!validation.ok) issues.push(...rebase(validation.issues, '/compositionPatterns', index))
   })
-  input.interactionScenarios.forEach((item) => {
+  input.interactionScenarios.forEach((item, index) => {
     const validation = validateInteractionScenarioArtifact(item.document)
-    if (!validation.ok) issues.push(...validation.issues)
+    if (!validation.ok) issues.push(...rebase(validation.issues, '/interactionScenarios', index))
   })
 }
 
-function validateCoreRequirements(input: ArtifactSetInput, artifact: AnyArtifact, path: string, issues: ArtifactValidationIssue[]): void {
+function validateBundleCoreRequirements(input: ArtifactSetInput, artifact: AnyArtifact, path: string, issues: ArtifactValidationIssue[]): void {
   if (artifact.requires.coreSchemaVersion !== input.core.schemaVersion) issues.push(issue(`${path}/requires/coreSchemaVersion`, 'bundle.core-schema-mismatch', `Artifact ${artifact.id} requires Core schema ${artifact.requires.coreSchemaVersion}.`))
   const coreRules = new Set(input.core.ruleIds)
   for (const [index, id] of artifact.requires.coreRuleIds.entries()) {
     const catalog = contractCatalog.find((entry) => entry.id === id)
-    if (!catalog || catalog.boundary === 'screen-pattern' || !coreRules.has(id)) issues.push(issue(`${path}/requires/coreRuleIds/${index}`, catalog?.boundary === 'screen-pattern' ? 'artifact.non-core-rule' : 'artifact.unknown-core-rule', `Core rule ${id} is not available from the resolved Core Contract.`))
+    if (!catalog) issues.push(issue(`${path}/requires/coreRuleIds/${index}`, 'artifact.unknown-core-rule', `Core rule ${id} is not available from the resolved Core Contract.`))
+    else if (catalog.boundary === 'screen-pattern') issues.push(issue(`${path}/requires/coreRuleIds/${index}`, 'artifact.non-core-rule', `${id} is a Screen Pattern Catalog entry, not a Core rule.`))
+    else if (!coreRules.has(id)) issues.push(issue(`${path}/requires/coreRuleIds/${index}`, 'artifact.unknown-core-rule', `Core rule ${id} is not available from the resolved Core Contract.`))
   }
 }
 
@@ -118,16 +116,16 @@ export function validateArtifactSet(input: ArtifactSetInput): ArtifactValidation
   const compositions = selected(input.compositionPatterns) as Map<string, ResolvedArtifact<AnyArtifact>>
   const scenarios = selected(input.interactionScenarios) as Map<string, ResolvedArtifact<AnyArtifact>>
   input.screenPatterns.forEach((item, index) => {
-    validateCoreRequirements(input, item.document, `/screenPatterns/${index}`, issues)
+    validateBundleCoreRequirements(input, item.document, `/screenPatterns/${index}`, issues)
     item.document.composes.compositionPatterns.forEach((dependency, dependencyIndex) => validateDependency(dependency, compositions, `/screenPatterns/${index}/composes/compositionPatterns/${dependencyIndex}`, issues))
     item.document.composes.interactionScenarios.forEach((dependency, dependencyIndex) => validateDependency(dependency, scenarios, `/screenPatterns/${index}/composes/interactionScenarios/${dependencyIndex}`, issues))
   })
   input.compositionPatterns.forEach((item, index) => {
-    validateCoreRequirements(input, item.document, `/compositionPatterns/${index}`, issues)
+    validateBundleCoreRequirements(input, item.document, `/compositionPatterns/${index}`, issues)
     item.document.composes.compositionPatterns.forEach((dependency, dependencyIndex) => validateDependency(dependency, compositions, `/compositionPatterns/${index}/composes/compositionPatterns/${dependencyIndex}`, issues))
   })
   input.interactionScenarios.forEach((item, index) => {
-    validateCoreRequirements(input, item.document, `/interactionScenarios/${index}`, issues)
+    validateBundleCoreRequirements(input, item.document, `/interactionScenarios/${index}`, issues)
     item.document.composes.interactionScenarios.forEach((dependency, dependencyIndex) => validateDependency(dependency, scenarios, `/interactionScenarios/${index}/composes/interactionScenarios/${dependencyIndex}`, issues))
   })
   detectCycles(input.compositionPatterns, (document) => (document as CompositionPatternArtifact).composes.compositionPatterns, 'compositionPatterns', issues)

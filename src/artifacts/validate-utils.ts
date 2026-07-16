@@ -9,10 +9,23 @@ export const compile = (schema: Schema) => new Ajv2020({ allErrors: true, strict
 export const schemaIssues = (validate: ReturnType<typeof compile>, value: unknown): ArtifactValidationIssue[] => {
   if (validate(value)) return []
   return (validate.errors ?? []).map((error: ErrorObject) => issue(
-    error.instancePath || (error.keyword === 'additionalProperties' ? `/${String(error.params.additionalProperty)}` : '/') || '/',
+    error.keyword === 'additionalProperties'
+      ? `${error.instancePath}/${String(error.params.additionalProperty)}`
+      : error.instancePath || '/',
     `schema.${error.keyword}`,
     error.message ?? 'does not satisfy the artifact schema',
   ))
+}
+
+export function validateDuplicateIdOrPath<T>(items: T[], path: string, identity: (item: T) => { id: string; path: string }, code: string, message: (item: T) => string, issues: ArtifactValidationIssue[]): void {
+  const ids = new Set<string>()
+  const paths = new Set<string>()
+  items.forEach((item, index) => {
+    const value = identity(item)
+    if (ids.has(value.id) || paths.has(value.path)) issues.push(issue(`${path}/${index}`, code, message(item)))
+    ids.add(value.id)
+    paths.add(value.path)
+  })
 }
 
 const duplicate = (values: string[], path: string, issues: ArtifactValidationIssue[]): void => {

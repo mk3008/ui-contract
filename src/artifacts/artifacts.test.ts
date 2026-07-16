@@ -60,6 +60,14 @@ describe('Artifact schemas', () => {
     expect(codes(validateBundleManifest({ ...bundle(), screenPatterns: [{ ...bundle().screenPatterns[0], path: 'C:\\pattern.json' }] }))).toContain('schema.pattern')
   })
 
+  it('keeps nested additional-property diagnostic paths actionable', () => {
+    const nestedExtra = search() as ScreenPatternArtifact & { regions: Array<ScreenPatternArtifact['regions'][number] & { extra?: boolean }> }
+    nestedExtra.regions[0].extra = true
+    const validation = validateScreenPatternArtifact(nestedExtra)
+    expect(validation.ok).toBe(false)
+    if (!validation.ok) expect(validation.issues).toContainEqual(expect.objectContaining({ path: '/regions/0/extra', code: 'schema.additionalProperties' }))
+  })
+
   it('allows an empty Core-only Bundle', () => {
     expect(validateBundleManifest(fixture<BundleManifest>('core-only-bundle')).ok).toBe(true)
   })
@@ -115,6 +123,14 @@ describe('in-memory Bundle artifact-set validation', () => {
     const second = validateArtifactSet(bad)
     expect(codes(first)).toContain('bundle.digest-mismatch')
     expect(first).toEqual(second)
+  })
+
+  it('rebases resolved-artifact semantic diagnostics to the Bundle location', () => {
+    const input = resolvedInput()
+    input.screenPatterns[0].document.requires.coreRuleIds = ['missing-rule']
+    const validation = validateArtifactSet(input)
+    expect(validation.ok).toBe(false)
+    if (!validation.ok) expect(validation.issues).toContainEqual(expect.objectContaining({ path: '/screenPatterns/0/requires/coreRuleIds/0', code: 'artifact.unknown-core-rule' }))
   })
 
   it('distinguishes missing, identity, version, path, digest, and Core mismatches', () => {

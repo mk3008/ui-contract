@@ -1,18 +1,12 @@
 import { bundleManifestJsonSchema } from './schema'
-import { compile, schemaIssues, validated } from '../validate-utils'
-import { issue, type ArtifactValidationResult } from '../diagnostics'
+import { compile, schemaIssues, validateDuplicateIdOrPath, validated } from '../validate-utils'
+import type { ArtifactValidationResult } from '../diagnostics'
 import type { BundleManifest, PatternReference, ScenarioReference } from '../types'
 
 const validateSchema = compile(bundleManifestJsonSchema)
 
 const duplicateReferences = (references: Array<PatternReference | ScenarioReference>, path: string, issues: ReturnType<typeof schemaIssues>): void => {
-  const ids = new Set<string>()
-  const paths = new Set<string>()
-  references.forEach((reference, index) => {
-    if (ids.has(reference.id) || paths.has(reference.path)) issues.push(issue(`${path}/${index}`, 'bundle.duplicate-reference', `Duplicate Bundle reference ${reference.id}.`))
-    ids.add(reference.id)
-    paths.add(reference.path)
-  })
+  validateDuplicateIdOrPath(references, path, (reference) => reference, 'bundle.duplicate-reference', (reference) => `Duplicate Bundle reference ${reference.id}.`, issues)
 }
 
 export function validateBundleManifest(value: unknown): ArtifactValidationResult<BundleManifest> {
