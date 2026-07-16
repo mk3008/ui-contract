@@ -1,0 +1,16 @@
+{
+  "artifactKind": "interaction-scenario",
+  "scenarioSchemaVersion": "0.1.0",
+  "id": "fixture-destructive-flow",
+  "scenarioVersion": "0.1.0",
+  "title": "Fixture destructive flow",
+  "purpose": "Test an interaction scenario.",
+  "appliesWhen": ["An irreversible operation needs confirmation."],
+  "nonGoals": ["It does not own a page shell."],
+  "requires": { "coreSchemaVersion": "0.6.0", "coreRuleIds": ["confirmation-surface"] },
+  "composes": { "interactionScenarios": [] },
+  "requiredContext": ["Named target", "Consequence"],
+  "requiredStates": [{ "id": "confirming", "description": "The operation awaits confirmation." }, { "id": "completed", "description": "The outcome is visible." }],
+  "compositionRules": [{ "id": "confirm-before-action", "statement": "Confirmation precedes the action." }],
+  "extensionPoints": [{ "id": "destructive-action", "kind": "actions", "description": "Application destructive action.", "required": true }]
+}

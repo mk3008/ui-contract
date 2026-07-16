@@ -1,0 +1,7 @@
+{
+  "bundleSpecVersion": "0.1.0",
+  "contract": { "path": "contract.json", "schemaVersion": "0.6.0", "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "screenPatterns": [],
+  "compositionPatterns": [],
+  "interactionScenarios": []
+}
